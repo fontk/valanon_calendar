@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Simple calendar glyph; replace with Image Asset Studio output when branding is ready. -->
+<!--
+  Launcher glyph: the stroke "calendario" icon from the design (24x24 viewBox, stroke 2),
+  centred in the 108dp adaptive-icon canvas (safe zone is the inner 66dp).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Page -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M30,34 h48 a6,6 0 0 1 6,6 v36 a6,6 0 0 1 -6,6 h-48 a6,6 0 0 1 -6,-6 v-36 a6,6 0 0 1 6,-6 z" />
-    <!-- Header band -->
-    <path
-        android:fillColor="#FF0F3F7A"
-        android:pathData="M30,34 h48 a6,6 0 0 1 6,6 v10 h-60 v-10 a6,6 0 0 1 6,-6 z" />
-    <!-- Rings -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M40,28 h6 v12 h-6 z M62,28 h6 v12 h-6 z" />
-    <!-- Day dots -->
-    <path
-        android:fillColor="#FF1E5AA8"
-        android:pathData="M36,56 h8 v8 h-8 z M50,56 h8 v8 h-8 z M64,56 h8 v8 h-8 z M36,68 h8 v8 h-8 z M50,68 h8 v8 h-8 z" />
+    <group
+        android:scaleX="2.2"
+        android:scaleY="2.2"
+        android:translateX="27.6"
+        android:translateY="27.6">
+        <path
+            android:pathData="M5,5h14a2,2 0,0 1,2 2v12a2,2 0,0 1,-2 2H5a2,2 0,0 1,-2 -2V7a2,2 0,0 1,2 -2z M3,10h18 M8,3v4 M16,3v4"
+            android:strokeWidth="2"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#FFDDF0EC"
+            android:pathData="M6.5,13h3v3h-3z M10.5,13h3v3h-3z M14.5,13h3v3h-3z" />
+    </group>
 </vector>

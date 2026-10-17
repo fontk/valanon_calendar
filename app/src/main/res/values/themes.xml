@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The real theme is built in Compose (ui/theme/Theme.kt). This only styles the window. -->
-    <style name="Theme.ValanonCalendar" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.MisTurnos" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
 </resources>

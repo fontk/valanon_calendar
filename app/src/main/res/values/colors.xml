@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1E5AA8</color>
+    <!-- accent token from mis-turnos-kit/design/tokens/tokens.json -->
+    <color name="ic_launcher_background">#0F6E64</color>
 </resources>

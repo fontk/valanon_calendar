@@ -1,13 +1,35 @@
 <resources>
-    <string name="app_name">Valanon Calendar</string>
-    <string name="add_event">Añadir evento</string>
-    <string name="new_event">Nuevo evento</string>
-    <string name="event_title">Título</string>
-    <string name="event_date">Fecha</string>
-    <string name="save">Guardar</string>
-    <string name="cancel">Cancelar</string>
-    <string name="ok">Aceptar</string>
-    <string name="delete_event">Eliminar evento</string>
-    <string name="all_day">Todo el día</string>
-    <string name="no_events">Todavía no hay eventos.\nPulsa + para crear el primero.</string>
+    <string name="app_name">Mis turnos</string>
+
+    <!-- Comunes -->
+    <string name="sobretitulo">Mis turnos</string>
+    <string name="cancelar">Cancelar</string>
+
+    <!-- Navegación -->
+    <string name="tab_calendario">Calendario</string>
+    <string name="tab_checklist">Checklist</string>
+
+    <!-- Calendario -->
+    <string name="mes_anterior">Mes anterior</string>
+    <string name="mes_siguiente">Mes siguiente</string>
+    <string name="exportar_pdf">Exportar a PDF</string>
+    <string name="pdf_exportado">PDF exportado</string>
+    <string name="pdf_error">No se pudo exportar el PDF</string>
+    <string name="compartir_pdf">Compartir PDF</string>
+    <string name="turno_del_dia">Turno del día</string>
+    <string name="turno_actual">Actual</string>
+    <string name="sin_turno">sin turno</string>
+
+    <!-- Checklist -->
+    <string name="checklist_titulo">Checklist</string>
+    <string name="progreso_tareas">%1$d de %2$d hechas</string>
+    <string name="nueva_tarea">Nueva tarea</string>
+    <string name="nueva_tarea_placeholder">Nueva tarea…</string>
+    <string name="agregar">Agregar</string>
+    <string name="borrar_tarea">Borrar tarea</string>
+    <string name="tarea_borrada">Tarea borrada</string>
+    <string name="deshacer">Deshacer</string>
+    <string name="reiniciar_tareas">Reiniciar todas las tareas</string>
+    <string name="sin_tareas">Sin tareas todavía</string>
+    <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
 </resources>

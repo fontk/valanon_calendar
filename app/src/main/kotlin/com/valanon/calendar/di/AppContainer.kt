@@ -2,13 +2,13 @@ package com.valanon.calendar.di
 
 import android.content.Context
 import com.valanon.calendar.data.local.AppDatabase
-import com.valanon.calendar.data.repository.EventRepository
+import com.valanon.calendar.data.repository.TareasRepositorio
+import com.valanon.calendar.data.repository.TurnosRepositorio
+import com.valanon.calendar.pdf.ExportadorPdf
 
 /**
  * Manual dependency container. Everything is created lazily, so the database
  * file is only opened the first time a repository is used.
- *
- * If the app grows, this is the place to swap for Hilt/Koin.
  */
 class AppContainer(context: Context) {
 
@@ -16,5 +16,9 @@ class AppContainer(context: Context) {
 
     val database: AppDatabase by lazy { AppDatabase.build(appContext) }
 
-    val eventRepository: EventRepository by lazy { EventRepository(database.eventDao()) }
+    val turnosRepositorio: TurnosRepositorio by lazy { TurnosRepositorio(database.turnoDao()) }
+
+    val tareasRepositorio: TareasRepositorio by lazy { TareasRepositorio(database.tareaDao()) }
+
+    val exportadorPdf: ExportadorPdf by lazy { ExportadorPdf(appContext) }
 }
