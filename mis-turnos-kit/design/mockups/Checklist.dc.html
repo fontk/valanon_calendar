@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mis turnos – Checklist</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif;color:#1C1C1A;background:#FFFFFF}
+a{color:#0F6E64}a:hover{color:#0B544C}
+button,input{font-family:inherit}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; display: flex; flex-direction: column; position: relative; overflow: hidden; font-family: Manrope, system-ui, sans-serif">
+
+  <div style="padding: 22px 20px 14px; display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Mis turnos</div>
+    <div style="display: flex; align-items: baseline; justify-content: space-between">
+      <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Checklist</div>
+      <div style="font-size: 13px; font-weight: 700; color: #5F5F5A">{{progress}}</div>
+    </div>
+  </div>
+
+  <div style="padding: 0 20px 16px; display: flex; gap: 8px">
+    <label for="nueva-tarea" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Nueva tarea</label>
+    <input id="nueva-tarea" type="text" placeholder="Nueva tarea…" value="{{draft}}" onChange="{{onDraft}}" onKeyDown="{{onKey}}" style="flex-grow: 1; min-width: 0; height: 50px; box-sizing: border-box; border-radius: 14px; border: 1px solid #E6E6E1; background: #F7F7F4; padding: 0 16px; font-size: 16px; font-weight: 600; color: #1C1C1A; outline: none">
+    <button onClick="{{add}}" style="height: 50px; padding: 0 18px; border-radius: 14px; border: none; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      Agregar
+    </button>
+  </div>
+
+  <div style="flex-grow: 1; overflow-y: auto; padding: 0 20px 100px; display: flex; flex-direction: column; gap: 8px">
+    <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+      <div style="margin-top: 80px; display: flex; flex-direction: column; align-items: center; gap: 10px; color: #7A7A75; text-align: center">
+        <svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#B9B9B3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"></path><rect x="3" y="4" width="18" height="16" rx="2"></rect></svg>
+        <div style="font-size: 15px; font-weight: 700">Sin tareas todavía</div>
+        <div style="font-size: 13px; font-weight: 500; max-width: 220px">Escribe una tarea arriba y pulsa Agregar.</div>
+      </div>
+    </sc-if>
+    <sc-for list="{{tasks}}" as="t" hint-placeholder-count="5">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 8px 8px 14px; border-radius: 14px; border: 1px solid #E8E8E4; background: {{t.bg}}">
+        <input type="checkbox" id="{{t.cid}}" checked="{{t.done}}" onChange="{{t.toggle}}" style="width: 24px; height: 24px; margin: 0; accent-color: {{accent}}; flex-shrink: 0">
+        <label for="{{t.cid}}" style="flex-grow: 1; font-size: 16px; font-weight: 600; line-height: 1.3; color: {{t.fg}}; text-decoration: {{t.deco}}; padding: 8px 0">{{t.text}}</label>
+        <button onClick="{{t.remove}}" aria-label="Borrar tarea" style="width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; color: #8A2E1F">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
+        </button>
+      </div>
+    </sc-for>
+  </div>
+
+  <button onClick="{{resetAll}}" aria-label="Reiniciar todas las tareas" style="position: absolute; right: 20px; bottom: 92px; width: 60px; height: 60px; border-radius: 18px; border: none; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0; box-shadow: 0 6px 18px rgba(20, 20, 19, 0.22)">
+    <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"></path><path d="M3 21v-5h5"></path></svg>
+  </button>
+
+  <div style="height: 72px; border-top: 1px solid #ECECE8; background: #FFFFFF; display: flex">
+    <a href="Main.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 18px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Calendario</span>
+    </a>
+    <div aria-current="page" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{accent}}">
+      <span style="padding: 4px 18px; border-radius: 999px; background: #DDF0EC; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"></path><rect x="3" y="4" width="18" height="16" rx="2"></rect></svg></span>
+      <span style="font-size: 12px; font-weight: 800">Checklist</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6E64","options":["#0F6E64","#2E2A6B","#B4421E"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      draft: '',
+      nextId: 6,
+      tasks: [
+        { id: 1, text: 'Preparar el uniforme', done: true },
+        { id: 2, text: 'Revisar el cuadrante de la semana', done: true },
+        { id: 3, text: 'Comprar comida para la noche', done: false },
+        { id: 4, text: 'Cargar la batería de la linterna', done: false },
+        { id: 5, text: 'Pedir cambio de turno del día 24', done: false }
+      ]
+    };
+  }
+  addTask() {
+    var txt = this.state.draft.trim();
+    if (!txt) return;
+    this.setState({
+      tasks: this.state.tasks.concat([{ id: this.state.nextId, text: txt, done: false }]),
+      nextId: this.state.nextId + 1,
+      draft: ''
+    });
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent || '#0F6E64';
+    var done = s.tasks.filter(function (t) { return t.done; }).length;
+    return {
+      accent: accent,
+      draft: s.draft,
+      empty: s.tasks.length === 0,
+      progress: s.tasks.length ? done + ' de ' + s.tasks.length + ' hechas' : '',
+      onDraft: function (e) { self.setState({ draft: e.target.value }); },
+      onKey: function (e) { if (e.key === 'Enter') self.addTask(); },
+      add: function () { self.addTask(); },
+      resetAll: function () {
+        self.setState({ tasks: s.tasks.map(function (t) { return Object.assign({}, t, { done: false }); }) });
+      },
+      tasks: s.tasks.map(function (t) {
+        return {
+          cid: 'tarea-' + t.id,
+          text: t.text,
+          done: t.done,
+          bg: t.done ? '#F7F7F4' : '#FFFFFF',
+          fg: t.done ? '#7A7A75' : '#1C1C1A',
+          deco: t.done ? 'line-through' : 'none',
+          toggle: function () {
+            self.setState({ tasks: s.tasks.map(function (x) { return x.id === t.id ? Object.assign({}, x, { done: !x.done }) : x; }) });
+          },
+          remove: function () {
+            self.setState({ tasks: s.tasks.filter(function (x) { return x.id !== t.id; }) });
+          }
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

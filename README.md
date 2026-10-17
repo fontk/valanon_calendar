@@ -3,6 +3,19 @@
 Aplicación Android nativa escrita en **Kotlin** con interfaz en **Jetpack Compose** y
 persistencia local en **SQLite** a través de **Room**.
 
+## Inicio rápido
+
+Compilar y ejecutar los tests desde la terminal (macOS, con Android Studio instalado):
+
+```bash
+cd /Users/alejandrofuentes/Proyects/valanon_calendar
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+./gradlew assembleDebug testDebugUnitTest
+```
+
+El APK queda en `app/build/outputs/apk/debug/app-debug.apk`. Para instalarlo en un
+dispositivo o emulador conectado: `./gradlew installDebug`.
+
 ## Requisitos
 
 | Herramienta | Versión | Notas |
@@ -37,7 +50,20 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ./gradlew lintDebug                  # análisis estático
 ```
 
-Conviene añadir la línea `export JAVA_HOME=...` a `~/.zshrc` para no repetirla.
+Conviene añadir la línea `export JAVA_HOME=...` a `~/.zshrc` para no repetirla. Si no se
+quiere tocar la configuración de la shell, se puede pasar en la misma línea:
+
+```bash
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug
+```
+
+Secuencia completa de verificación (es la que debe pasar antes de un commit):
+
+```bash
+./gradlew clean assembleDebug testDebugUnitTest assembleDebugAndroidTest lintDebug
+```
+
+Si Gradle falla con `Unable to locate a Java Runtime`, falta el `export JAVA_HOME`.
 
 ## Estructura
 
