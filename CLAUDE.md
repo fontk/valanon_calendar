@@ -51,11 +51,12 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 ```
 
 - `CalendarApp` (Application) owns `di/AppContainer`, a manual DI container with lazy
-  singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `exportadorPdf`).
+  singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `plantillasRepositorio`,
+  `exportadorPdf`).
   ViewModels get dependencies through `viewModelFactory { initializer { ... } }` reading
   `APPLICATION_KEY` plus `createSavedStateHandle()` (see `CalendarioViewModel.Factory`).
 - `ui/MisTurnosApp.kt`: Scaffold with a custom bottom bar and a `NavHost` with string routes
-  `calendario` (start) and `checklist`. Tab switches use `saveState`/`restoreState`, so each
+  `calendario` (start), `checklist` and the `plantillas_tab` graph. Tab switches use `saveState`/`restoreState`, so each
   tab keeps its ViewModel (visible month, typed draft).
 - Screens follow the Route/Screen split: `XRoute` is stateful (ViewModel, snackbar, share
   intent), `XScreen` is stateless and previewable. Previews use `ui/preview/DatosMuestra.kt`;
@@ -76,18 +77,26 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
-## Pending feature: Plantillas tab (spec 4b, stories P1–P9, TASKS Fase 7)
+## Plantillas tab (spec 4b, stories P1–P9, TASKS Fase 7) — implemented
 
-Third bottom-bar destination `plantillas` (after Checklist). Reusable data sets that other tabs
-will consume later; v1 has one type, `TipoPlantilla.TRABAJADORES` (a list of worker names).
-Screens: list with FAB + → `SelectorTipoPlantilla` bottom sheet → worker detail (rename inline,
-add / inline-edit / delete workers with undo, delete template with confirm dialog). Detail is
-inner navigation of the tab; system Back returns to the list. Data: Room schema **version 2**
-with `Plantilla` and `Trabajador` entities (`ON DELETE CASCADE`, index on `plantilla_id`),
-`MIGRATION_1_2` creating only the new tables (mirror `mis-turnos-kit/db/schema.sql`), new JSON
-under `app/schemas/`. References: `mis-turnos-kit/design/mockups/Plantillas*.dc.html` and
-`design/DESIGN.md` ("Pestaña Plantillas"). Do not add other template types or wire templates
-into Calendario/Checklist until asked.
+- Third bottom-bar destination. `Destino.PLANTILLAS.ruta` (`plantillas_tab`) is a nested
+  navigation graph with `RutasPlantillas.LISTA` (`plantillas`) and `RutasPlantillas.DETALLE`
+  (`plantillas/{id}?renombrar={renombrar}`). The active tab is found through
+  `destination.hierarchy`; re-selecting the current tab does nothing, and switching tabs keeps
+  the open template (`saveState`/`restoreState`). System Back in the detail pops to the list.
+- `ui/plantillas/`: `PlantillasScreen` (cards, empty state, FAB, `SelectorTipoPlantilla`
+  sheet) + `PlantillasViewModel` (`hojaTiposAbierta` in SavedStateHandle, `suspend crear(tipo)`
+  returns the id); `PlantillaTrabajadoresScreen` + `PlantillaTrabajadoresViewModel` (reads the
+  nav args `id`/`renombrar` from SavedStateHandle; drafts are Compose state mirrored to the
+  handle; `editandoId`, `renombrando`, `confirmandoBorrado` live in the handle). Deleting the
+  template makes `uiState.cerrada` true and the route pops back.
+- Type-specific UI lives in `TipoPlantillaUi.kt` (`icono`, `descripcion`, `InsigniaTipo`).
+  `TipoPlantilla` has only `TRABAJADORES`: do not add other types or use templates from
+  Calendario/Checklist until asked (AGENTS.md).
+- Shared list-tab pieces are in `ui/componentes/Pestanas.kt` (`CabeceraPestana`, `CampoAlta`,
+  `EstadoVacio`, `FabAccion`), used by Checklist and Plantillas.
+- Avatars (`util/iniciales`) are decorative for accessibility (`clearAndSetSemantics`); the
+  row's name is what TalkBack reads.
 
 ## Month/year picker (spec 3.1.1, story C2b, TASKS Fase 6) — implemented
 
@@ -110,17 +119,23 @@ into Calendario/Checklist until asked.
 
 ## Database rules
 
-- Schema mirrors `mis-turnos-kit/db/schema.sql` name by name. `turnos.fecha` is ISO
-  `yyyy-MM-dd` text (`LocalDate.toString()`), so `BETWEEN` and ordering work on strings.
-  `turnos.tipo` stores `TipoTurno.valor` through `Conversores`. Room cannot express the SQL
-  `CHECK` constraints; the enum conversion enforces them.
-- New tasks go to the end in one statement (`TareaDao.agregarAlFinal`, `MAX(orden) + 1`).
-  Undo re-inserts the deleted `Tarea` with its id and `orden`.
-- `AppDatabase.VERSION` is the schema version. Any entity change requires: bump the version,
-  add a `Migration`, register it in `AppDatabase.build()`, rebuild, and commit the JSON that
-  Room exports to `app/schemas/`.
-- JVM tests use `testing/Fakes.kt` (in-memory DAOs + `MainDispatcherRule`); real SQLite is
-  covered by `androidTest/.../TurnoDaoTest` and `TareaDaoTest`.
+- Schema **version 2**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
+  v1 `turnos`, `tareas`; v2 adds `plantillas` and `trabajadores` (FK `plantilla_id` →
+  `plantillas.id` ON DELETE CASCADE, index `idx_trabajadores_plantilla`).
+- `turnos.fecha` is ISO `yyyy-MM-dd` text (`LocalDate.toString()`), so `BETWEEN` and ordering
+  work on strings. Enum columns (`turnos.tipo`, `plantillas.tipo`) store `.valor` through
+  `Conversores`. Room cannot express the SQL `CHECK` constraints; the enum conversion
+  enforces them.
+- New rows go to the end in one statement (`MAX(orden) + 1`: tasks, templates, and workers
+  per template). Undo re-inserts the deleted row with its id and `orden`.
+- Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2`, `TODAS_LAS_MIGRACIONES`).
+  Their SQL must equal the `createSql` Room exports in `app/schemas/.../<n>.json`.
+- Any entity change: bump `AppDatabase.VERSION`, add the `Migration` and append it to
+  `TODAS_LAS_MIGRACIONES`, rebuild, commit the new JSON, and extend `MigrationTest`.
+- `MigrationTestHelper` needs kotlinx-serialization 1.8.x; the app is constrained to it in
+  `app/build.gradle.kts` because test classpaths are pinned to the app's runtime versions.
+- JVM tests use `testing/Fakes.kt` (in-memory DAOs, including the cascade, +
+  `MainDispatcherRule`); real SQLite is covered by the `androidTest/.../data/local` tests.
 
 ## Conventions
 

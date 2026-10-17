@@ -7,26 +7,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarDuration
@@ -41,18 +32,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,7 +44,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
 import com.valanon.calendar.data.local.entity.Tarea
-import com.valanon.calendar.ui.componentes.Sobretitulo
+import com.valanon.calendar.ui.componentes.CabeceraPestana
+import com.valanon.calendar.ui.componentes.CampoAlta
+import com.valanon.calendar.ui.componentes.EstadoVacio
+import com.valanon.calendar.ui.componentes.FabAccion
 import com.valanon.calendar.ui.icons.MisTurnosIcons
 import com.valanon.calendar.ui.preview.DatosMuestra
 import com.valanon.calendar.ui.theme.MisTurnosColors
@@ -113,15 +100,29 @@ fun ChecklistScreen(
 ) {
     Box(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
         Column(Modifier.fillMaxSize()) {
-            Cabecera(estado)
-            AltaTarea(
-                borrador = borrador,
-                onBorradorCambia = onBorradorCambia,
+            CabeceraPestana(
+                titulo = stringResource(R.string.checklist_titulo),
+                resumen = if (estado.total > 0) {
+                    pluralStringResource(R.plurals.progreso_tareas, estado.total, estado.hechas, estado.total)
+                } else {
+                    null
+                },
+            )
+            CampoAlta(
+                valor = borrador,
+                onValorCambia = onBorradorCambia,
                 onAgregar = onAgregar,
+                placeholder = stringResource(R.string.nueva_tarea_placeholder),
+                descripcion = stringResource(R.string.nueva_tarea),
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
             )
             if (!estado.cargando && estado.tareas.isEmpty()) {
-                EstadoVacio(Modifier.fillMaxWidth().padding(top = 80.dp, start = 20.dp, end = 20.dp))
+                EstadoVacio(
+                    titulo = stringResource(R.string.sin_tareas),
+                    ayuda = stringResource(R.string.sin_tareas_ayuda),
+                    icono = MisTurnosIcons.ChecklistVacio,
+                    modifier = Modifier.fillMaxWidth().padding(top = 80.dp, start = 20.dp, end = 20.dp),
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -141,22 +142,14 @@ fun ChecklistScreen(
             }
         }
 
-        FloatingActionButton(
+        FabAccion(
+            icono = MisTurnosIcons.Reiniciar,
+            descripcion = stringResource(R.string.reiniciar_tareas),
             onClick = onReiniciar,
-            shape = RoundedCornerShape(18.dp),
-            containerColor = MisTurnosColors.Accent,
-            contentColor = MisTurnosColors.OnAccent,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(60.dp),
-        ) {
-            Icon(
-                MisTurnosIcons.Reiniciar,
-                contentDescription = stringResource(R.string.reiniciar_tareas),
-                modifier = Modifier.size(26.dp),
-            )
-        }
+                .padding(end = 20.dp, bottom = 20.dp),
+        )
 
         SnackbarHost(
             hostState = snackbarHostState,
@@ -164,98 +157,6 @@ fun ChecklistScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 92.dp),
         )
-    }
-}
-
-@Composable
-private fun Cabecera(estado: ChecklistUiState) {
-    Column(
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Sobretitulo(stringResource(R.string.sobretitulo))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                text = stringResource(R.string.checklist_titulo),
-                style = MisTurnosText.title,
-                color = MisTurnosColors.Text,
-                modifier = Modifier
-                    .alignByBaseline()
-                    .semantics { heading() },
-            )
-            if (estado.total > 0) {
-                Text(
-                    text = pluralStringResource(R.plurals.progreso_tareas, estado.total, estado.hechas, estado.total),
-                    style = MisTurnosText.caption,
-                    color = MisTurnosColors.TextMuted,
-                    modifier = Modifier.alignByBaseline(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AltaTarea(
-    borrador: String,
-    onBorradorCambia: (String) -> Unit,
-    onAgregar: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val forma = RoundedCornerShape(14.dp)
-    val descripcionCampo = stringResource(R.string.nueva_tarea)
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicTextField(
-            value = borrador,
-            onValueChange = onBorradorCambia,
-            singleLine = true,
-            textStyle = MisTurnosText.body.copy(color = MisTurnosColors.Text),
-            cursorBrush = SolidColor(MisTurnosColors.AccentOnBackground),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(onDone = { onAgregar() }),
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 50.dp)
-                .semantics { contentDescription = descripcionCampo },
-            decorationBox = { campo ->
-                Box(
-                    modifier = Modifier
-                        .heightIn(min = 50.dp)
-                        .clip(forma)
-                        .background(MisTurnosColors.SurfaceInput)
-                        .border(1.dp, MisTurnosColors.Line, forma)
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    if (borrador.isEmpty()) {
-                        Text(
-                            stringResource(R.string.nueva_tarea_placeholder),
-                            style = MisTurnosText.body,
-                            color = MisTurnosColors.TextFaint,
-                        )
-                    }
-                    campo()
-                }
-            },
-        )
-        Button(
-            onClick = onAgregar,
-            shape = forma,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MisTurnosColors.Accent,
-                contentColor = MisTurnosColors.OnAccent,
-            ),
-            contentPadding = PaddingValues(horizontal = 18.dp),
-            modifier = Modifier.heightIn(min = 50.dp),
-        ) {
-            Icon(MisTurnosIcons.Mas, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            // Mockup: 15 sp / 800
-            Text(stringResource(R.string.agregar), style = MisTurnosText.buttonSmall.copy(fontWeight = FontWeight.W800))
-        }
     }
 }
 
@@ -312,30 +213,6 @@ fun FilaTarea(
                 modifier = Modifier.size(20.dp),
             )
         }
-    }
-}
-
-@Composable
-private fun EstadoVacio(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(
-            MisTurnosIcons.ChecklistVacio,
-            contentDescription = null,
-            tint = MisTurnosColors.EmptyIcon,
-            modifier = Modifier.size(44.dp),
-        )
-        Text(stringResource(R.string.sin_tareas), style = MisTurnosText.emptyTitle, color = MisTurnosColors.TextFaint)
-        Text(
-            stringResource(R.string.sin_tareas_ayuda),
-            style = MisTurnosText.emptyHelp,
-            color = MisTurnosColors.TextFaint,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = 220.dp),
-        )
     }
 }
 

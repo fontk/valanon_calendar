@@ -1,9 +1,16 @@
 package com.valanon.calendar.testing
 
+import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TareaDao
+import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.dao.TurnoDao
+import com.valanon.calendar.data.local.entity.Plantilla
+import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.local.entity.Turno
+import com.valanon.calendar.data.model.TipoPlantilla
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +65,63 @@ class FakeTareaDao : TareaDao {
     override suspend fun reiniciarTodas() = filas.update { l -> l.map { it.copy(hecha = false) } }
 
     override suspend fun maxOrden(): Int? = filas.value.maxOfOrNull { it.orden }
+}
+
+/** In-memory [TrabajadorDao]; [FakePlantillaDao.borrar] cascades into it like the real FK. */
+class FakeTrabajadorDao : TrabajadorDao {
+    val filas = MutableStateFlow<List<Trabajador>>(emptyList())
+    private var siguienteId = 1L
+
+    override fun observarDePlantilla(plantillaId: Long): Flow<List<Trabajador>> =
+        filas.map { l -> l.filter { it.plantillaId == plantillaId }.sortedWith(compareBy({ it.orden }, { it.id })) }
+
+    override suspend fun agregarAlFinal(plantillaId: Long, nombre: String): Long {
+        val orden = (filas.value.filter { it.plantillaId == plantillaId }.maxOfOrNull { it.orden } ?: 0) + 1
+        return insertar(Trabajador(plantillaId = plantillaId, nombre = nombre, orden = orden))
+    }
+
+    override suspend fun renombrar(id: Long, nombre: String) =
+        filas.update { l -> l.map { if (it.id == id) it.copy(nombre = nombre) else it } }
+
+    override suspend fun borrar(id: Long) = filas.update { l -> l.filterNot { it.id == id } }
+
+    override suspend fun insertar(trabajador: Trabajador): Long {
+        val id = if (trabajador.id == 0L) siguienteId++ else trabajador.id
+        siguienteId = maxOf(siguienteId, id + 1)
+        filas.update { it + trabajador.copy(id = id) }
+        return id
+    }
+}
+
+/** In-memory [PlantillaDao] with the JOIN count and the ON DELETE CASCADE of the real schema. */
+class FakePlantillaDao(private val trabajadores: FakeTrabajadorDao) : PlantillaDao {
+    val filas = MutableStateFlow<List<Plantilla>>(emptyList())
+    private var siguienteId = 1L
+
+    override fun observarTodas(): Flow<List<PlantillaConRecuento>> =
+        combine(filas, trabajadores.filas) { ps, ts ->
+            ps.sortedWith(compareBy({ it.orden }, { it.id }))
+                .map { p -> PlantillaConRecuento(p, ts.count { it.plantillaId == p.id }) }
+        }
+
+    override fun observar(id: Long): Flow<Plantilla?> = filas.map { l -> l.firstOrNull { it.id == id } }
+
+    override suspend fun insertarAlFinal(tipo: TipoPlantilla, nombre: String): Long {
+        val id = siguienteId++
+        val orden = (filas.value.maxOfOrNull { it.orden } ?: 0) + 1
+        filas.update { it + Plantilla(id = id, tipo = tipo, nombre = nombre, orden = orden) }
+        return id
+    }
+
+    override suspend fun renombrar(id: Long, nombre: String) =
+        filas.update { l -> l.map { if (it.id == id) it.copy(nombre = nombre) else it } }
+
+    override suspend fun borrar(id: Long) {
+        filas.update { l -> l.filterNot { it.id == id } }
+        trabajadores.filas.update { l -> l.filterNot { it.plantillaId == id } }
+    }
+
+    override suspend fun contar(): Int = filas.value.size
 }
 
 /** Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. */

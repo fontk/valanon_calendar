@@ -1,7 +1,7 @@
 # Mis turnos (Valanon Calendar)
 
 Aplicación Android nativa para registrar el turno de trabajo de cada día y llevar una
-checklist reutilizable. Escrita en **Kotlin** con **Jetpack Compose** y persistencia local
+checklist reutilizable, además de plantillas de datos como listas de trabajadores. Escrita en **Kotlin** con **Jetpack Compose** y persistencia local
 en **SQLite** a través de **Room**. Todo se guarda en el dispositivo y se conserva al
 cerrar la app.
 
@@ -20,6 +20,9 @@ Design): `spec/SPEC.md`, `spec/USER_STORIES.md`, `design/DESIGN.md` y las maquet
   leyenda, y abre la hoja de compartir del sistema.
 - **Checklist**: añadir tareas, marcar y desmarcar, borrar con opción de deshacer, contador
   "X de Y hechas" y un botón flotante que desmarca todas sin borrarlas.
+- **Plantillas**: listas reutilizables que otras pestañas podrán usar más adelante. De momento
+  hay un tipo, **Trabajadores**: una lista de nombres. Se crean con +, se renombran tocando el
+  nombre, y los trabajadores se añaden, editan en línea o eliminan con opción de deshacer.
 - **Modo oscuro**: sigue el ajuste del sistema y cambia al momento, sin reiniciar la app.
   Usa la paleta oscura de `design/DESIGN.md` y mantiene los colores de turno. El PDF
   exportado sale siempre en claro, pensado para imprimir.
@@ -94,7 +97,7 @@ app/src/main/kotlin/com/valanon/calendar/
 ├── di/AppContainer.kt             Contenedor manual de dependencias
 ├── data/
 │   ├── model/TipoTurno.kt         Los cinco turnos y su valor en BBDD
-│   ├── local/                     Room: AppDatabase, Conversores, DAOs y entidades
+│   ├── local/                     Room: AppDatabase, migraciones, Conversores, DAOs y entidades
 │   └── repository/                TurnosRepositorio y TareasRepositorio
 ├── pdf/                           ExportadorPdf (PdfDocument) y compartir con FileProvider
 ├── ui/
@@ -102,6 +105,8 @@ app/src/main/kotlin/com/valanon/calendar/
 │   ├── MisTurnosApp.kt            Barra inferior y NavHost (calendario, checklist)
 │   ├── calendario/                Pantalla, hoja de selección y ViewModel
 │   ├── checklist/                 Pantalla y ViewModel
+│   ├── plantillas/                Lista, hoja de tipos, detalle de trabajadores y ViewModels
+│   ├── componentes/               Piezas compartidas (cabecera, campo de alta, estado vacío…)
 │   ├── icons/MisTurnosIcons.kt    Iconos de trazo copiados de las maquetas
 │   ├── preview/DatosMuestra.kt    Datos de las maquetas, solo para @Preview
 │   └── theme/                     Tokens de color, colores de turno, Manrope y tema
@@ -116,11 +121,15 @@ licenses/Manrope-OFL.txt           Licencia de la fuente incluida
 ## Base de datos (SQLite / Room)
 
 - Archivo `mis_turnos.db` en el almacenamiento privado de la app.
-- Esquema idéntico a `mis-turnos-kit/db/schema.sql`, versión 1:
+- Esquema idéntico a `mis-turnos-kit/db/schema.sql`, versión 2:
   - `turnos(fecha TEXT PK, tipo TEXT)`, con la fecha en ISO `yyyy-MM-dd` y el tipo en
     minúsculas sin tilde (`libre`, `manana`, `tarde`, `noche`, `vacaciones`).
   - `tareas(id INTEGER PK AUTOINCREMENT, texto TEXT, hecha INTEGER DEFAULT 0, orden INTEGER)`
     con el índice `idx_tareas_orden`.
+  - `plantillas(id, tipo, nombre, orden)` y `trabajadores(id, plantilla_id, nombre, orden)`.
+    Borrar una plantilla borra sus trabajadores en cascada.
+- La migración de la versión 1 a la 2 solo crea las tablas de plantillas. Los turnos y las
+  tareas de quien actualiza la app se conservan.
 - Room no admite restricciones `CHECK`. Los valores de `tipo` los valida el conversor de
   `TipoTurno`, y `hecha` es un `Boolean` que Room guarda como 0 o 1.
 - Para cambiar el esquema:
@@ -128,13 +137,14 @@ licenses/Manrope-OFL.txt           Licencia de la fuente incluida
   2. Subir `AppDatabase.VERSION`.
   3. Añadir una `Migration` y registrarla en `AppDatabase.build()` con `.addMigrations(...)`.
   4. Compilar: Room exporta el nuevo esquema a `app/schemas/`. Hay que incluirlo en el commit.
+  5. Ampliar `MigrationTest` con la nueva migración.
 
 ## Tests
 
 | Tipo | Comando | Qué cubre |
 |---|---|---|
-| Unitarios (JVM) | `./gradlew testDebugUnitTest` | Celdas del mes, fechas en español, tipos de turno y ambos ViewModels |
-| Instrumentados | `./gradlew connectedDebugAndroidTest` | DAOs sobre SQLite real, PDF generado y las historias C1 a C4 y L1 a L6 en la app |
+| Unitarios (JVM) | `./gradlew testDebugUnitTest` | Celdas del mes, fechas en español, iniciales, contraste de colores y todos los ViewModels |
+| Instrumentados | `./gradlew connectedDebugAndroidTest` | DAOs sobre SQLite real, migración 1 a 2, PDF generado y las historias de Calendario, Checklist y Plantillas en la app |
 
 Los instrumentados necesitan un emulador o un móvil conectado. La prueba de interfaz
 borra las tablas de la app antes de cada test.

@@ -39,6 +39,8 @@ data class PaletaMisTurnos(
     /** Bottom-sheet container, and the neutral "Cancelar" button inside it. */
     val sheet: Color,
     val sheetButton: Color,
+    /** Outline of destructive buttons ("Eliminar plantilla"), tokens.json → dangerBorder. */
+    val dangerBorder: Color,
 )
 
 val PaletaClara = PaletaMisTurnos(
@@ -64,6 +66,7 @@ val PaletaClara = PaletaMisTurnos(
     todayRing = Color(0xFFB9CFCB),
     sheet = Color(0xFFFFFFFF),
     sheetButton = Color(0xFFF2F2EF),
+    dangerBorder = Color(0xFFE6C9C3),
 )
 
 val PaletaOscura = PaletaMisTurnos(
@@ -89,6 +92,7 @@ val PaletaOscura = PaletaMisTurnos(
     todayRing = Color(0x665DCAB9), // accentOnBackground at 40 % (DESIGN.md → SelectorMes)
     sheet = Color(0xFF1F1F1D), // "fondo de la hoja = superficie oscura"
     sheetButton = Color(0xFF2E2E2B), // stays visible on the dark sheet
+    dangerBorder = Color(0xFF5E3129),
 )
 
 val LocalPaleta = staticCompositionLocalOf { PaletaClara }
@@ -120,4 +124,5 @@ object MisTurnosColors {
     val TodayRing: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.todayRing
     val Sheet: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheet
     val SheetButton: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheetButton
+    val DangerBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.dangerBorder
 }

@@ -47,6 +47,13 @@ object MisTurnosText {
     val monthPicker = TextStyle(fontFamily = Manrope, fontSize = 20.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
     val yearLabel = TextStyle(fontFamily = Manrope, fontSize = 24.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
     val monthCell = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W700)
+    val cardTitle = TextStyle(fontFamily = Manrope, fontSize = 16.sp, fontWeight = FontWeight.W800)
+    val cardSubtitle = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W600)
+    val avatar = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W800)
+    val inlineButton = TextStyle(fontFamily = Manrope, fontSize = 14.sp, fontWeight = FontWeight.W800)
+    val nameInput = TextStyle(fontFamily = Manrope, fontSize = 16.sp, fontWeight = FontWeight.W700)
+    val detailTitle = TextStyle(fontFamily = Manrope, fontSize = 20.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
+    val addButton = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W800)
 }
 
 /** Material 3 typography mapped onto Manrope so default components also use it. */

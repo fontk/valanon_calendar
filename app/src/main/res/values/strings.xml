@@ -55,6 +55,53 @@
     <string name="sin_tareas">Sin tareas todavía</string>
     <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
 
+    <!-- Plantillas (spec 4b) -->
+    <string name="tab_plantillas">Plantillas</string>
+    <string name="plantillas_titulo">Plantillas</string>
+    <string name="sin_plantillas">Sin plantillas todavía</string>
+    <string name="sin_plantillas_ayuda">Pulsa + para crear tu primera plantilla.</string>
+    <string name="anadir_plantilla">Añadir plantilla</string>
+    <string name="nueva_plantilla">Nueva plantilla</string>
+    <string name="que_tipo_plantilla">¿Qué tipo de plantilla?</string>
+    <string name="tipo_trabajadores_descripcion">Lista de nombres para usar en otras pestañas</string>
+    <!-- Card subtitle: "Trabajadores · 4 trabajadores" -->
+    <string name="subtitulo_plantilla">%1$s · %2$s</string>
+    <string name="volver_a_plantillas">Volver a plantillas</string>
+    <!-- "Plantilla · Trabajadores" (shown uppercase) -->
+    <string name="sobretitulo_plantilla">Plantilla · %1$s</string>
+    <string name="cambiar_nombre_plantilla">Cambiar nombre de la plantilla</string>
+    <string name="nombre_plantilla">Nombre de la plantilla</string>
+    <string name="guardar">Guardar</string>
+    <string name="nombre_trabajador">Nombre del trabajador</string>
+    <string name="nombre_trabajador_placeholder">Nombre del trabajador…</string>
+    <string name="editar_trabajador">Editar trabajador</string>
+    <string name="eliminar_trabajador">Eliminar trabajador</string>
+    <string name="cancelar_edicion">Cancelar edición</string>
+    <string name="trabajador_eliminado">Trabajador eliminado</string>
+    <string name="sin_trabajadores">Sin trabajadores todavía</string>
+    <string name="sin_trabajadores_ayuda">Escribe un nombre arriba y pulsa Agregar.</string>
+    <string name="eliminar_plantilla">Eliminar plantilla</string>
+    <string name="eliminar_plantilla_titulo">¿Eliminar la plantilla «%1$s»?</string>
+    <string name="eliminar_plantilla_sin_trabajadores">La plantilla no tiene trabajadores.</string>
+    <string name="eliminar">Eliminar</string>
+
+    <plurals name="contador_plantillas">
+        <item quantity="one">%d plantilla</item>
+        <item quantity="many">%d plantillas</item>
+        <item quantity="other">%d plantillas</item>
+    </plurals>
+    <!-- "4 trabajadores": card subtitle and section label (shown uppercase) -->
+    <plurals name="contador_trabajadores">
+        <item quantity="one">%d trabajador</item>
+        <item quantity="many">%d trabajadores</item>
+        <item quantity="other">%d trabajadores</item>
+    </plurals>
+    <plurals name="eliminar_plantilla_cuerpo">
+        <item quantity="one">Se borrará también su trabajador.</item>
+        <item quantity="many">Se borrarán también sus %d trabajadores.</item>
+        <item quantity="other">Se borrarán también sus %d trabajadores.</item>
+    </plurals>
+
     <!-- "3 de 6 hechas". Quantity is the total number of tasks. -->
     <plurals name="progreso_tareas">
         <item quantity="one">%1$d de %2$d hecha</item>

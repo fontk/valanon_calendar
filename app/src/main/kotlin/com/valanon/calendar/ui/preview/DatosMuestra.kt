@@ -1,6 +1,10 @@
 package com.valanon.calendar.ui.preview
 
+import com.valanon.calendar.data.local.entity.Plantilla
+import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.Trabajador
+import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.model.TipoTurno
 import java.time.LocalDate
 import java.time.YearMonth
@@ -24,6 +28,16 @@ internal object DatosMuestra {
             MES.atDay(dia) to if (dia >= 26) TipoTurno.VACACIONES else patron[(dia - 1) % patron.size]
         }
     }
+
+    /** The two templates of Plantillas.dc.html. */
+    fun plantillas(): List<PlantillaConRecuento> = listOf(
+        PlantillaConRecuento(Plantilla(id = 1, tipo = TipoPlantilla.TRABAJADORES, nombre = "Equipo de planta", orden = 1), 4),
+        PlantillaConRecuento(Plantilla(id = 2, tipo = TipoPlantilla.TRABAJADORES, nombre = "Refuerzos fin de semana", orden = 2), 2),
+    )
+
+    /** Workers of "Equipo de planta" in the mockup. */
+    fun trabajadoresEquipo(): List<Trabajador> = listOf("Lucía Martínez", "Javier Ortega", "Ana Belén Ruiz", "Marcos Pérez")
+        .mapIndexed { i, nombre -> Trabajador(id = i + 1L, plantillaId = 1, nombre = nombre, orden = i + 1) }
 
     fun tareas(): List<Tarea> = listOf(
         Tarea(id = 1, texto = "Preparar el uniforme", hecha = true, orden = 1),

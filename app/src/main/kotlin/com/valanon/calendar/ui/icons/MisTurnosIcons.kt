@@ -62,6 +62,37 @@ object MisTurnosIcons {
         )
     }
 
+    // --- Plantillas (DESIGN.md → Iconos; paths from design/mockups/Plantillas.dc.html) ---
+
+    private val capas = arrayOf("M12 3l9 5-9 5-9-5 9-5z", "M3 13l9 5 9-5", "M3 17l9 5 9-5")
+
+    /** Layers: Plantillas tab. */
+    val Plantillas: ImageVector by lazy { icono("Plantillas", 2f, *capas) }
+
+    /** Thinner variant used in the templates empty state. */
+    val PlantillasVacio: ImageVector by lazy { icono("PlantillasVacio", 1.6f, *capas) }
+
+    /** Two people: "Trabajadores" template type. */
+    val Trabajadores: ImageVector by lazy {
+        icono(
+            "Trabajadores",
+            2f,
+            circulo(9f, 8f, 3.5f),
+            "M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6",
+            circulo(17f, 9f, 2.5f),
+            "M16 14.5c3 0 5.5 2 5.5 5",
+        )
+    }
+
+    val Lapiz: ImageVector by lazy { icono("Lapiz", 2f, "M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z") }
+
+    val FlechaAtras: ImageVector by lazy { icono("FlechaAtras", 2.2f, "M19 12H5", "M11 6l-6 6 6 6") }
+
+    val Cerrar: ImageVector by lazy { icono("Cerrar", 2.2f, "M6 6l12 12M18 6L6 18") }
+
+    /** Bin without the inner lines, used by the "Eliminar plantilla" button. */
+    val PapeleraSimple: ImageVector by lazy { icono("PapeleraSimple", 2f, "M3 6h18", "M8 6V4h8v2", "M19 6l-1 14H6L5 6") }
+
     private fun icono(nombre: String, trazo: Float, vararg paths: String): ImageVector =
         ImageVector.Builder(
             name = nombre,
@@ -81,6 +112,10 @@ object MisTurnosIcons {
                 )
             }
         }.build()
+
+    /** SVG `<circle cx cy r>` as path data (two half arcs). */
+    private fun circulo(cx: Float, cy: Float, r: Float): String =
+        "M${cx - r} ${cy}a$r $r 0 1 0 ${2 * r} 0a$r $r 0 1 0 -${2 * r} 0z"
 
     /** SVG `<rect x y width height rx>` as path data. */
     private fun rect(x: Float, y: Float, w: Float, h: Float, r: Float): String {
