@@ -3,8 +3,7 @@ package com.valanon.calendar.ui.plantillas
 import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.repository.PlantillasRepositorio
-import com.valanon.calendar.testing.FakePlantillaDao
-import com.valanon.calendar.testing.FakeTrabajadorDao
+import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.runTest
@@ -19,9 +18,8 @@ class PlantillasViewModelTest {
     @get:Rule
     val mainRule = MainDispatcherRule()
 
-    private val trabajadores = FakeTrabajadorDao()
-    private val plantillas = FakePlantillaDao(trabajadores)
-    private val repositorio = PlantillasRepositorio(plantillas, trabajadores)
+    private val fakes = FakesPlantillas()
+    private val repositorio = PlantillasRepositorio(fakes.plantillas, fakes.trabajadores, fakes.asignaciones)
 
     private fun crear(handle: SavedStateHandle = SavedStateHandle()) = PlantillasViewModel(repositorio, handle)
 

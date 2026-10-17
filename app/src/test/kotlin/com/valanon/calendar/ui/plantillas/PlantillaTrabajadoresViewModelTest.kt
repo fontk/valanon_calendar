@@ -2,9 +2,11 @@ package com.valanon.calendar.ui.plantillas
 
 import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
+import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.data.repository.PlantillasRepositorio
-import com.valanon.calendar.testing.FakePlantillaDao
-import com.valanon.calendar.testing.FakeTrabajadorDao
+import java.time.LocalDate
+import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.TestScope
@@ -21,9 +23,9 @@ class PlantillaTrabajadoresViewModelTest {
     @get:Rule
     val mainRule = MainDispatcherRule()
 
-    private val trabajadoresDao = FakeTrabajadorDao()
-    private val plantillasDao = FakePlantillaDao(trabajadoresDao)
-    private val repositorio = PlantillasRepositorio(plantillasDao, trabajadoresDao)
+    private val fakes = FakesPlantillas()
+    private val trabajadoresDao = fakes.trabajadores
+    private val repositorio = PlantillasRepositorio(fakes.plantillas, fakes.trabajadores, fakes.asignaciones)
 
     /** Creates a template (optionally with workers) and a ViewModel on it, subscribed to its state. */
     private suspend fun TestScope.detalle(vararg nombres: String, renombrar: Boolean = false): PlantillaTrabajadoresViewModel {
@@ -105,6 +107,27 @@ class PlantillaTrabajadoresViewModelTest {
 
         vm.deshacerEliminar(b)
         assertEquals(listOf("A", "B", "C"), vm.nombres())
+    }
+
+    @Test
+    fun `T6 eliminar un trabajador con turnos y deshacer restaura tambien sus turnos`() = runTest(mainRule.dispatcher) {
+        val vm = detalle("Lucía", "Javier")
+        val lucia = vm.uiState.value.trabajadores.first()
+        val asignaciones = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
+        asignaciones.asignar(LocalDate.of(2026, 10, 17), lucia.id, TipoTurno.NOCHE)
+        asignaciones.asignar(LocalDate.of(2026, 10, 18), lucia.id, TipoTurno.LIBRE)
+        assertEquals(2, vm.uiState.value.numeroAsignaciones)
+
+        vm.eliminar(lucia)
+        assertEquals(0, vm.uiState.value.numeroAsignaciones)
+
+        vm.deshacerEliminar(lucia)
+        assertEquals(listOf("Lucía", "Javier"), vm.nombres())
+        assertEquals(2, vm.uiState.value.numeroAsignaciones)
+        assertEquals(
+            setOf("2026-10-17" to TipoTurno.NOCHE, "2026-10-18" to TipoTurno.LIBRE),
+            fakes.asignaciones.filas.value.map { it.fecha to it.tipo }.toSet(),
+        )
     }
 
     @Test

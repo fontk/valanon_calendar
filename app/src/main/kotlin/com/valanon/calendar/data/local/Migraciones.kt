@@ -25,5 +25,29 @@ val MIGRATION_1_2: Migration = object : Migration(1, 2) {
     }
 }
 
+/**
+ * Schema v2 → v3: team shifts (spec 3b). Creates `asignaciones` (unique per day and worker,
+ * cascade from `trabajadores`) and the `ajustes` key/value table. Existing data is untouched.
+ * Kept separate from [MIGRATION_1_2] because v2 already shipped (APK 0.4.0).
+ */
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `asignaciones` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`fecha` TEXT NOT NULL, `trabajador_id` INTEGER NOT NULL, `tipo` TEXT NOT NULL, " +
+                "FOREIGN KEY(`trabajador_id`) REFERENCES `trabajadores`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `idx_asignaciones_fecha_trabajador` ON `asignaciones` (`fecha`, `trabajador_id`)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `idx_asignaciones_trabajador` ON `asignaciones` (`trabajador_id`)",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `ajustes` (`clave` TEXT NOT NULL, `valor` TEXT NOT NULL, PRIMARY KEY(`clave`))",
+        )
+    }
+}
+
 /** Every migration, in order. Registered in [AppDatabase.build] and used by MigrationTest. */
-val TODAS_LAS_MIGRACIONES: Array<Migration> = arrayOf(MIGRATION_1_2)
+val TODAS_LAS_MIGRACIONES: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)

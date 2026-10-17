@@ -1,7 +1,9 @@
 package com.valanon.calendar.data.repository
 
+import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
+import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Trabajador
@@ -15,12 +17,16 @@ import kotlinx.coroutines.flow.Flow
 class PlantillasRepositorio(
     private val plantillaDao: PlantillaDao,
     private val trabajadorDao: TrabajadorDao,
+    private val asignacionDao: AsignacionDao,
 ) {
     val plantillas: Flow<List<PlantillaConRecuento>> = plantillaDao.observarTodas()
 
     fun plantilla(id: Long): Flow<Plantilla?> = plantillaDao.observar(id)
 
     fun trabajadores(plantillaId: Long): Flow<List<Trabajador>> = trabajadorDao.observarDePlantilla(plantillaId)
+
+    /** Team shifts of the template's workers (Turnos tab), for the delete dialog. */
+    fun numeroAsignaciones(plantillaId: Long): Flow<Int> = asignacionDao.observarContarDePlantilla(plantillaId)
 
     /** Creates a template named "<tipo> N" (N = number of templates + 1) at the end. Returns its id. */
     suspend fun crear(tipo: TipoPlantilla): Long =
@@ -53,10 +59,19 @@ class PlantillasRepositorio(
         return true
     }
 
-    suspend fun eliminarTrabajador(id: Long) = trabajadorDao.borrar(id)
+    /**
+     * Deletes the worker; its team shifts go with it (ON DELETE CASCADE). Returns those shifts,
+     * read just before, so [restaurarTrabajador] can put them back.
+     */
+    suspend fun eliminarTrabajador(id: Long): List<Asignacion> {
+        val asignaciones = asignacionDao.obtenerDeTrabajador(id)
+        trabajadorDao.borrar(id)
+        return asignaciones
+    }
 
-    /** Undo of [eliminarTrabajador]: puts the worker back with its id and position. */
-    suspend fun restaurarTrabajador(trabajador: Trabajador) {
+    /** Undo of [eliminarTrabajador]: puts the worker back with its id and position, and its shifts. */
+    suspend fun restaurarTrabajador(trabajador: Trabajador, asignaciones: List<Asignacion> = emptyList()) {
         trabajadorDao.insertar(trabajador)
+        if (asignaciones.isNotEmpty()) asignacionDao.insertarTodas(asignaciones)
     }
 }

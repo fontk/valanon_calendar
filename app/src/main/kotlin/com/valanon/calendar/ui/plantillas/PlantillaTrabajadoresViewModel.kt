@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.valanon.calendar.CalendarApp
+import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.repository.PlantillasRepositorio
@@ -30,6 +31,8 @@ data class PlantillaTrabajadoresUiState(
     val editandoId: Long? = null,
     val renombrando: Boolean = false,
     val confirmandoBorrado: Boolean = false,
+    /** Team shifts (Turnos tab) of this template's workers: "y sus N turnos asignados". */
+    val numeroAsignaciones: Int = 0,
 ) {
     /** The template was deleted (or never existed): the screen must go back to the list. */
     val cerrada: Boolean get() = !cargando && plantilla == null
@@ -63,10 +66,17 @@ class PlantillaTrabajadoresViewModel(
     var borradorNombre: String by mutableStateOf(savedStateHandle[KEY_BORRADOR_NOMBRE] ?: "")
         private set
 
-    private val datos = combine(repositorio.plantilla(plantillaId), repositorio.trabajadores(plantillaId)) { p, t -> p to t }
+    private val datos = combine(
+        repositorio.plantilla(plantillaId),
+        repositorio.trabajadores(plantillaId),
+        repositorio.numeroAsignaciones(plantillaId),
+    ) { p, t, n -> Triple(p, t, n) }
+
+    /** Team shifts of each deleted worker, kept so "Deshacer" can restore them. */
+    private val asignacionesEliminadas = mutableMapOf<Long, List<Asignacion>>()
 
     val uiState: StateFlow<PlantillaTrabajadoresUiState> =
-        combine(datos, editandoId, renombrando, confirmandoBorrado) { (plantilla, trabajadores), editando, renom, conf ->
+        combine(datos, editandoId, renombrando, confirmandoBorrado) { (plantilla, trabajadores, asignaciones), editando, renom, conf ->
             PlantillaTrabajadoresUiState(
                 plantilla = plantilla,
                 trabajadores = trabajadores,
@@ -75,6 +85,7 @@ class PlantillaTrabajadoresViewModel(
                 editandoId = editando?.takeIf { id -> trabajadores.any { it.id == id } },
                 renombrando = renom,
                 confirmandoBorrado = conf,
+                numeroAsignaciones = asignaciones,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -140,12 +151,16 @@ class PlantillaTrabajadoresViewModel(
 
     fun eliminar(trabajador: Trabajador) {
         if (editandoId.value == trabajador.id) cancelarEdicion()
-        viewModelScope.launch { repositorio.eliminarTrabajador(trabajador.id) }
+        viewModelScope.launch {
+            asignacionesEliminadas[trabajador.id] = repositorio.eliminarTrabajador(trabajador.id)
+        }
     }
 
-    /** Undo of [eliminar]: puts the worker back with its id and position. */
+    /** Undo of [eliminar]: puts the worker back with its id and position, and its team shifts. */
     fun deshacerEliminar(trabajador: Trabajador) {
-        viewModelScope.launch { repositorio.restaurarTrabajador(trabajador) }
+        viewModelScope.launch {
+            repositorio.restaurarTrabajador(trabajador, asignacionesEliminadas.remove(trabajador.id).orEmpty())
+        }
     }
 
     // --- Rename template ---

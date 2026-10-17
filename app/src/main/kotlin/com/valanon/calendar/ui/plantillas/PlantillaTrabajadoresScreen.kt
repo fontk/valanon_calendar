@@ -234,11 +234,20 @@ fun PlantillaTrabajadoresScreen(
             onDismissRequest = acciones.cancelarBorrarPlantilla,
             title = { Text(stringResource(R.string.eliminar_plantilla_titulo, plantilla.nombre), style = MisTurnosText.sheetTitle) },
             text = {
+                val turnos = estado.numeroAsignaciones
                 Text(
-                    if (n == 0) {
-                        stringResource(R.string.eliminar_plantilla_sin_trabajadores)
-                    } else {
-                        pluralStringResource(R.plurals.eliminar_plantilla_cuerpo, n, n)
+                    when {
+                        n == 0 -> stringResource(R.string.eliminar_plantilla_sin_trabajadores)
+                        turnos == 0 -> stringResource(
+                            R.string.frase,
+                            pluralStringResource(R.plurals.eliminar_plantilla_trabajadores, n, n),
+                        )
+                        // Spec 3b.5: "… y sus N turnos asignados" when the Turnos tab has assignments.
+                        else -> stringResource(
+                            R.string.frase_y,
+                            pluralStringResource(R.plurals.eliminar_plantilla_trabajadores, n, n),
+                            pluralStringResource(R.plurals.eliminar_plantilla_turnos, turnos, turnos),
+                        )
                     },
                     style = MisTurnosText.body,
                 )

@@ -1,6 +1,10 @@
 package com.valanon.calendar.testing
 
+import com.valanon.calendar.data.local.dao.AjusteDao
+import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
+import com.valanon.calendar.data.local.entity.Ajuste
+import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.dao.TareaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.dao.TurnoDao
@@ -83,7 +87,13 @@ class FakeTrabajadorDao : TrabajadorDao {
     override suspend fun renombrar(id: Long, nombre: String) =
         filas.update { l -> l.map { if (it.id == id) it.copy(nombre = nombre) else it } }
 
-    override suspend fun borrar(id: Long) = filas.update { l -> l.filterNot { it.id == id } }
+    /** Cascade hook (FakeAsignacionDao deletes the worker's assignments). */
+    var alBorrar: (Long) -> Unit = {}
+
+    override suspend fun borrar(id: Long) {
+        filas.update { l -> l.filterNot { it.id == id } }
+        alBorrar(id)
+    }
 
     override suspend fun insertar(trabajador: Trabajador): Long {
         val id = if (trabajador.id == 0L) siguienteId++ else trabajador.id
@@ -118,10 +128,67 @@ class FakePlantillaDao(private val trabajadores: FakeTrabajadorDao) : PlantillaD
 
     override suspend fun borrar(id: Long) {
         filas.update { l -> l.filterNot { it.id == id } }
-        trabajadores.filas.update { l -> l.filterNot { it.plantillaId == id } }
+        trabajadores.filas.value.filter { it.plantillaId == id }.forEach { trabajadores.borrar(it.id) }
     }
 
     override suspend fun contar(): Int = filas.value.size
+}
+
+/** In-memory [AsignacionDao]: unique per (fecha, trabajador), cascade from [FakeTrabajadorDao]. */
+class FakeAsignacionDao(private val trabajadores: FakeTrabajadorDao) : AsignacionDao {
+    val filas = MutableStateFlow<List<Asignacion>>(emptyList())
+    private var siguienteId = 1L
+
+    init {
+        trabajadores.alBorrar = { id -> filas.update { l -> l.filterNot { it.trabajadorId == id } } }
+    }
+
+    private fun idsDePlantilla(plantillaId: Long, ts: List<Trabajador>) =
+        ts.filter { it.plantillaId == plantillaId }.map { it.id }.toSet()
+
+    override fun observarMes(plantillaId: Long, desde: String, hasta: String): Flow<List<Asignacion>> =
+        combine(filas, trabajadores.filas) { asig, ts ->
+            val ids = idsDePlantilla(plantillaId, ts)
+            asig.filter { it.trabajadorId in ids && it.fecha in desde..hasta }
+        }
+
+    override suspend fun upsert(asignacion: Asignacion) {
+        val id = if (asignacion.id == 0L) siguienteId++ else asignacion.id
+        filas.update { l ->
+            l.filterNot { it.fecha == asignacion.fecha && it.trabajadorId == asignacion.trabajadorId } + asignacion.copy(id = id)
+        }
+    }
+
+    override suspend fun borrar(fecha: String, trabajadorId: Long) =
+        filas.update { l -> l.filterNot { it.fecha == fecha && it.trabajadorId == trabajadorId } }
+
+    override fun observarContarDePlantilla(plantillaId: Long): Flow<Int> =
+        combine(filas, trabajadores.filas) { asig, ts -> asig.count { it.trabajadorId in idsDePlantilla(plantillaId, ts) } }
+
+    override suspend fun contarDePlantilla(plantillaId: Long): Int =
+        filas.value.count { it.trabajadorId in idsDePlantilla(plantillaId, trabajadores.filas.value) }
+
+    override suspend fun obtenerDeTrabajador(trabajadorId: Long): List<Asignacion> =
+        filas.value.filter { it.trabajadorId == trabajadorId }.sortedBy { it.fecha }
+
+    override suspend fun insertarTodas(asignaciones: List<Asignacion>) = asignaciones.forEach { upsert(it) }
+}
+
+/** In-memory [AjusteDao]. */
+class FakeAjusteDao : AjusteDao {
+    val filas = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    override fun observar(clave: String): Flow<String?> = filas.map { it[clave] }
+
+    override suspend fun guardar(ajuste: Ajuste) = filas.update { it + (ajuste.clave to ajuste.valor) }
+}
+
+/** The four related fakes wired together, as the real database is. */
+class FakesPlantillas {
+    val trabajadores = FakeTrabajadorDao()
+    val plantillas = FakePlantillaDao(trabajadores)
+    val asignaciones = FakeAsignacionDao(trabajadores)
+    val ajustes = FakeAjusteDao()
 }
 
 /** Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. */

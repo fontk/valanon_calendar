@@ -96,11 +96,19 @@
         <item quantity="many">%d trabajadores</item>
         <item quantity="other">%d trabajadores</item>
     </plurals>
-    <plurals name="eliminar_plantilla_cuerpo">
-        <item quantity="one">Se borrará también su trabajador.</item>
-        <item quantity="many">Se borrarán también sus %d trabajadores.</item>
-        <item quantity="other">Se borrarán también sus %d trabajadores.</item>
+    <!-- Delete dialog body: "Se borrarán también sus 4 trabajadores[ y sus 12 turnos asignados]." -->
+    <plurals name="eliminar_plantilla_trabajadores">
+        <item quantity="one">Se borrará también su trabajador</item>
+        <item quantity="many">Se borrarán también sus %d trabajadores</item>
+        <item quantity="other">Se borrarán también sus %d trabajadores</item>
     </plurals>
+    <plurals name="eliminar_plantilla_turnos">
+        <item quantity="one">su turno asignado</item>
+        <item quantity="many">sus %d turnos asignados</item>
+        <item quantity="other">sus %d turnos asignados</item>
+    </plurals>
+    <string name="frase">%1$s.</string>
+    <string name="frase_y">%1$s y %2$s.</string>
 
     <!-- "3 de 6 hechas". Quantity is the total number of tasks. -->
     <plurals name="progreso_tareas">
