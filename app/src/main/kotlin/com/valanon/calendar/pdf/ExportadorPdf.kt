@@ -51,8 +51,7 @@ class ExportadorPdf(private val context: Context) : GeneradorPdf {
     private fun dibujarMes(canvas: Canvas, mes: YearMonth, turnos: Map<LocalDate, TipoTurno>) {
         val anchoUtil = ANCHO_A4 - 2 * MARGEN
 
-        // Overline + title
-        canvas.drawText("MIS TURNOS", MARGEN, 64f, texto(9f, 700, MisTurnosColors.TextMuted, espaciado = 0.08f))
+        // Title
         canvas.drawText("Mis turnos — ${FormatoFechas.tituloMes(mes)}", MARGEN, 92f, texto(22f, 800, MisTurnosColors.Text))
 
         // Weekday header

@@ -31,6 +31,8 @@ private val MisTurnosColorScheme = lightColorScheme(
     surfaceContainerHighest = MisTurnosColors.Surface,
     outline = MisTurnosColors.Line,
     outlineVariant = MisTurnosColors.LineSoft,
+    // Snackbar action ("Deshacer") on the dark snackbar.
+    inversePrimary = MisTurnosColors.SurfaceAccent,
     error = MisTurnosColors.Danger,
     scrim = MisTurnosColors.Scrim,
 )

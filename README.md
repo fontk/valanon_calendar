@@ -1,7 +1,22 @@
-# Valanon Calendar
+# Mis turnos (Valanon Calendar)
 
-Aplicación Android nativa escrita en **Kotlin** con interfaz en **Jetpack Compose** y
-persistencia local en **SQLite** a través de **Room**.
+Aplicación Android nativa para registrar el turno de trabajo de cada día y llevar una
+checklist reutilizable. Escrita en **Kotlin** con **Jetpack Compose** y persistencia local
+en **SQLite** a través de **Room**. Todo se guarda en el dispositivo y se conserva al
+cerrar la app.
+
+La especificación y el diseño de partida están en `mis-turnos-kit/` (generado con Claude
+Design): `spec/SPEC.md`, `spec/USER_STORIES.md`, `design/DESIGN.md` y las maquetas.
+
+## Funcionalidades
+
+- **Calendario**: mes visible con semana en lunes, leyenda, navegación ilimitada entre meses
+  y el día de hoy resaltado. Al tocar un día se abre una hoja para elegir Libre, Mañana,
+  Tarde, Noche o Vacaciones.
+- **Exportar a PDF**: genera `turnos-AAAA-MM.pdf` en A4 con la rejilla coloreada y la
+  leyenda, y abre la hoja de compartir del sistema.
+- **Checklist**: añadir tareas, marcar y desmarcar, borrar con opción de deshacer, contador
+  "X de Y hechas" y un botón flotante que desmarca todas sin borrarlas.
 
 ## Inicio rápido
 
@@ -69,37 +84,54 @@ Si Gradle falla con `Unable to locate a Java Runtime`, falta el `export JAVA_HOM
 
 ```
 app/src/main/kotlin/com/valanon/calendar/
-├── CalendarApp.kt              Application: crea el AppContainer
-├── di/AppContainer.kt          Contenedor manual de dependencias (BBDD, repositorios)
+├── CalendarApp.kt                 Application: crea el AppContainer
+├── di/AppContainer.kt             Contenedor manual de dependencias
 ├── data/
-│   ├── local/
-│   │   ├── AppDatabase.kt      @Database de Room (versión, DAOs, migraciones)
-│   │   ├── dao/EventDao.kt     Consultas SQL de la tabla events
-│   │   └── entity/EventEntity.kt  Tabla events
-│   └── repository/EventRepository.kt  API de datos que consume la UI
+│   ├── model/TipoTurno.kt         Los cinco turnos y su valor en BBDD
+│   ├── local/                     Room: AppDatabase, Conversores, DAOs y entidades
+│   └── repository/                TurnosRepositorio y TareasRepositorio
+├── pdf/                           ExportadorPdf (PdfDocument) y compartir con FileProvider
 ├── ui/
-│   ├── MainActivity.kt         Única Activity; monta Compose
-│   ├── events/                 Pantalla de lista de eventos + ViewModel
-│   └── theme/                  Material 3 (colores, tipografía, tema)
-└── util/DateTimeExt.kt         Conversión LocalDate <-> epoch millis
+│   ├── MainActivity.kt            Única Activity
+│   ├── MisTurnosApp.kt            Barra inferior y NavHost (calendario, checklist)
+│   ├── calendario/                Pantalla, hoja de selección y ViewModel
+│   ├── checklist/                 Pantalla y ViewModel
+│   ├── icons/MisTurnosIcons.kt    Iconos de trazo copiados de las maquetas
+│   ├── preview/DatosMuestra.kt    Datos de las maquetas, solo para @Preview
+│   └── theme/                     Tokens de color, colores de turno, Manrope y tema
+└── util/                          Celdas del mes y textos de fecha en español
 
-app/schemas/                    Esquemas JSON exportados por Room (versionar siempre)
-app/src/test/                   Tests unitarios (JVM, sin Android)
-app/src/androidTest/            Tests instrumentados (Room en memoria sobre SQLite real)
-gradle/libs.versions.toml       Catálogo de versiones de plugins y librerías
+app/schemas/                       Esquemas JSON exportados por Room (versionar siempre)
+app/src/test/                      Tests unitarios (JVM)
+app/src/androidTest/               Tests instrumentados: DAOs, PDF y flujos de interfaz
+licenses/Manrope-OFL.txt           Licencia de la fuente incluida
 ```
 
 ## Base de datos (SQLite / Room)
 
-- Archivo: `valanon_calendar.db` en el almacenamiento privado de la app.
-- Tabla inicial `events` (`id`, `title`, `description`, `start_at`, `end_at`, `all_day`, `created_at`).
-  Las fechas se guardan como *epoch millis* (UTC) para ordenar y filtrar por rango con índices.
+- Archivo `mis_turnos.db` en el almacenamiento privado de la app.
+- Esquema idéntico a `mis-turnos-kit/db/schema.sql`, versión 1:
+  - `turnos(fecha TEXT PK, tipo TEXT)`, con la fecha en ISO `yyyy-MM-dd` y el tipo en
+    minúsculas sin tilde (`libre`, `manana`, `tarde`, `noche`, `vacaciones`).
+  - `tareas(id INTEGER PK AUTOINCREMENT, texto TEXT, hecha INTEGER DEFAULT 0, orden INTEGER)`
+    con el índice `idx_tareas_orden`.
+- Room no admite restricciones `CHECK`. Los valores de `tipo` los valida el conversor de
+  `TipoTurno`, y `hecha` es un `Boolean` que Room guarda como 0 o 1.
 - Para cambiar el esquema:
   1. Modificar la entidad.
   2. Subir `AppDatabase.VERSION`.
   3. Añadir una `Migration` y registrarla en `AppDatabase.build()` con `.addMigrations(...)`.
   4. Compilar: Room exporta el nuevo esquema a `app/schemas/`. Hay que incluirlo en el commit.
-- `androidx.room:room-testing` ya está en `androidTest` para probar migraciones con `MigrationTestHelper`.
+
+## Tests
+
+| Tipo | Comando | Qué cubre |
+|---|---|---|
+| Unitarios (JVM) | `./gradlew testDebugUnitTest` | Celdas del mes, fechas en español, tipos de turno y ambos ViewModels |
+| Instrumentados | `./gradlew connectedDebugAndroidTest` | DAOs sobre SQLite real, PDF generado y las historias C1 a C4 y L1 a L6 en la app |
+
+Los instrumentados necesitan un emulador o un móvil conectado. La prueba de interfaz
+borra las tablas de la app antes de cada test.
 
 ## Stack
 
@@ -110,13 +142,15 @@ gradle/libs.versions.toml       Catálogo de versiones de plugins y librerías
 | KSP | 2.3.12 |
 | Room | 2.8.5 |
 | Jetpack Compose BOM | 2026.06.01 (Compose UI 1.11.4, Material 3 1.4.0) |
+| Navigation Compose | 2.9.8 |
 | AndroidX Core / Lifecycle / Activity | 1.18.0 / 2.10.0 / 1.13.0 |
 | Coroutines | 1.11.0 |
+| Fuente | Manrope variable (SIL OFL 1.1), en `res/font/manrope.ttf` |
 | minSdk / targetSdk / compileSdk | 26 / 36 / 36.1 |
 
 ### Pasar a API 37
 
-Las versiones más recientes de `core-ktx` (1.19+), `lifecycle` (2.11+) y el BOM de Compose
-(2026.08+) exigen `compileSdk 37`. Para actualizarlas: instalar el platform 37 desde el SDK
+Las versiones más recientes de `core-ktx` (1.19+), `lifecycle` (2.11+), el BOM de Compose
+(2026.08+) y Navigation Compose (2.10+) exigen `compileSdk 37`. Para actualizarlas: instalar el platform 37 desde el SDK
 Manager, poner `compileSdk = 37` (y quitar `compileSdkMinor`) en `app/build.gradle.kts`
 y subir las versiones en `gradle/libs.versions.toml`.

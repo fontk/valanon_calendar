@@ -42,12 +42,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +72,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChecklistRoute(viewModel: ChecklistViewModel = viewModel(factory = ChecklistViewModel.Factory)) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val recursos = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
 
@@ -86,8 +88,8 @@ fun ChecklistRoute(viewModel: ChecklistViewModel = viewModel(factory = Checklist
             scope.launch {
                 snackbar.currentSnackbarData?.dismiss()
                 val resultado = snackbar.showSnackbar(
-                    message = context.getString(R.string.tarea_borrada),
-                    actionLabel = context.getString(R.string.deshacer),
+                    message = recursos.getString(R.string.tarea_borrada),
+                    actionLabel = recursos.getString(R.string.deshacer),
                     duration = SnackbarDuration.Short,
                 )
                 if (resultado == SnackbarResult.ActionPerformed) viewModel.restaurar(tarea)
@@ -183,7 +185,7 @@ private fun Cabecera(estado: ChecklistUiState) {
             )
             if (estado.total > 0) {
                 Text(
-                    text = stringResource(R.string.progreso_tareas, estado.hechas, estado.total),
+                    text = pluralStringResource(R.plurals.progreso_tareas, estado.total, estado.hechas, estado.total),
                     style = MisTurnosText.caption,
                     color = MisTurnosColors.TextMuted,
                     modifier = Modifier.alignByBaseline(),
@@ -251,7 +253,8 @@ private fun AltaTarea(
         ) {
             Icon(MisTurnosIcons.Mas, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.agregar), style = MisTurnosText.buttonSmall.copy(fontWeight = MisTurnosText.title.fontWeight))
+            // Mockup: 15 sp / 800
+            Text(stringResource(R.string.agregar), style = MisTurnosText.buttonSmall.copy(fontWeight = FontWeight.W800))
         }
     }
 }

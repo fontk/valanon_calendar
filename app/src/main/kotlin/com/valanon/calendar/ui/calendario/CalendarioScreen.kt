@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -24,6 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -53,6 +57,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
@@ -78,6 +83,7 @@ import java.time.YearMonth
 fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = CalendarioViewModel.Factory)) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val recursos = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     var exportando by remember { mutableStateOf(false) }
@@ -104,10 +110,10 @@ fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = Calenda
                     exportando = false
                 }
                 if (archivo == null) {
-                    snackbar.showSnackbar(context.getString(R.string.pdf_error))
+                    snackbar.showSnackbar(recursos.getString(R.string.pdf_error))
                 } else {
-                    compartirPdf(context, archivo, context.getString(R.string.compartir_pdf))
-                    snackbar.showSnackbar(context.getString(R.string.pdf_exportado))
+                    compartirPdf(context, archivo, recursos.getString(R.string.compartir_pdf))
+                    snackbar.showSnackbar(recursos.getString(R.string.pdf_exportado))
                 }
             }
         },
@@ -127,14 +133,21 @@ fun CalendarioScreen(
     onExportar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
-        Column(Modifier.fillMaxSize()) {
-            // Scrolls only when it does not fit (landscape, 130 % font size).
-            Column(
-                Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-            ) {
+    BoxWithConstraints(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
+        // Short screens (landscape): the export button scrolls with the grid instead of
+        // staying pinned, so the grid is not squeezed into a sliver.
+        val compacta = maxHeight < 480.dp
+        val scroll = rememberScrollState()
+        val botonExportar = @Composable {
+            BotonExportar(
+                habilitado = !exportando,
+                onClick = onExportar,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 12.dp),
+            )
+        }
+        Column(Modifier.fillMaxSize().then(if (compacta) Modifier.verticalScroll(scroll) else Modifier)) {
+            // Scrolls only when it does not fit (130 % font size, small phones).
+            Column(if (compacta) Modifier else Modifier.weight(1f).verticalScroll(scroll)) {
                 CabeceraMes(estado.mes, onMesAnterior, onMesSiguiente)
                 LeyendaTurnos(Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp))
                 CabeceraDiasSemana(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp))
@@ -147,11 +160,7 @@ fun CalendarioScreen(
                 )
                 Spacer(Modifier.height(8.dp))
             }
-            BotonExportar(
-                habilitado = !exportando,
-                onClick = onExportar,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 12.dp),
-            )
+            botonExportar()
         }
 
         SnackbarHost(
@@ -339,12 +348,15 @@ fun CeldaDia(
             modifier = Modifier.clearAndSetSemantics { },
         )
         if (tipo != null) {
-            Text(
+            // Shrinks on narrow phones or large system font instead of clipping "NOCHE"/"TARDE".
+            BasicText(
                 text = tipo.abreviatura,
-                style = MisTurnosText.dayTag,
-                color = colorTexto,
+                style = MisTurnosText.dayTag.copy(color = colorTexto),
                 maxLines = 1,
-                modifier = Modifier.clearAndSetSemantics { },
+                autoSize = TextAutoSize.StepBased(minFontSize = 7.sp, maxFontSize = MisTurnosText.dayTag.fontSize),
+                modifier = Modifier
+                    .padding(horizontal = 2.dp)
+                    .clearAndSetSemantics { },
             )
         }
     }

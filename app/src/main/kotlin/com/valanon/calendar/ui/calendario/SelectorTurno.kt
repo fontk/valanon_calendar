@@ -95,6 +95,7 @@ fun SelectorTurno(
                 onClick = cerrarAnimado,
                 shape = RoundedCornerShape(14.dp),
                 color = MisTurnosColors.Surface,
+                contentColor = MisTurnosColors.Text,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp),
@@ -113,6 +114,7 @@ private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit)
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         color = MisTurnosColors.Background,
+        contentColor = MisTurnosColors.Text,
         border = if (esActual) {
             BorderStroke(2.dp, MisTurnosColors.Accent)
         } else {

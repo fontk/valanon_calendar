@@ -22,7 +22,6 @@
 
     <!-- Checklist -->
     <string name="checklist_titulo">Checklist</string>
-    <string name="progreso_tareas">%1$d de %2$d hechas</string>
     <string name="nueva_tarea">Nueva tarea</string>
     <string name="nueva_tarea_placeholder">Nueva tarea…</string>
     <string name="agregar">Agregar</string>
@@ -32,4 +31,11 @@
     <string name="reiniciar_tareas">Reiniciar todas las tareas</string>
     <string name="sin_tareas">Sin tareas todavía</string>
     <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
+
+    <!-- "3 de 6 hechas". Quantity is the total number of tasks. -->
+    <plurals name="progreso_tareas">
+        <item quantity="one">%1$d de %2$d hecha</item>
+        <item quantity="many">%1$d de %2$d hechas</item>
+        <item quantity="other">%1$d de %2$d hechas</item>
+    </plurals>
 </resources>
