@@ -3,17 +3,20 @@
 ## 1. Resumen
 
 App personal para registrar el turno de trabajo de cada día en un calendario y llevar una checklist de
-tareas reutilizable. Dos pestañas en una barra inferior: **Calendario** (izquierda, destino inicial) y
-**Checklist** (derecha). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
+tareas reutilizable. Tres pestañas en una barra inferior: **Calendario** (izquierda, destino inicial),
+**Checklist** (centro) y **Plantillas** (derecha), esta última para editar datos que otras pestañas
+reutilizarán. Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
 
 ## 2. Navegación
 
-- Barra inferior de 72 dp con dos pestañas. La pestaña activa muestra el icono dentro de una píldora
+- Barra inferior de 72 dp con tres pestañas, en este orden: Calendario, Checklist, Plantillas. La pestaña activa muestra el icono dentro de una píldora
   (fondo `surfaceAccent` #DDF0EC) y texto en `accent` con peso 800; la inactiva en `textMuted` #5F5F5A,
   peso 700. Etiquetas: "Calendario" y "Checklist".
-- Iconos de trazo (stroke 2 dp): calendario (rectángulo con dos anillas y línea de cabecera) y checklist
-  (rectángulo con marca de verificación). Nunca emoji.
-- Cambiar de pestaña conserva el estado de cada una (mes visible, texto escrito en el campo de nueva tarea).
+- Iconos de trazo (stroke 2 dp): calendario (rectángulo con dos anillas y línea de cabecera), checklist
+  (rectángulo con marca de verificación) y plantillas (tres capas apiladas: rombo arriba y dos arcos
+  debajo). Nunca emoji.
+- Cambiar de pestaña conserva el estado de cada una (mes visible, texto escrito en el campo de nueva tarea,
+  plantilla abierta en Plantillas).
 
 ## 3. Pestaña Calendario
 
@@ -114,14 +117,81 @@ Libre, Mañana, Tarde, Noche, Vacaciones. Colores en `design/tokens/tokens.json`
   derecho y 20 dp por encima de la barra inferior. `contentDescription`: "Reiniciar todas las tareas".
 - Acción: `UPDATE tareas SET hecha = 0`. No borra tareas. Las tareas se mantienen; solo se desmarcan.
 
+## 4b. Pestaña Plantillas
+
+Las plantillas son conjuntos de datos reutilizables que otras pestañas consumirán en el futuro (por
+ejemplo, asignar trabajadores a los turnos del calendario). En esta versión existe un único tipo de
+plantilla, **Trabajadores**: una lista con N trabajadores cuya única propiedad es el nombre. El modelo
+y la interfaz están preparados para añadir más tipos sin rediseñar la pestaña.
+
+### 4b.1 Lista de plantillas
+- Cabecera: sobretítulo "MIS TURNOS", título "Plantillas" (22 sp, 800) y a la derecha el contador
+  "2 plantillas" / "1 plantilla" (13 sp, 700, `textMuted`); oculto si no hay ninguna.
+- Lista con gap 10 y padding inferior 100 dp (deja sitio al FAB). Cada plantilla es una tarjeta tocable
+  de 72 dp mínimo, radio 16, borde `lineSoft`, padding 12/10/12/14: insignia de 44 dp (radio 12, fondo
+  `surfaceAccent`, icono del tipo en `accent`, para Trabajadores el icono de dos personas), nombre
+  (16 sp, 800, una línea con elipsis), subtítulo "Trabajadores · 4 trabajadores" (13 sp, 600,
+  `textMuted`) y chevron derecho en `textFaint`. Tocar la tarjeta abre el detalle (4b.3).
+- Orden: por `orden` ascendente (orden de creación).
+- Estado vacío: icono de capas 44 dp gris, "Sin plantillas todavía" y "Pulsa + para crear tu primera
+  plantilla."
+- FAB de 60 dp, radio 18, fondo `accent`, icono + de 28 dp (trazo 2.4), a 20 dp del borde derecho y
+  20 dp sobre la barra inferior. `contentDescription`: "Añadir plantilla". Abre la hoja 4b.2.
+
+### 4b.2 Elegir tipo de plantilla (hoja inferior)
+- `ModalBottomSheet` con asa, sobretítulo "NUEVA PLANTILLA" y título "¿Qué tipo de plantilla?" (20 sp, 800).
+- Una opción por tipo disponible, como tarjeta de 72 dp mínimo, radio 16, borde `line`: insignia 44 dp
+  con el icono del tipo, nombre del tipo (16 sp, 800), descripción (13 sp, 600, `textMuted`) y chevron.
+  En v1 solo "Trabajadores" — "Lista de nombres para usar en otras pestañas".
+- Botón "Cancelar" (48 dp, fondo `surface`).
+- Tocar un tipo crea la plantilla en la base de datos con nombre por defecto "Trabajadores N" (N =
+  número de plantillas + 1), cierra la hoja y abre su detalle con el campo de nombre ya en modo edición
+  para que el usuario lo cambie si quiere.
+
+### 4b.3 Detalle de una plantilla de trabajadores
+- Barra superior (padding 14/12/10/8): botón "Volver a plantillas" (44 dp, flecha izquierda), sobretítulo
+  "PLANTILLA · TRABAJADORES" y el nombre de la plantilla (20 sp, 800) con un icono de lápiz de 16 dp al
+  lado; tocar el nombre (`contentDescription` "Cambiar nombre de la plantilla") lo convierte en un campo
+  de texto de 40 dp con borde 2 dp `accent` y un botón "Guardar". Enter o "Guardar" confirman; se ignora
+  un nombre vacío (se conserva el anterior).
+- Alta de trabajador: campo de 50 dp con placeholder "Nombre del trabajador…" y botón "Agregar" (igual
+  que en Checklist). Enter/IME Done o el botón añaden al final; se ignoran textos vacíos; el campo se
+  vacía al añadir. No se impide repetir nombres.
+- Etiqueta de sección "4 TRABAJADORES" / "1 TRABAJADOR" (12 sp, 700, mayúsculas, `textMuted`).
+- Lista (gap 8). Cada fila: min 60 dp, radio 14, borde `lineSoft`, padding 8/8/8/12: avatar circular de
+  36 dp (fondo `surface`) con las iniciales (primera letra del primer y del último nombre, 13 sp, 800),
+  nombre (16 sp, 600, una línea con elipsis), botón lápiz "Editar trabajador" (44 dp, `textMuted`) y
+  botón papelera "Eliminar trabajador" (44 dp, `danger`).
+- Edición en línea: al pulsar el lápiz la fila pasa a borde 2 dp `accent` y muestra un campo de 40 dp con
+  el nombre actual, un botón "Guardar" y un botón X "Cancelar edición" (40 dp, fondo `surface`). Enter o
+  "Guardar" confirman (texto vacío → se conserva el nombre anterior); Escape o X cancelan. Solo puede
+  haber una fila en edición a la vez.
+- Eliminar trabajador: inmediato, con Snackbar "Trabajador eliminado" y acción "Deshacer" (reinserta con
+  su id y `orden`).
+- Estado vacío de la lista: "Sin trabajadores todavía" y "Escribe un nombre arriba y pulsa Agregar."
+- Al final de la lista, botón "Eliminar plantilla" (48 dp, radio 14, borde 1 dp #E6C9C3, texto e icono
+  en `danger`). Muestra un `AlertDialog` "¿Eliminar la plantilla «Equipo de planta»?" con cuerpo "Se
+  borrarán también sus 4 trabajadores." y botones "Eliminar" / "Cancelar". Confirmar borra la plantilla y
+  sus trabajadores (ON DELETE CASCADE) y vuelve a la lista.
+- El botón Atrás del sistema en el detalle vuelve a la lista de plantillas, no sale de la app.
+
+### 4b.4 Reglas de datos
+- `plantillas.tipo` solo admite `trabajadores` en v1; el enum `TipoPlantilla` es el punto de extensión.
+- Las plantillas no se referencian todavía desde Calendario ni Checklist; cuando se haga, el borrado
+  deberá avisar de las referencias afectadas (fuera de alcance ahora).
+
 ## 5. Persistencia
 
-Ver `db/schema.sql`. Dos tablas:
+Ver `db/schema.sql`. Cuatro tablas:
 
 - `turnos(fecha TEXT PRIMARY KEY, tipo TEXT NOT NULL CHECK(tipo IN (...)))`
 - `tareas(id INTEGER PRIMARY KEY AUTOINCREMENT, texto TEXT NOT NULL, hecha INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL)`
+- `plantillas(id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL CHECK(tipo IN ('trabajadores')), nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
+- `trabajadores(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
 
 La app lee los turnos del mes visible con un rango `fecha BETWEEN ? AND ?` y observa cambios con `Flow`.
+Las dos tablas nuevas llegan en la versión 2 del esquema de Room con una `Migration(1, 2)` que solo crea
+tablas e índices (no toca datos existentes).
 
 ## 6. Accesibilidad y calidad
 
@@ -133,3 +203,5 @@ La app lee los turnos del mes visible con un rango `fecha BETWEEN ? AND ?` y obs
 ## 7. Fuera de alcance (v1)
 
 Cuentas, sincronización, notificaciones, widgets, varios calendarios, turnos partidos, estadísticas.
+Otros tipos de plantilla y el uso de las plantillas desde Calendario o Checklist (asignar trabajadores a
+turnos) quedan para versiones posteriores; el modelo de datos ya lo permite.

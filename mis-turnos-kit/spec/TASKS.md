@@ -67,3 +67,55 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
 - [ ] Preview de `SelectorMes` con datos de muestra y verificación manual de C2b en emulador.
 - [ ] Actualizar `CLAUDE.md` (sección Architecture) si cambia la forma de exponer el estado.
 
+## Fase 7 — Pestaña Plantillas (spec 4b, historias P1–P9)
+
+### 7.1 Datos
+- [ ] `db/schema.sql` ya incluye `plantillas` y `trabajadores`; crear entidades Room `Plantilla(id, tipo,
+      nombre, orden)` y `Trabajador(id, plantillaId, nombre, orden)` con `@ForeignKey(onDelete = CASCADE)`
+      e índice en `plantilla_id`. `enum class TipoPlantilla(val valor: String) { TRABAJADORES("trabajadores") }`
+      + conversor.
+- [ ] `PlantillaDao`: `observarTodas(): Flow<List<PlantillaConRecuento>>` (JOIN con COUNT de
+      trabajadores), `observar(id)`, `insertarAlFinal(tipo, nombre)` (MAX(orden)+1), `renombrar(id, nombre)`,
+      `borrar(id)`, `contar()`.
+- [ ] `TrabajadorDao`: `observarDePlantilla(plantillaId): Flow<List<Trabajador>>`, `agregarAlFinal`,
+      `renombrar(id, nombre)`, `borrar(id)`, `insertar(trabajador)` (para deshacer con id y orden).
+- [ ] `AppDatabase`: `VERSION = 2`, `entities += Plantilla, Trabajador`, `MIGRATION_1_2` que crea ambas tablas
+      e índices exactamente como `schema.sql`; registrar en `build()`; exportar `app/schemas/.../2.json`.
+- [ ] `PlantillasRepositorio` en `di/AppContainer`.
+- [ ] Tests: `MigrationTest` (1 → 2 con `MigrationTestHelper`, datos de turnos/tareas intactos),
+      `PlantillaDaoTest`, `TrabajadorDaoTest` (cascade al borrar plantilla). Fakes JVM en `testing/Fakes.kt`.
+
+### 7.2 Navegación
+- [ ] `Destino.PLANTILLAS("plantillas", R.string.tab_plantillas, MisTurnosIcons.Plantillas)` como tercer
+      elemento; `NavHost` con `composable("plantillas")` → `PlantillasRoute()`.
+- [ ] El detalle es navegación interna de la pestaña (ruta `plantillas/{id}` dentro de un grafo anidado
+      `plantillas_graph`, o estado del ViewModel con `BackHandler`); en ambos casos el Atrás del sistema
+      vuelve a la lista y el cambio de pestaña conserva la plantilla abierta.
+- [ ] Icono `MisTurnosIcons.Plantillas` (capas), `Trabajadores` (dos personas), `Lapiz`, `FlechaAtras`,
+      `Cerrar` a partir de los paths de `design/mockups/Plantillas.dc.html`.
+
+### 7.3 Lista y alta
+- [ ] `PlantillasViewModel`: `plantillas: StateFlow<List<PlantillaConRecuento>>`, `hojaTiposAbierta`
+      (SavedStateHandle), `crear(tipo)` que devuelve el id creado para navegar al detalle con
+      `renombrando = true`.
+- [ ] `PlantillasScreen`: cabecera con contador, tarjetas, estado vacío, FAB "Añadir plantilla".
+- [ ] `SelectorTipoPlantilla` (`ModalBottomSheet`): una opción por `TipoPlantilla.entries`, "Cancelar".
+
+### 7.4 Detalle de trabajadores
+- [ ] `PlantillaTrabajadoresViewModel(plantillaId)`: `plantilla`, `trabajadores`, `borrador`,
+      `editandoId`, `borradorEdicion`, `renombrando`, `borradorNombre`, `confirmandoBorrado`; acciones
+      `agregar`, `empezarEdicion`, `guardarEdicion`, `cancelarEdicion`, `eliminar` (+ `deshacer`),
+      `empezarRenombrar`, `guardarNombre`, `pedirBorrarPlantilla`, `borrarPlantilla`.
+- [ ] `PlantillaTrabajadoresScreen`: barra con volver + nombre editable, alta, etiqueta de recuento,
+      `FilaTrabajador` (lectura / edición), estado vacío, botón "Eliminar plantilla" + `AlertDialog`,
+      Snackbar con "Deshacer".
+- [ ] Iniciales: primera letra del primer y del último token del nombre, en mayúsculas (`util/Iniciales`).
+- [ ] Tests JVM del ViewModel: alta ignora vacíos, solo una fila en edición, guardar vacío conserva el
+      nombre, eliminar + deshacer restaura orden, borrar plantilla navega atrás.
+
+### 7.5 Cierre
+- [ ] `strings.xml` con todos los textos de spec 4b (incluidos plurales de plantillas y trabajadores).
+- [ ] Previews con `DatosMuestra` (dos plantillas, nombres de la maqueta) solo en preview.
+- [ ] Modo oscuro: insignias con `surfaceAccent` oscuro, avatares con `surface` oscuro.
+- [ ] Verificar P1–P9 en emulador y actualizar `CLAUDE.md` (Architecture y Database rules: versión 2).
+

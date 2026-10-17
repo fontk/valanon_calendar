@@ -1,7 +1,9 @@
 # Guía visual — Mis turnos
 
 Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/SelectorMes.dc.html`,
-`mockups/Checklist.dc.html` (390×844).
+`mockups/Checklist.dc.html`, `mockups/Plantillas.dc.html`, `mockups/PlantillasTipo.dc.html`,
+`mockups/PlantillaDetalle.dc.html` (390×844). Los tres de Plantillas son el mismo componente con la
+pantalla inicial distinta (prop `pantallaInicial`: lista / tipos / detalle).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -62,6 +64,23 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 5. FAB 60 dp, radio 18, fondo `accent`, icono reiniciar 26 dp, a 20 dp del borde derecho y 20 dp sobre la
    barra inferior, sombra `elevation.fab`.
 
+## Pestaña Plantillas (Plantillas, PlantillasTipo, PlantillaDetalle)
+1. Lista: cabecera igual que Checklist ("Plantillas" + contador). Tarjetas de 72 dp mínimo, radio 16,
+   borde `lineSoft`, padding 12/10/12/14, gap 14 entre insignia, textos y chevron. Insignia 44 dp radio 12
+   con fondo `surfaceAccent` e icono del tipo en `accent`. Nombre 16/800, subtítulo 13/600 `textMuted`.
+   Gap entre tarjetas 10. FAB + igual que el de Checklist (icono + 28 dp, trazo 2.4).
+2. Hoja de tipo: misma hoja que las demás (radio 24, padding 12/20/28, gap 14). Sobretítulo "NUEVA
+   PLANTILLA", título 20/800, una tarjeta por tipo (72 dp mínimo, radio 16, borde `line`) con insignia,
+   nombre 16/800, descripción 13/600 y chevron; "Cancelar" 48 dp fondo `surface`.
+3. Detalle: barra de 14/12/10/8 con botón volver 44 dp sin fondo, sobretítulo y nombre 20/800 con lápiz
+   16 dp en `textMuted`. En renombrado: campo 40 dp radio 12 borde 2 dp `accent` + botón "Guardar"
+   (40 dp, fondo `accent`, 14/800). Alta idéntica a Checklist. Etiqueta de recuento en estilo sobretítulo.
+   Filas de 60 dp mínimo, radio 14, padding 8/8/8/12, gap 12: avatar 36 dp fondo `surface` con iniciales
+   13/800, nombre 16/600, lápiz 44 dp `textMuted`, papelera 44 dp `danger`. Fila en edición: borde 2 dp
+   `accent`, campo 40 dp fondo `surfaceInput` sin borde, "Guardar" y X (40 dp, fondo `surface`).
+   Botón "Eliminar plantilla": 48 dp, radio 14, borde #E6C9C3, texto e icono `danger`, 12 dp bajo la lista.
+4. La barra inferior pasa a tres pestañas de igual ancho; la activa sigue siendo la única con píldora.
+
 ## Iconos (trazo 2 dp, esquinas y remates redondeados, 24×24 viewBox)
 - Calendario: `rect 3,5 18×16 r2` + línea y=10 + dos anillas x=8 y x=16 de y=3 a 7.
 - Checklist: `rect 3,4 18×16 r2` + marca `M9 11l2 2 4-4`.
@@ -70,6 +89,11 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 - Más: `M12 5v14M5 12h14` (trazo 2.4).
 - Papelera: tapa, cuerpo y dos líneas verticales.
 - Reiniciar: dos arcos con flechas (`M3 12a9 9 0 0 1 15.5-6.3L21 8` … `M21 12a9 9 0 0 1-15.5 6.3L3 16`).
+- Plantillas (capas): `M12 3l9 5-9 5-9-5 9-5z`, `M3 13l9 5 9-5`, `M3 17l9 5 9-5`.
+- Trabajadores (dos personas): `circle 9,8 r3.5`, `M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6`,
+  `circle 17,9 r2.5`, `M16 14.5c3 0 5.5 2 5.5 5`.
+- Lápiz: `M12 20h9`, `M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z`.
+- Flecha atrás: `M19 12H5`, `M11 6l-6 6 6 6`. Cerrar (X): `M6 6l12 12M18 6L6 18` (trazo 2.2).
 Los paths exactos están en los mockups; conviértelos a `ImageVector` con `path { moveTo… }` o impórtalos
 como Vector Drawable.
 

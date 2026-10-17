@@ -78,3 +78,60 @@ Como usuario quiero un botón flotante que desmarque todas las tareas para reuti
 ### L6 — Estado vacío
 - Dado que no hay tareas, entonces se muestra "Sin tareas todavía" con la ayuda "Escribe una tarea arriba
   y pulsa Agregar." y no se muestra el contador de progreso.
+
+## Plantillas
+
+### P1 — Ver la lista de plantillas
+Como usuario quiero una pestaña Plantillas donde ver todas mis plantillas.
+- Dado que abro la pestaña Plantillas sin plantillas, entonces veo "Sin plantillas todavía", la ayuda
+  "Pulsa + para crear tu primera plantilla." y el FAB +; no se muestra el contador.
+- Dado que tengo dos plantillas, entonces veo dos tarjetas con su nombre, "Trabajadores · N trabajadores"
+  y el contador "2 plantillas".
+
+### P2 — Crear una plantilla eligiendo su tipo
+Como usuario quiero pulsar + y elegir qué tipo de plantilla crear.
+- Cuando pulso el FAB, entonces se abre la hoja "¿Qué tipo de plantilla?" con la opción "Trabajadores" y
+  "Cancelar".
+- Cuando toco "Trabajadores", entonces se crea una plantilla llamada "Trabajadores N", se abre su
+  detalle con el nombre en modo edición y la lista de trabajadores vacía.
+- Cuando pulso "Cancelar", entonces la hoja se cierra y no se crea nada.
+
+### P3 — Consultar una plantilla y sus trabajadores
+- Cuando toco una tarjeta de la lista, entonces se abre el detalle con el nombre de la plantilla, la
+  etiqueta "N TRABAJADORES" y una fila por trabajador con avatar de iniciales, nombre, lápiz y papelera.
+- Cuando pulso la flecha de volver o el botón Atrás del sistema, entonces regreso a la lista.
+
+### P4 — Renombrar una plantilla
+- Cuando toco el nombre de la plantilla, escribo "Equipo de planta" y pulso "Guardar" (o Enter), entonces
+  el nombre cambia en el detalle y en la tarjeta de la lista.
+- Cuando dejo el campo vacío y pulso "Guardar", entonces se conserva el nombre anterior.
+
+### P5 — Añadir trabajadores
+- Dado texto en "Nombre del trabajador…", cuando pulso "Agregar" o Done, entonces el trabajador aparece al
+  final de la lista, el contador sube y el campo se vacía.
+- Dado el campo vacío o solo espacios, cuando pulso "Agregar", entonces no ocurre nada.
+- Puedo añadir tantos trabajadores como quiera (no hay límite); la lista hace scroll.
+
+### P6 — Editar un trabajador
+- Cuando pulso el lápiz de una fila, entonces la fila muestra un campo con el nombre actual, "Guardar" y X.
+- Cuando cambio el texto y pulso "Guardar" (o Enter), entonces el nombre se actualiza y la fila vuelve al
+  modo lectura; con texto vacío se conserva el anterior.
+- Cuando pulso X (o Escape), entonces se descartan los cambios.
+- Cuando pulso el lápiz de otra fila mientras edito una, entonces la primera vuelve a modo lectura sin
+  guardar y la segunda entra en edición.
+
+### P7 — Eliminar un trabajador
+- Cuando pulso la papelera de una fila, entonces desaparece, el contador baja y aparece el Snackbar
+  "Trabajador eliminado" con "Deshacer"; al deshacer vuelve a su posición.
+
+### P8 — Eliminar una plantilla
+- Cuando pulso "Eliminar plantilla", entonces aparece el diálogo de confirmación con el nombre y el número
+  de trabajadores; "Cancelar" no hace nada y "Eliminar" borra la plantilla con sus trabajadores y vuelve
+  a la lista.
+
+### P9 — Persistencia de plantillas
+- Dado plantillas con trabajadores, cuando fuerzo el cierre de la app y la reabro, entonces todo sigue
+  igual (nombres, orden y trabajadores).
+- Dado una instalación con la base de datos en versión 1, cuando actualizo a la versión con Plantillas,
+  entonces mis turnos y tareas se conservan y la pestaña Plantillas aparece vacía (migración 1 → 2).
+

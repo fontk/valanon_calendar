@@ -18,6 +18,23 @@ CREATE TABLE IF NOT EXISTS tareas (
 
 CREATE INDEX IF NOT EXISTS idx_tareas_orden ON tareas (orden);
 
+-- Versión 2 del esquema: plantillas reutilizables (spec 4b). Migration(1, 2) crea solo lo siguiente.
+CREATE TABLE IF NOT EXISTS plantillas (
+    id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    tipo   TEXT    NOT NULL CHECK (tipo IN ('trabajadores')),  -- punto de extensión para nuevos tipos
+    nombre TEXT    NOT NULL,
+    orden  INTEGER NOT NULL                                     -- orden de creación, ascendente
+);
+
+CREATE TABLE IF NOT EXISTS trabajadores (
+    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    plantilla_id INTEGER NOT NULL REFERENCES plantillas (id) ON DELETE CASCADE,
+    nombre      TEXT    NOT NULL,
+    orden       INTEGER NOT NULL                                -- orden dentro de la plantilla
+);
+
+CREATE INDEX IF NOT EXISTS idx_trabajadores_plantilla ON trabajadores (plantilla_id, orden);
+
 -- ---------------------------------------------------------------
 -- Consultas de referencia (equivalentes a los métodos de los DAO)
 -- ---------------------------------------------------------------
@@ -47,3 +64,29 @@ CREATE INDEX IF NOT EXISTS idx_tareas_orden ON tareas (orden);
 
 -- Botón flotante: reiniciar todos los checks (no borra nada)
 -- UPDATE tareas SET hecha = 0;
+
+-- Plantillas: lista con recuento de trabajadores
+-- SELECT p.*, COUNT(t.id) AS trabajadores FROM plantillas p
+--   LEFT JOIN trabajadores t ON t.plantilla_id = p.id
+--   GROUP BY p.id ORDER BY p.orden ASC;
+
+-- Nueva plantilla al final
+-- INSERT INTO plantillas (tipo, nombre, orden)
+--   VALUES (:tipo, :nombre, COALESCE((SELECT MAX(orden) FROM plantillas), 0) + 1);
+
+-- Renombrar plantilla / borrar plantilla (borra sus trabajadores en cascada)
+-- UPDATE plantillas SET nombre = :nombre WHERE id = :id;
+-- DELETE FROM plantillas WHERE id = :id;
+
+-- Trabajadores de una plantilla, en orden
+-- SELECT * FROM trabajadores WHERE plantilla_id = :plantillaId ORDER BY orden ASC;
+
+-- Nuevo trabajador al final de su plantilla
+-- INSERT INTO trabajadores (plantilla_id, nombre, orden)
+--   VALUES (:plantillaId, :nombre,
+--           COALESCE((SELECT MAX(orden) FROM trabajadores WHERE plantilla_id = :plantillaId), 0) + 1);
+
+-- Editar / eliminar trabajador
+-- UPDATE trabajadores SET nombre = :nombre WHERE id = :id;
+-- DELETE FROM trabajadores WHERE id = :id;
+

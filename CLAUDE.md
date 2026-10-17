@@ -76,6 +76,19 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
+## Pending feature: Plantillas tab (spec 4b, stories P1–P9, TASKS Fase 7)
+
+Third bottom-bar destination `plantillas` (after Checklist). Reusable data sets that other tabs
+will consume later; v1 has one type, `TipoPlantilla.TRABAJADORES` (a list of worker names).
+Screens: list with FAB + → `SelectorTipoPlantilla` bottom sheet → worker detail (rename inline,
+add / inline-edit / delete workers with undo, delete template with confirm dialog). Detail is
+inner navigation of the tab; system Back returns to the list. Data: Room schema **version 2**
+with `Plantilla` and `Trabajador` entities (`ON DELETE CASCADE`, index on `plantilla_id`),
+`MIGRATION_1_2` creating only the new tables (mirror `mis-turnos-kit/db/schema.sql`), new JSON
+under `app/schemas/`. References: `mis-turnos-kit/design/mockups/Plantillas*.dc.html` and
+`design/DESIGN.md` ("Pestaña Plantillas"). Do not add other template types or wire templates
+into Calendario/Checklist until asked.
+
 ## Pending feature: month/year picker (spec 3.1.1, story C2b, TASKS Fase 6)
 
 The month title in `CabeceraMes` becomes a pill button ("Elegir mes y año") that opens a new
