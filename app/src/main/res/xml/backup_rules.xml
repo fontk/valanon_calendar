@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Backup rules for Android 11 and lower.
+   See https://developer.android.com/guide/topics/data/autobackup
+-->
+<full-backup-content>
+    <!-- Example: exclude the database from backups
+    <exclude domain="database" path="valanon_calendar.db" />
+    -->
+</full-backup-content>
