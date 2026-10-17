@@ -2,8 +2,10 @@
 
 Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/SelectorMes.dc.html`,
 `mockups/Checklist.dc.html`, `mockups/Plantillas.dc.html`, `mockups/PlantillasTipo.dc.html`,
-`mockups/PlantillaDetalle.dc.html` (390×844). Los tres de Plantillas son el mismo componente con la
-pantalla inicial distinta (prop `pantallaInicial`: lista / tipos / detalle).
+`mockups/PlantillaDetalle.dc.html`, `mockups/Turnos.dc.html`, `mockups/TurnosDia.dc.html`,
+`mockups/TurnosEditar.dc.html`, `mockups/TurnosSelector.dc.html` (390×844). Los tres de Plantillas y los
+cuatro de Turnos son, en cada caso, el mismo componente con la pantalla inicial distinta (prop
+`pantallaInicial`).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -51,6 +53,29 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 - En tema oscuro: fondo de la hoja = superficie oscura, botones de mes con borde `line` oscuro, el activo
   mantiene `accent`; "hoy" usa `AccentOnBackground` al 40 %.
 
+## Pestaña Turnos (Turnos, TurnosDia, TurnosEditar)
+1. Cabecera igual que Calendario con el sobretítulo "TURNOS DEL EQUIPO". Debajo (padding 6/20/12) el chip
+   de plantilla activa: 36 dp, radio 999, borde `line`, padding 0/12/0/8, gap 8, insignia 24 dp radio 7
+   (`surfaceAccent` + icono 15 dp en `accent`), nombre 13/700 con elipsis y chevron 16 dp; a la derecha el
+   resumen 12/700 `textMuted`.
+2. Rejilla idéntica a Calendario pero las celdas no llevan color de turno: número 15/800 y debajo una fila
+   (gap 3, alto 8) de puntos de 7 dp con el `dot` del turno de cada trabajador asignado; máximo 5 puntos y
+   "+N" en 9/800 `textMuted`. Día con asignaciones: fondo #FAFAF8; hoy: borde 2 dp `accent`.
+3. Leyenda de turnos bajo la rejilla (chips 4×10) y barra inferior de cuatro pestañas.
+4. Hoja "Equipo del día": misma hoja base; cabecera en fila con sobretítulo, fecha 20/800, subtítulo 13/600
+   y el botón de modo a la derecha ("Editar" contorno `accent` 40 dp con lápiz 16 dp; "Listo" relleno
+   `accent`). Filas de 56 dp mínimo, radio 14, borde `lineSoft`, padding 6/8/6/10, gap 12: avatar 36 dp
+   con iniciales 13/800, nombre 15/700, y chip de turno (6×12, radio 999, colores del turno; "Sin asignar"
+   con borde discontinuo #C9C9C4 y texto `textFaint`) o, en edición, botón-chip (40 dp, radio 12, borde
+   2 dp `dot` del turno, fondo/texto del turno, 13/700, chevron derecho 16 dp). Botón "Cerrar" 48 dp `surface`.
+4b. Selector de turno del trabajador: exactamente la hoja de "Calendario · selector de turno" (opciones
+   52 dp, cuadrado 28 dp radio 8, "Actual" en `accent`), con cabecera en fila: botón volver 44 dp fondo
+   `surface` + sobretítulo (fecha) + título "Turno de <nombre>" 20/800 con elipsis; fila final "Quitar
+   turno" (borde #E6C9C3, texto `danger`, solo si tiene turno) y "Cancelar" (`surface`), 48 dp cada uno.
+   Sustituye al contenido de la hoja del día (no se apilan dos hojas).
+5. Hoja "¿Qué equipo quieres ver?": filas 56 dp radio 14 con nombre 16/700 y recuento 13/600; la activa con
+   borde 2 dp `accent`.
+
 ## Pantalla Checklist
 1. Cabecera: sobretítulo, "Checklist" 22/800 y progreso "3 de 6 hechas" 13/700 `textMuted` alineados en
    la línea base.
@@ -94,6 +119,7 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
   `circle 17,9 r2.5`, `M16 14.5c3 0 5.5 2 5.5 5`.
 - Lápiz: `M12 20h9`, `M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z`.
 - Flecha atrás: `M19 12H5`, `M11 6l-6 6 6 6`. Cerrar (X): `M6 6l12 12M18 6L6 18` (trazo 2.2).
+- Turnos (reloj): `circle 12,12 r9`, `M12 7v5l3 2`.
 Los paths exactos están en los mockups; conviértelos a `ImageVector` con `path { moveTo… }` o impórtalos
 como Vector Drawable.
 

@@ -77,6 +77,25 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
+## Pending feature: Turnos tab (spec 3b, stories T1–T7, TASKS Fase 8) — after Fase 6 and 7
+
+Second bottom-bar destination `turnos`, between Calendario and Checklist: a month grid of the
+*team's* shifts. Each day cell shows up to 5 dots (one per worker of the active Trabajadores
+template, coloured with `TipoTurno.colores.dot`) plus "+N". Tapping a day opens the
+"Equipo del día" sheet: the template's workers with their shift as a chip; "Editar" makes each
+chip a button that swaps the sheet content for the SAME `SelectorTurno` used by Calendario
+(generalise it: title, subtitle, current shift, optional back arrow and secondary "Quitar turno"
+action — do not copy it). Picking an option or "Quitar turno" persists immediately and returns to
+the team list in edit mode; "Listo" returns to read mode. One ModalBottomSheet with
+`AnimatedContent`, never two stacked sheets. A chip under the
+header picks the active template (stored in the new `ajustes` table, key `turnos.plantilla_id`).
+Data: Room schema **version 3** with `Asignacion` (unique on `fecha` + `trabajador_id`, cascade
+from `Trabajador`) and `Ajuste`; `MIGRATION_2_3` mirrors `mis-turnos-kit/db/schema.sql`.
+Turnos has its own visible month (`KEY_MES_TURNOS`) and NEVER touches the `turnos` table, which
+holds the user's own shifts. Reuse `CabeceraMes`/`RejillaMes` from Calendario (extract them to
+`ui/componentes` with a cell-content slot) rather than copying them. References:
+`mis-turnos-kit/design/mockups/Turnos*.dc.html` and `design/DESIGN.md` ("Pestaña Turnos").
+
 ## Plantillas tab (spec 4b, stories P1–P9, TASKS Fase 7) — implemented
 
 - Third bottom-bar destination. `Destino.PLANTILLAS.ruta` (`plantillas_tab`) is a nested

@@ -119,3 +119,69 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
 - [x] Modo oscuro: insignias con `surfaceAccent` oscuro, avatares con `surface` oscuro.
 - [x] Verificar P1–P9 en emulador y actualizar `CLAUDE.md` (Architecture y Database rules: versión 2).
 
+## Fase 8 — Pestaña Turnos del equipo (spec 3b, historias T1–T7). Requiere Fase 6 y Fase 7.
+
+### 8.1 Datos
+- [ ] Entidades Room `Asignacion(id, fecha: String, trabajadorId, tipo: TipoTurno)` con
+      `@ForeignKey(Trabajador, onDelete = CASCADE)`, `@Index(value = ["fecha", "trabajador_id"], unique = true)`
+      e índice en `trabajador_id`; y `Ajuste(clave: String PK, valor: String)`. Reutilizar `Conversores`
+      de `TipoTurno`.
+- [ ] `AsignacionDao`: `observarMes(plantillaId, desde, hasta): Flow<List<Asignacion>>` (JOIN con
+      `trabajadores` por `plantilla_id`), `upsert(asignacion)`, `borrar(fecha, trabajadorId)`,
+      `contarDePlantilla(plantillaId)`, `obtenerDeTrabajador(trabajadorId)` (para deshacer).
+- [ ] `AjusteDao`: `observar(clave): Flow<String?>`, `guardar(Ajuste)`.
+- [ ] `AppDatabase`: `VERSION = 3`, entidades nuevas, `MIGRATION_2_3` exactamente como `schema.sql`,
+      exportar `app/schemas/.../3.json`. Si la versión 2 aún no está en ningún dispositivo, fusionar en
+      una sola migración 1 → 2 y documentarlo en `CLAUDE.md`.
+- [ ] `AsignacionesRepositorio` (incluye `plantillaActiva(): Flow<Plantilla?>` resolviendo
+      `turnos.plantilla_id` o la primera disponible) en `di/AppContainer`.
+- [ ] `TrabajadoresRepositorio.eliminar` devuelve también las asignaciones borradas para que "Deshacer"
+      las reinserte; el borrado de plantilla informa del número de asignaciones para el diálogo.
+- [ ] Tests: `MigrationTest` 2 → 3, `AsignacionDaoTest` (unique por fecha+trabajador, cascade desde
+      trabajador y desde plantilla, filtro por plantilla), fakes JVM.
+
+### 8.2 Navegación e iconos
+- [ ] `Destino.TURNOS("turnos", R.string.tab_turnos, MisTurnosIcons.Turnos)` en segunda posición;
+      `composable("turnos") { TurnosRoute() }`. La barra pasa a cuatro ítems de igual ancho; comprobar que
+      las etiquetas caben a 1.3× de fuente (si no, reducir a 11 sp solo en la barra).
+- [ ] Iconos `Turnos` (reloj: `circle 12,12 r9` + `M12 7v5l3 2`) y reutilizar `Trabajadores`, `Lapiz`,
+      `ChevronAbajo`.
+
+### 8.3 Calendario del equipo
+- [ ] `TurnosViewModel`: `mes` (propia clave `KEY_MES_TURNOS`), `diaAbierto`, `editando`,
+      `selectorMesAbierto`/`anioSelector` (reutilizar la lógica de Fase 6, idealmente extraída a un
+      `SelectorMesState` compartido con `CalendarioViewModel`), `hojaPlantillasAbierta`; `uiState` combina
+      plantilla activa, trabajadores y asignaciones del mes en `Map<LocalDate, Map<Long, TipoTurno>>`.
+- [ ] `TurnosScreen`: cabecera con `CabeceraMes` reutilizada (extraerla de `CalendarioScreen` a
+      `ui/componentes`), `ChipPlantillaActiva` + resumen, `RejillaMes` reutilizada con un slot de
+      contenido de celda (`CeldaDiaPuntos`: número + hasta 5 puntos + "+N"), leyenda, estado vacío con
+      "Ir a Plantillas".
+- [ ] `SelectorPlantillaActiva` (`ModalBottomSheet`).
+
+### 8.4 Hoja "Equipo del día"
+- [ ] Refactor previo: generalizar `SelectorTurno.kt` (Calendario) para aceptar `titulo`, `sobretitulo`,
+      `turnoActual: TipoTurno?`, `onElegir`, `onCancelar`, `accionSecundaria: (texto, onClick)?` y un
+      `onVolver` opcional (flecha). Calendario debe seguir viéndose igual (actualizar su preview).
+- [ ] `EquipoDelDiaSheet`: una sola `ModalBottomSheet` cuyo contenido alterna entre `EquipoDelDia`
+      (cabecera con fecha, subtítulo de recuento, botón Editar/Listo, lista de `FilaTrabajadorTurno` en
+      modo chip o botón, botón Cerrar) y el `SelectorTurno` reutilizado para el trabajador seleccionado
+      (`trabajadorSeleccionadoId` en SavedStateHandle), con `AnimatedContent` entre ambos.
+- [ ] Guardado inmediato al elegir una opción (`upsert`) o "Quitar turno" (`borrar`), sin botón Guardar;
+      ambas acciones vuelven a `EquipoDelDia` en modo edición.
+- [ ] Cerrar la hoja (botón, deslizar, scrim, Atrás) resetea `editando = false` y
+      `trabajadorSeleccionadoId = null`; Atrás con el selector abierto solo vuelve a `EquipoDelDia`.
+- [ ] Tests JVM del ViewModel: abrir selector fija el trabajador; elegir turno persiste, actualiza el mapa
+      y cierra el selector; "Quitar turno" borra; cancelar no cambia nada; cambiar de plantilla recarga;
+      sin plantillas → estado vacío; borrar la plantilla activa → siguiente disponible.
+
+### 8.5 Cierre
+- [ ] `strings.xml`: "Turnos", "Turnos del equipo", "Elegir plantilla de trabajadores", plural
+      "%1$d de %2$d días con turnos", "Equipo del día", plural "%1$d de %2$d asignados", "Editar", "Listo",
+      "Cerrar", "Sin asignar", "Turno de %1$s", "Cambiar turno de %1$s, %2$s", "Volver al equipo del día",
+      "Quitar turno", "Plantilla de trabajadores", "¿Qué equipo quieres ver?",
+      textos del estado vacío e "Ir a Plantillas", y el añadido "y sus %1$d turnos asignados" del diálogo
+      de eliminar plantilla.
+- [ ] Previews con `DatosMuestra` (plantilla "Equipo de planta" y asignaciones de octubre de la maqueta).
+- [ ] Modo oscuro: puntos con los mismos `dot`; fondo de día con datos = superficie oscura +1 nivel.
+- [ ] Verificar T1–T7 en emulador y actualizar `CLAUDE.md` (Architecture, Database rules: versión 3).
+

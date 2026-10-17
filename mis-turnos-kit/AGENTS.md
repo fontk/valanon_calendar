@@ -44,6 +44,10 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
   Plantillas en sus tres estados (lista, hoja de tipo, detalle de trabajadores). Es un único componente
   con la prop `pantallaInicial`; el script del final contiene el flujo completo (crear, renombrar, añadir,
   editar en línea, eliminar) como pseudocódigo.
+- `design/mockups/Turnos.dc.html`, `TurnosDia.dc.html`, `TurnosEditar.dc.html`, `TurnosSelector.dc.html`:
+  pestaña Turnos (calendario del equipo, hoja "Equipo del día" en lectura, en edición, y el selector de
+  turno de un trabajador, que es el mismo selector de Calendario reutilizado). Mismo patrón de un
+  componente con `pantallaInicial`.
 - El bloque `<script type="text/x-dc">` del final de cada fichero contiene la lógica de la maqueta en
   JavaScript (cálculo de celdas del mes, mapa de turnos, alta/borrado de tareas). Úsalo como pseudocódigo
   del comportamiento esperado, no lo portes literalmente.
@@ -64,5 +68,8 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
 - No cambiar los cinco tipos de turno ni sus colores sin pedir confirmación.
 - No sustituir SQLite/Room por DataStore, SharedPreferences ni archivos JSON.
 - No añadir inicio de sesión, sincronización en la nube ni notificaciones: fuera de alcance.
-- No añadir tipos de plantilla distintos de Trabajadores ni usar las plantillas desde otras pestañas sin
-  que se pida: el modelo (`TipoPlantilla`, tablas `plantillas`/`trabajadores`) ya está preparado para ello.
+- No añadir tipos de plantilla distintos de Trabajadores. La única pestaña que consume plantillas es
+  Turnos (plantillas de trabajadores → asignaciones por día); no conectar plantillas a Calendario ni a
+  Checklist sin que se pida.
+- La pestaña Turnos nunca escribe en la tabla `turnos` (los turnos del propio usuario); usa `asignaciones`.
+- La preferencia de plantilla activa va en la tabla `ajustes` de Room, nunca en DataStore/SharedPreferences.

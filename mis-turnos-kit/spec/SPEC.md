@@ -3,20 +3,22 @@
 ## 1. Resumen
 
 App personal para registrar el turno de trabajo de cada día en un calendario y llevar una checklist de
-tareas reutilizable. Tres pestañas en una barra inferior: **Calendario** (izquierda, destino inicial),
-**Checklist** (centro) y **Plantillas** (derecha), esta última para editar datos que otras pestañas
-reutilizarán. Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
+tareas reutilizable. Cuatro pestañas en una barra inferior, en este orden: **Calendario** (destino
+inicial, los turnos del propio usuario), **Turnos** (los turnos de los compañeros de una plantilla de
+trabajadores, día a día), **Checklist** y **Plantillas** (datos reutilizables por otras pestañas). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
 
 ## 2. Navegación
 
-- Barra inferior de 72 dp con tres pestañas, en este orden: Calendario, Checklist, Plantillas. La pestaña activa muestra el icono dentro de una píldora
+- Barra inferior de 72 dp con cuatro pestañas de igual ancho, en este orden: Calendario, Turnos,
+  Checklist, Plantillas. La pestaña activa muestra el icono dentro de una píldora
   (fondo `surfaceAccent` #DDF0EC) y texto en `accent` con peso 800; la inactiva en `textMuted` #5F5F5A,
   peso 700. Etiquetas: "Calendario" y "Checklist".
-- Iconos de trazo (stroke 2 dp): calendario (rectángulo con dos anillas y línea de cabecera), checklist
-  (rectángulo con marca de verificación) y plantillas (tres capas apiladas: rombo arriba y dos arcos
-  debajo). Nunca emoji.
-- Cambiar de pestaña conserva el estado de cada una (mes visible, texto escrito en el campo de nueva tarea,
-  plantilla abierta en Plantillas).
+- Iconos de trazo (stroke 2 dp): calendario (rectángulo con dos anillas y línea de cabecera), turnos
+  (reloj: círculo con manecillas), checklist (rectángulo con marca de verificación) y plantillas (tres
+  capas apiladas: rombo arriba y dos arcos debajo). Nunca emoji.
+- Cambiar de pestaña conserva el estado de cada una (mes visible de Calendario y de Turnos, texto escrito
+  en el campo de nueva tarea, plantilla abierta en Plantillas). Calendario y Turnos tienen cada uno su
+  propio mes visible.
 
 ## 3. Pestaña Calendario
 
@@ -88,6 +90,97 @@ Libre, Mañana, Tarde, Noche, Vacaciones. Colores en `design/tokens/tokens.json`
   esquema de colores y una leyenda al pie. Un mes por página.
 - Nombre de archivo: `turnos-2026-10.pdf`. Tras generarlo, abrir la hoja de compartir del sistema
   (`ACTION_SEND`, tipo `application/pdf`) o guardarlo en Descargas; mostrar un Snackbar "PDF exportado".
+
+## 3b. Pestaña Turnos (turnos del equipo)
+
+Calendario mensual que, en vez del turno del propio usuario, muestra qué turno tiene cada compañero de
+una **plantilla de trabajadores** (pestaña Plantillas, tipo Trabajadores) en cada día. Reutiliza los
+mismos cinco valores de turno, colores y abreviaturas de la pestaña Calendario.
+
+### 3b.1 Cabecera y plantilla activa
+- Sobretítulo "TURNOS DEL EQUIPO". Fila de mes idéntica a Calendario: flechas "Mes anterior"/"Mes
+  siguiente" y el selector de mes y año (3.1.1). El mes visible de Turnos es independiente del de
+  Calendario.
+- Debajo, a la izquierda, un chip de **plantilla activa** (36 dp, radio 999, borde `line`): insignia de
+  24 dp con el icono de dos personas en `accent` sobre `surfaceAccent`, nombre de la plantilla (13 sp,
+  700, una línea con elipsis, ancho máx. 240 dp) y chevron abajo. `contentDescription`: "Elegir
+  plantilla de trabajadores". Al tocarlo se abre la hoja 3b.4. A la derecha, el resumen "12 de 31 días
+  con turnos" (12 sp, 700, `textMuted`).
+- La plantilla activa se guarda en la tabla `ajustes` (clave `turnos.plantilla_id`). Al abrir la pestaña
+  por primera vez se usa la primera plantilla de tipo Trabajadores por `orden`. Si la plantilla activa se
+  borra, se vuelve a la primera disponible.
+- Sin ninguna plantilla de trabajadores: en lugar de la rejilla se muestra el estado vacío "Aún no hay
+  ninguna plantilla de trabajadores" con la ayuda "Crea una en la pestaña Plantillas para ver aquí los
+  turnos de tu equipo." y un botón "Ir a Plantillas" (48 dp, contorno `accent`) que navega a esa pestaña.
+
+### 3b.2 Rejilla del mes
+- Misma estructura que 3.3 (semana en lunes, cabecera L–D, celdas de 60 dp, radio 12, gap 6, hoy con
+  borde 2 dp `accent`). Las celdas de Turnos no tienen color de fondo por turno: muestran el número del
+  día (15 sp, 800) y debajo una fila de **puntos** de 7 dp (gap 3), uno por trabajador de la plantilla
+  activa que tenga turno asignado ese día, en el orden de la plantilla y con el color `dot` de su turno
+  (`shift.*.dot` en tokens). Se dibujan como máximo 5 puntos; si hay más, un texto "+N" (9 sp, 800,
+  `textMuted`) tras el quinto. Un día con al menos una asignación tiene fondo #FAFAF8; sin asignaciones,
+  blanco con borde `lineSoft`.
+- `contentDescription` de la celda: "17 de octubre, 3 de 4 asignados".
+- Leyenda de los cinco turnos (chips como en 3.2) debajo de la rejilla, encima de la barra inferior.
+- Tocar un día abre la hoja 3b.3.
+
+### 3b.3 Equipo del día (hoja inferior)
+- `ModalBottomSheet` (alto máximo ≈ 85 % de la pantalla, la lista hace scroll). Cabecera: sobretítulo
+  "EQUIPO DEL DÍA", título con la fecha "Sábado, 17 de octubre" (20 sp, 800) y subtítulo "Equipo de
+  planta · 3 de 4 asignados" (13 sp, 600, `textMuted`). A la derecha, el botón de modo:
+  - En **modo lectura**: botón "Editar" (40 dp, radio 12, contorno 1 dp `accent`, texto `accent`
+    14 sp/800, icono lápiz 16 dp).
+  - En **modo edición**: botón "Listo" (40 dp, radio 12, fondo `accent`, texto blanco).
+- Lista de los trabajadores de la plantilla activa, en su orden (gap 8). Cada fila: min 56 dp, radio 14,
+  borde `lineSoft`, padding 6/8/6/10: avatar de iniciales 36 dp (fondo `surface`), nombre (15 sp, 700,
+  una línea con elipsis) y, a la derecha:
+  - En modo lectura: un **chip** con el turno (12 sp, 700, padding 6×12, radio 999) con los colores
+    `bg`/`fg`/`border` del turno, o "Sin asignar" (texto `textFaint`, borde 1 dp discontinuo #C9C9C4,
+    fondo blanco) cuando no tiene turno ese día.
+  - En modo edición: el chip pasa a ser un **botón** (40 dp, radio 12, mismos colores del turno, borde
+    2 dp con el color `dot` del turno o `line` si está sin asignar, chevron derecho 16 dp).
+    `contentDescription`: "Cambiar turno de Lucía Martínez, Noche". Tocarlo abre el **selector de turno
+    del trabajador** (3b.3.1).
+
+#### 3b.3.1 Selector de turno del trabajador (hoja inferior)
+- Es el **mismo componente** que el selector de turno de Calendario (3.4): misma hoja, mismas cinco
+  opciones de 52 dp con cuadrado de color de 28 dp, nombre del turno y "Actual" en la asignada, mismo
+  orden (Libre, Mañana, Tarde, Noche, Vacaciones). En Compose debe reutilizarse `SelectorTurno`
+  parametrizándolo (título, subtítulo, turno actual, acción secundaria), no copiarlo.
+- Diferencias respecto a Calendario: la cabecera lleva un botón circular "Volver al equipo del día" (44 dp,
+  fondo `surface`, flecha izquierda), el sobretítulo es la fecha ("Sábado, 17 de octubre") y el título
+  "Turno de Lucía Martínez" (20 sp, 800, una línea con elipsis). La fila inferior tiene dos botones de
+  48 dp a partes iguales: "Quitar turno" (borde #E6C9C3, texto `danger`; solo visible si el trabajador
+  tiene turno ese día) y "Cancelar" (fondo `surface`).
+- Se presenta **sustituyendo** a la hoja "Equipo del día" (una sola `ModalBottomSheet` cuyo contenido
+  cambia con animación, o navegación interna de la hoja), nunca dos hojas apiladas. Elegir una opción,
+  "Quitar turno", "Cancelar", la flecha de volver, deslizar o el scrim devuelven a "Equipo del día" en
+  modo edición; solo "Cancelar"/volver/deslizar/scrim lo hacen sin cambios.
+- **Guardado inmediato**: elegir un turno escribe `INSERT OR REPLACE` en `asignaciones`; "Quitar turno"
+  hace `DELETE`. No hay botón Guardar. Al volver a "Equipo del día" el chip, el recuento del subtítulo y
+  los puntos de la celda del día ya reflejan el cambio. "Listo" solo vuelve al modo lectura.
+- Botón "Cerrar" (48 dp, fondo `surface`) al pie. Cerrar deslizando o por el scrim equivale a Cerrar y
+  sale también del modo edición.
+- El día abierto, el modo edición, el trabajador cuyo selector está abierto y la plantilla activa
+  sobreviven a la rotación (SavedStateHandle).
+
+### 3b.4 Elegir plantilla activa (hoja inferior)
+- Sobretítulo "PLANTILLA DE TRABAJADORES", título "¿Qué equipo quieres ver?". Una fila por plantilla de
+  tipo Trabajadores (56 dp, radio 14): nombre (16 sp, 700) y "4 trabajadores" (13 sp, 600, `textMuted`);
+  la activa con borde 2 dp `accent`, el resto 1 dp `line`. Tocar una la activa, la guarda en `ajustes` y
+  cierra la hoja. Botón "Cancelar".
+
+### 3b.5 Reglas de datos
+- Una asignación es (fecha, trabajador) → turno; única por fecha y trabajador
+  (`UNIQUE(fecha, trabajador_id)`). Un trabajador puede estar sin asignar un día (no existe fila).
+- La pestaña Turnos no escribe en la tabla `turnos` del propio usuario ni la lee: son datos distintos.
+- Borrar un trabajador borra sus asignaciones en cascada; borrar una plantilla borra trabajadores y
+  asignaciones. El diálogo de "Eliminar plantilla" (4b.3) debe añadir al cuerpo "y sus N turnos
+  asignados" cuando N > 0. El diálogo de eliminar trabajador no cambia (sigue siendo inmediato con
+  Deshacer; deshacer reinserta también sus asignaciones).
+- Un trabajador añadido a la plantilla aparece de inmediato en la hoja del día como "Sin asignar" para
+  todos los días.
 
 ## 4. Pestaña Checklist
 
@@ -182,16 +275,22 @@ y la interfaz están preparados para añadir más tipos sin rediseñar la pesta�
 
 ## 5. Persistencia
 
-Ver `db/schema.sql`. Cuatro tablas:
+Ver `db/schema.sql`. Seis tablas:
 
 - `turnos(fecha TEXT PRIMARY KEY, tipo TEXT NOT NULL CHECK(tipo IN (...)))`
 - `tareas(id INTEGER PRIMARY KEY AUTOINCREMENT, texto TEXT NOT NULL, hecha INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL)`
 - `plantillas(id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL CHECK(tipo IN ('trabajadores')), nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `trabajadores(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
+- `asignaciones(id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, trabajador_id INTEGER NOT NULL REFERENCES trabajadores(id) ON DELETE CASCADE, tipo TEXT NOT NULL CHECK(tipo IN (...)), UNIQUE(fecha, trabajador_id))`
+- `ajustes(clave TEXT PRIMARY KEY, valor TEXT NOT NULL)` — pares clave/valor de la app (por ahora solo
+  `turnos.plantilla_id`). Sustituye a DataStore/SharedPreferences, que siguen prohibidos.
 
 La app lee los turnos del mes visible con un rango `fecha BETWEEN ? AND ?` y observa cambios con `Flow`.
-Las dos tablas nuevas llegan en la versión 2 del esquema de Room con una `Migration(1, 2)` que solo crea
-tablas e índices (no toca datos existentes).
+`plantillas` y `trabajadores` llegan en la versión 2 del esquema de Room con una `Migration(1, 2)`;
+`asignaciones` y `ajustes` en la versión 3 con una `Migration(2, 3)`. Ambas migraciones solo crean tablas e
+índices (no tocan datos existentes). Si la Fase 7 aún no se ha publicado, pueden fusionarse en una única
+versión 2. Turnos lee las asignaciones del mes visible con `fecha BETWEEN ? AND ?` filtrando por los
+trabajadores de la plantilla activa (JOIN con `trabajadores`).
 
 ## 6. Accesibilidad y calidad
 
@@ -203,5 +302,6 @@ tablas e índices (no toca datos existentes).
 ## 7. Fuera de alcance (v1)
 
 Cuentas, sincronización, notificaciones, widgets, varios calendarios, turnos partidos, estadísticas.
-Otros tipos de plantilla y el uso de las plantillas desde Calendario o Checklist (asignar trabajadores a
-turnos) quedan para versiones posteriores; el modelo de datos ya lo permite.
+Otros tipos de plantilla, el uso de plantillas desde Calendario o Checklist, exportar a PDF el calendario
+del equipo, copiar los turnos de un día a otro y ver varias plantillas a la vez quedan para versiones
+posteriores; el modelo de datos ya lo permite.

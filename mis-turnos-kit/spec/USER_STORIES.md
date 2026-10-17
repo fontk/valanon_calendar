@@ -50,6 +50,60 @@ Como usuario quiero exportar el calendario del mes a PDF para imprimirlo o envia
   la rejilla coloreada y la leyenda, y se abre la hoja de compartir del sistema.
 - El PDF se abre correctamente en un visor estándar y los colores coinciden con la app.
 
+## Turnos (equipo)
+
+### T1 — Ver el calendario del equipo
+Como usuario quiero una pestaña Turnos con el mes en curso y, en cada día, un punto por compañero con el
+color de su turno, para ver de un vistazo cómo está el equipo.
+- Dado que existe una plantilla de trabajadores con asignaciones, cuando abro Turnos, entonces veo el mes
+  actual, el chip con el nombre de la plantilla activa, el resumen "N de M días con turnos", las celdas
+  con sus puntos de color y la leyenda.
+- Dado un día con 7 asignados, entonces la celda muestra 5 puntos y "+2".
+- Las flechas y el selector de mes y año funcionan igual que en Calendario y no cambian el mes de Calendario.
+
+### T2 — Sin plantillas
+- Dado que no existe ninguna plantilla de trabajadores, cuando abro Turnos, entonces veo el estado vacío
+  con el botón "Ir a Plantillas", que me lleva a esa pestaña.
+
+### T3 — Consultar el equipo de un día
+- Cuando toco un día, entonces se abre "Equipo del día" con la fecha, "Plantilla · X de Y asignados" y
+  una fila por trabajador con su chip de turno o "Sin asignar".
+- Cuando pulso "Cerrar", deslizo o toco fuera, entonces la hoja se cierra.
+
+### T4 — Editar los turnos de un día
+- Dado la hoja abierta en lectura, cuando pulso "Editar", entonces cada chip pasa a ser un botón con
+  chevron y el botón de cabecera pasa a "Listo".
+- Cuando toco el chip de Javier, entonces la hoja pasa a mostrar el selector de turno, idéntico al de
+  Calendario: fecha como sobretítulo, "Turno de Javier Ortega", las cinco opciones con su cuadrado de
+  color y "Actual" en la que tiene, y abajo "Quitar turno" y "Cancelar".
+- Cuando elijo "Noche", entonces vuelvo a "Equipo del día" en modo edición, el chip de Javier tiene los
+  colores de Noche, la asignación queda guardada al instante, el subtítulo actualiza el recuento y el
+  punto de Javier en la celda del día cambia de color.
+- Cuando pulso "Quitar turno", entonces se borra su asignación de ese día, su chip pasa a "Sin asignar" y
+  su punto desaparece.
+- Cuando pulso "Cancelar" o la flecha de volver en el selector, entonces regreso a "Equipo del día" sin
+  cambios.
+- Cuando pulso "Listo", entonces vuelvo al modo lectura con los chips actualizados.
+- Cuando cierro la hoja estando en edición, entonces los cambios ya hechos se conservan (se guardaron al
+  elegir) y al reabrir el día la hoja está en modo lectura.
+
+### T5 — Cambiar de plantilla activa
+- Cuando toco el chip de la plantilla, entonces se abre "¿Qué equipo quieres ver?" con todas las plantillas
+  de trabajadores y la activa resaltada.
+- Cuando elijo otra, entonces la rejilla y la hoja pasan a mostrar sus trabajadores y asignaciones, y la
+  elección se recuerda al cerrar y reabrir la app.
+
+### T6 — Coherencia con Plantillas
+- Cuando añado un trabajador a la plantilla activa, entonces aparece en la hoja del día como "Sin asignar".
+- Cuando elimino un trabajador con asignaciones, entonces desaparecen sus puntos; "Deshacer" los restaura.
+- Cuando elimino la plantilla activa, entonces Turnos pasa a la primera plantilla disponible o al estado
+  vacío si no queda ninguna.
+
+### T7 — Persistencia y migración
+- Dado asignaciones guardadas, cuando fuerzo el cierre y reabro la app, entonces siguen iguales.
+- Dado una base de datos en versión 2, cuando actualizo, entonces turnos, tareas, plantillas y trabajadores
+  se conservan y la pestaña Turnos funciona (migración 2 → 3).
+
 ## Checklist
 
 ### L1 — Añadir tarea

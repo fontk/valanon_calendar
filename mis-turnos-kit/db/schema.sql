@@ -35,6 +35,23 @@ CREATE TABLE IF NOT EXISTS trabajadores (
 
 CREATE INDEX IF NOT EXISTS idx_trabajadores_plantilla ON trabajadores (plantilla_id, orden);
 
+-- Versión 3 del esquema: turnos del equipo (spec 3b). Migration(2, 3) crea solo lo siguiente.
+CREATE TABLE IF NOT EXISTS asignaciones (
+    id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    fecha         TEXT    NOT NULL,                              -- 'yyyy-MM-dd'
+    trabajador_id INTEGER NOT NULL REFERENCES trabajadores (id) ON DELETE CASCADE,
+    tipo          TEXT    NOT NULL
+                  CHECK (tipo IN ('libre', 'manana', 'tarde', 'noche', 'vacaciones')),
+    UNIQUE (fecha, trabajador_id)                                -- un turno por trabajador y día
+);
+
+CREATE INDEX IF NOT EXISTS idx_asignaciones_trabajador ON asignaciones (trabajador_id);
+
+CREATE TABLE IF NOT EXISTS ajustes (
+    clave TEXT NOT NULL PRIMARY KEY,                             -- p. ej. 'turnos.plantilla_id'
+    valor TEXT NOT NULL
+);
+
 -- ---------------------------------------------------------------
 -- Consultas de referencia (equivalentes a los métodos de los DAO)
 -- ---------------------------------------------------------------
@@ -89,4 +106,23 @@ CREATE INDEX IF NOT EXISTS idx_trabajadores_plantilla ON trabajadores (plantilla
 -- Editar / eliminar trabajador
 -- UPDATE trabajadores SET nombre = :nombre WHERE id = :id;
 -- DELETE FROM trabajadores WHERE id = :id;
+
+-- Turnos del equipo: asignaciones del mes visible para la plantilla activa
+-- SELECT a.* FROM asignaciones a
+--   JOIN trabajadores t ON t.id = a.trabajador_id
+--   WHERE t.plantilla_id = :plantillaId AND a.fecha BETWEEN :desde AND :hasta;
+
+-- Asignar / cambiar el turno de un trabajador un día (guardado inmediato desde el desplegable)
+-- INSERT OR REPLACE INTO asignaciones (fecha, trabajador_id, tipo) VALUES (:fecha, :trabajadorId, :tipo);
+
+-- "Sin asignar"
+-- DELETE FROM asignaciones WHERE fecha = :fecha AND trabajador_id = :trabajadorId;
+
+-- Número de turnos asignados de una plantilla (para el diálogo de eliminar plantilla)
+-- SELECT COUNT(*) FROM asignaciones a JOIN trabajadores t ON t.id = a.trabajador_id
+--   WHERE t.plantilla_id = :plantillaId;
+
+-- Plantilla activa de la pestaña Turnos
+-- SELECT valor FROM ajustes WHERE clave = 'turnos.plantilla_id';
+-- INSERT OR REPLACE INTO ajustes (clave, valor) VALUES ('turnos.plantilla_id', :plantillaId);
 
