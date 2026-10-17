@@ -13,6 +13,9 @@ Design): `spec/SPEC.md`, `spec/USER_STORIES.md`, `design/DESIGN.md` y las maquet
 - **Calendario**: mes visible con semana en lunes, leyenda, navegación ilimitada entre meses
   y el día de hoy resaltado. Al tocar un día se abre una hoja para elegir Libre, Mañana,
   Tarde, Noche o Vacaciones.
+- **Ir a un mes concreto**: al tocar el título del mes se abre una hoja con el año y los 12
+  meses para saltar directamente a cualquier mes y año, con un botón "Hoy" para volver al
+  mes actual.
 - **Exportar a PDF**: genera `turnos-AAAA-MM.pdf` en A4 con la rejilla coloreada y la
   leyenda, y abre la hoja de compartir del sistema.
 - **Checklist**: añadir tareas, marcar y desmarcar, borrar con opción de deshacer, contador

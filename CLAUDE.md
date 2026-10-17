@@ -89,16 +89,24 @@ under `app/schemas/`. References: `mis-turnos-kit/design/mockups/Plantillas*.dc.
 `design/DESIGN.md` ("Pestaña Plantillas"). Do not add other template types or wire templates
 into Calendario/Checklist until asked.
 
-## Pending feature: month/year picker (spec 3.1.1, story C2b, TASKS Fase 6)
+## Month/year picker (spec 3.1.1, story C2b, TASKS Fase 6) — implemented
 
-The month title in `CabeceraMes` becomes a pill button ("Elegir mes y año") that opens a new
-`SelectorMes` bottom sheet (same pattern as `SelectorTurno.kt`): year row with ±1 arrows, a
-3×4 grid of month abbreviations, and "Hoy" / "Cancelar". Picking a month writes the same
-`KEY_MES` SavedStateHandle key that `cambiarMes` uses so `turnosDelMes` reloads by itself;
-the open flag and the year shown in the sheet also live in `SavedStateHandle`. Visual
-reference: `mis-turnos-kit/design/mockups/SelectorMes.dc.html` and `design/DESIGN.md`
-("Hoja de selección de mes y año"). Do not change the arrow navigation; the picker is an
-addition, and all strings go through `strings.xml` as usual.
+- The month title in `CabeceraMes` is a pill button (`BotonSelectorMes`, contentDescription
+  "Elegir mes y año") that opens `ui/calendario/SelectorMes.kt`, a `ModalBottomSheet` built
+  like `SelectorTurno.kt`: year row with ±1 arrows, 3×4 grid of `meses_abreviados`, and
+  "Hoy" / "Cancelar". Arrow navigation (`mesAnterior`/`mesSiguiente`) is unchanged.
+- State: `CalendarioUiState.selectorMesAbierto` and `anioSelector`, both in
+  `SavedStateHandle` (`KEY_SELECTOR_MES`, `KEY_ANIO_SELECTOR`). `abrirSelectorMes()` sets the
+  year to the visible month's; the year arrows change only `anioSelector`.
+  `irAMes(anio, mes)` / `irAHoy()` write the same `KEY_MES` as the arrows, so `turnosDelMes`
+  reloads by itself, and close the sheet.
+- The screen receives the picker callbacks grouped in `AccionesSelectorMes`
+  (`AccionesSelectorMes.Vacias` for previews).
+- The sheet animates out before running the chosen action (same as `SelectorTurno`).
+- Both sheets use the `Sheet` / `SheetButton` palette tokens (dark: sheet = dark surface)
+  and the shared `AsaHoja()` handle, and scroll when taller than the screen (landscape).
+- Month buttons expose `selected` semantics (active month) and the contentDescription
+  "octubre de 2026" (`mes_de_anio`). "Mes de hoy" ring = `TodayRing` token.
 
 ## Database rules
 

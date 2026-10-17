@@ -9,7 +9,9 @@ import com.valanon.calendar.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -99,6 +101,92 @@ class CalendarioViewModelTest {
         val recreado = crear(handle)
         recreado.uiState.launchIn(backgroundScope)
         assertEquals(YearMonth.of(2026, 11), recreado.uiState.value.mes)
+    }
+
+    // --- C2b: selector de mes y año ---
+
+    @Test
+    fun `C2b abrir el selector fija el anio del mes visible`() = runTest(mainRule.dispatcher) {
+        val vm = crear()
+        vm.uiState.launchIn(backgroundScope)
+        repeat(3) { vm.mesSiguiente() } // enero 2027
+
+        vm.abrirSelectorMes()
+
+        assertTrue(vm.uiState.value.selectorMesAbierto)
+        assertEquals(2027, vm.uiState.value.anioSelector)
+    }
+
+    @Test
+    fun `C2b las flechas cambian solo el anio mostrado`() = runTest(mainRule.dispatcher) {
+        val vm = crear()
+        vm.uiState.launchIn(backgroundScope)
+        vm.abrirSelectorMes()
+
+        vm.anioSelectorSiguiente()
+        vm.anioSelectorSiguiente()
+        assertEquals(2028, vm.uiState.value.anioSelector)
+        vm.anioSelectorAnterior()
+        assertEquals(2027, vm.uiState.value.anioSelector)
+
+        assertEquals(YearMonth.of(2026, 10), vm.uiState.value.mes)
+        assertTrue(vm.uiState.value.selectorMesAbierto)
+    }
+
+    @Test
+    fun `C2b irAMes cambia el mes visible, carga sus turnos y cierra`() = runTest(mainRule.dispatcher) {
+        dao.upsert(Turno("2028-03-10", TipoTurno.VACACIONES))
+        val vm = crear()
+        vm.uiState.launchIn(backgroundScope)
+        vm.abrirSelectorMes()
+        vm.anioSelectorSiguiente()
+        vm.anioSelectorSiguiente()
+
+        vm.irAMes(2028, 3)
+
+        assertEquals(YearMonth.of(2028, 3), vm.uiState.value.mes)
+        assertEquals(mapOf(LocalDate.of(2028, 3, 10) to TipoTurno.VACACIONES), vm.uiState.value.turnos)
+        assertFalse(vm.uiState.value.selectorMesAbierto)
+    }
+
+    @Test
+    fun `C2b irAHoy vuelve al mes actual y cierra`() = runTest(mainRule.dispatcher) {
+        val vm = crear()
+        vm.uiState.launchIn(backgroundScope)
+        vm.irAMes(2030, 5)
+        vm.abrirSelectorMes()
+
+        vm.irAHoy()
+
+        assertEquals(YearMonth.of(2026, 10), vm.uiState.value.mes)
+        assertFalse(vm.uiState.value.selectorMesAbierto)
+    }
+
+    @Test
+    fun `C2b cerrar no cambia el mes visible`() = runTest(mainRule.dispatcher) {
+        val vm = crear()
+        vm.uiState.launchIn(backgroundScope)
+        vm.abrirSelectorMes()
+        vm.anioSelectorSiguiente()
+
+        vm.cerrarSelectorMes()
+
+        assertEquals(YearMonth.of(2026, 10), vm.uiState.value.mes)
+        assertFalse(vm.uiState.value.selectorMesAbierto)
+    }
+
+    @Test
+    fun `C2b la hoja abierta y su anio sobreviven a la recreacion`() = runTest(mainRule.dispatcher) {
+        val handle = SavedStateHandle()
+        crear(handle).apply {
+            abrirSelectorMes()
+            anioSelectorAnterior()
+        }
+
+        val recreado = crear(handle)
+        recreado.uiState.launchIn(backgroundScope)
+        assertTrue(recreado.uiState.value.selectorMesAbierto)
+        assertEquals(2025, recreado.uiState.value.anioSelector)
     }
 
     @Test

@@ -34,6 +34,11 @@ data class PaletaMisTurnos(
     val scrim: Color,
     val tabBarLine: Color,
     val emptyIcon: Color,
+    /** Ring of the current month in the month picker (tokens.json → todayRing). */
+    val todayRing: Color,
+    /** Bottom-sheet container, and the neutral "Cancelar" button inside it. */
+    val sheet: Color,
+    val sheetButton: Color,
 )
 
 val PaletaClara = PaletaMisTurnos(
@@ -56,6 +61,9 @@ val PaletaClara = PaletaMisTurnos(
     scrim = Color(0x73141413), // rgba(20, 20, 19, 0.45)
     tabBarLine = Color(0xFFECECE8),
     emptyIcon = Color(0xFFB9B9B3),
+    todayRing = Color(0xFFB9CFCB),
+    sheet = Color(0xFFFFFFFF),
+    sheetButton = Color(0xFFF2F2EF),
 )
 
 val PaletaOscura = PaletaMisTurnos(
@@ -78,6 +86,9 @@ val PaletaOscura = PaletaMisTurnos(
     scrim = Color(0x99000000),
     tabBarLine = Color(0xFF2E2E2B),
     emptyIcon = Color(0xFF55554F),
+    todayRing = Color(0x665DCAB9), // accentOnBackground at 40 % (DESIGN.md → SelectorMes)
+    sheet = Color(0xFF1F1F1D), // "fondo de la hoja = superficie oscura"
+    sheetButton = Color(0xFF2E2E2B), // stays visible on the dark sheet
 )
 
 val LocalPaleta = staticCompositionLocalOf { PaletaClara }
@@ -106,4 +117,7 @@ object MisTurnosColors {
     val Scrim: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.scrim
     val TabBarLine: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.tabBarLine
     val EmptyIcon: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.emptyIcon
+    val TodayRing: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.todayRing
+    val Sheet: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheet
+    val SheetButton: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheetButton
 }

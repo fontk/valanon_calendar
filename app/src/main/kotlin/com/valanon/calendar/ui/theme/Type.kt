@@ -44,6 +44,9 @@ object MisTurnosText {
     val tabLabelActive = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W800)
     val emptyTitle = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W700)
     val emptyHelp = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W500)
+    val monthPicker = TextStyle(fontFamily = Manrope, fontSize = 20.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
+    val yearLabel = TextStyle(fontFamily = Manrope, fontSize = 24.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
+    val monthCell = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W700)
 }
 
 /** Material 3 typography mapped onto Manrope so default components also use it. */

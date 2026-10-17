@@ -31,6 +31,9 @@ object MisTurnosIcons {
 
     val ChevronDerecha: ImageVector by lazy { icono("ChevronDerecha", 2.2f, "M9 6l6 6-6 6") }
 
+    /** Month/year picker pill (DESIGN.md → Iconos). */
+    val ChevronAbajo: ImageVector by lazy { icono("ChevronAbajo", 2.4f, "M6 9l6 6 6-6") }
+
     val DocumentoDescarga: ImageVector by lazy {
         icono(
             "DocumentoDescarga",

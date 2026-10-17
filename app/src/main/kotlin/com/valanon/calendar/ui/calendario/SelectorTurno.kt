@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -60,20 +62,15 @@ fun SelectorTurno(
         onDismissRequest = onCerrar,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = MisTurnosColors.Background,
+        containerColor = MisTurnosColors.Sheet,
         contentColor = MisTurnosColors.Text,
         scrimColor = MisTurnosColors.Scrim,
-        dragHandle = {
-            Box(
-                Modifier
-                    .padding(top = 12.dp)
-                    .size(width = 36.dp, height = 4.dp)
-                    .background(MisTurnosColors.Handle, RoundedCornerShape(2.dp)),
-            )
-        },
+        dragHandle = { AsaHoja() },
     ) {
         Column(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 28.dp),
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()) // landscape: the sheet is taller than the screen
+                .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -95,7 +92,7 @@ fun SelectorTurno(
             Surface(
                 onClick = cerrarAnimado,
                 shape = RoundedCornerShape(14.dp),
-                color = MisTurnosColors.Surface,
+                color = MisTurnosColors.SheetButton,
                 contentColor = MisTurnosColors.Text,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -114,7 +111,7 @@ private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit)
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
-        color = MisTurnosColors.Background,
+        color = MisTurnosColors.Sheet,
         contentColor = MisTurnosColors.Text,
         border = if (esActual) {
             BorderStroke(2.dp, MisTurnosColors.AccentOnBackground)

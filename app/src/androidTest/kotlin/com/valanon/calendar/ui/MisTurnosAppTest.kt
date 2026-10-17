@@ -4,6 +4,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -122,6 +124,48 @@ class MisTurnosAppTest {
             compose.waitForIdle()
         }
         compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("Sin tareas todavía")).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun c2b_selectorDeMesYAnio() {
+        val actual = YearMonth.now()
+        val mesHoy = FormatoFechas.nombreMes(actual.monthValue)
+
+        // Opens on the visible year with the visible month selected.
+        compose.onNodeWithContentDescription("Elegir mes y año").performClick()
+        compose.onNodeWithText("IR A MES").assertIsDisplayed()
+        compose.onNodeWithText(actual.year.toString()).assertIsDisplayed()
+        compose.onNodeWithContentDescription("$mesHoy de ${actual.year}").assertIsSelected()
+
+        // Year arrows change only the year shown: nothing is selected two years ahead.
+        compose.onNodeWithContentDescription("Año siguiente").performClick()
+        compose.onNodeWithContentDescription("Año siguiente").performClick()
+        val destino = actual.year + 2
+        compose.onNodeWithText(destino.toString()).assertIsDisplayed()
+        compose.onNodeWithContentDescription("$mesHoy de $destino").assertIsNotSelected()
+
+        // Picking March jumps there and closes the sheet.
+        compose.onNodeWithContentDescription("marzo de $destino").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("IR A MES")).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText("Marzo $destino").assertIsDisplayed()
+
+        // Rotation-equivalent: the open sheet and its year survive recreation.
+        compose.onNodeWithContentDescription("Elegir mes y año").performClick()
+        compose.onNodeWithContentDescription("Año anterior").performClick()
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithText("IR A MES").assertIsDisplayed()
+        compose.onNodeWithText((destino - 1).toString()).assertIsDisplayed()
+
+        // "Cancelar" keeps the visible month.
+        compose.onNodeWithText("Cancelar").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("IR A MES")).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText("Marzo $destino").assertIsDisplayed()
+
+        // "Hoy" goes back to the current month.
+        compose.onNodeWithContentDescription("Elegir mes y año").performClick()
+        compose.onNodeWithText("Hoy").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("IR A MES")).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText(FormatoFechas.tituloMes(actual)).assertIsDisplayed()
     }
 
     @Test

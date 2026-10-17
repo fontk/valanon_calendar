@@ -96,6 +96,14 @@ fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = Calenda
         onDiaPulsado = viewModel::seleccionarDia,
         onElegirTurno = viewModel::asignarTurno,
         onCerrarSelector = viewModel::cerrarSelector,
+        selectorMes = AccionesSelectorMes(
+            abrir = viewModel::abrirSelectorMes,
+            cerrar = viewModel::cerrarSelectorMes,
+            anioAnterior = viewModel::anioSelectorAnterior,
+            anioSiguiente = viewModel::anioSelectorSiguiente,
+            irAMes = viewModel::irAMes,
+            irAHoy = viewModel::irAHoy,
+        ),
         onExportar = {
             scope.launch {
                 exportando = true
@@ -130,6 +138,7 @@ fun CalendarioScreen(
     onElegirTurno: (LocalDate, TipoTurno) -> Unit,
     onCerrarSelector: () -> Unit,
     onExportar: () -> Unit,
+    selectorMes: AccionesSelectorMes,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
@@ -147,7 +156,7 @@ fun CalendarioScreen(
         Column(Modifier.fillMaxSize().then(if (compacta) Modifier.verticalScroll(scroll) else Modifier)) {
             // Scrolls only when it does not fit (130 % font size, small phones).
             Column(if (compacta) Modifier else Modifier.weight(1f).verticalScroll(scroll)) {
-                CabeceraMes(estado.mes, onMesAnterior, onMesSiguiente)
+                CabeceraMes(estado.mes, onMesAnterior, onMesSiguiente, selectorMes.abrir)
                 LeyendaTurnos(Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp))
                 CabeceraDiasSemana(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp))
                 RejillaMes(
@@ -178,10 +187,43 @@ fun CalendarioScreen(
             onCerrar = onCerrarSelector,
         )
     }
+
+    if (estado.selectorMesAbierto) {
+        SelectorMes(
+            anio = estado.anioSelector,
+            mesActivo = estado.mes,
+            hoy = estado.hoy,
+            onAnioAnterior = selectorMes.anioAnterior,
+            onAnioSiguiente = selectorMes.anioSiguiente,
+            onElegirMes = selectorMes.irAMes,
+            onHoy = selectorMes.irAHoy,
+            onCerrar = selectorMes.cerrar,
+        )
+    }
+}
+
+/** Callbacks of the month/year picker, grouped to keep [CalendarioScreen]'s signature readable. */
+data class AccionesSelectorMes(
+    val abrir: () -> Unit,
+    val cerrar: () -> Unit,
+    val anioAnterior: () -> Unit,
+    val anioSiguiente: () -> Unit,
+    val irAMes: (anio: Int, mes: Int) -> Unit,
+    val irAHoy: () -> Unit,
+) {
+    companion object {
+        /** For previews. */
+        val Vacias = AccionesSelectorMes({}, {}, {}, {}, { _, _ -> }, {})
+    }
 }
 
 @Composable
-private fun CabeceraMes(mes: YearMonth, onMesAnterior: () -> Unit, onMesSiguiente: () -> Unit) {
+private fun CabeceraMes(
+    mes: YearMonth,
+    onMesAnterior: () -> Unit,
+    onMesSiguiente: () -> Unit,
+    onAbrirSelectorMes: () -> Unit,
+) {
     Column(
         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -193,16 +235,42 @@ private fun CabeceraMes(mes: YearMonth, onMesAnterior: () -> Unit, onMesSiguient
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BotonRedondo(MisTurnosIcons.ChevronIzquierda, stringResource(R.string.mes_anterior), onMesAnterior)
+            BotonSelectorMes(mes, onAbrirSelectorMes)
+            BotonRedondo(MisTurnosIcons.ChevronDerecha, stringResource(R.string.mes_siguiente), onMesSiguiente)
+        }
+    }
+}
+
+/** Month title as a pill button that opens the month/year picker (spec 3.1). */
+@Composable
+private fun BotonSelectorMes(mes: YearMonth, onClick: () -> Unit) {
+    val descripcion = stringResource(R.string.elegir_mes_y_anio)
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(22.dp),
+        color = MisTurnosColors.Surface,
+        contentColor = MisTurnosColors.Text,
+        modifier = Modifier
+            .heightIn(min = 44.dp)
+            .semantics { contentDescription = descripcion },
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Text(
                 text = FormatoFechas.tituloMes(mes),
-                style = MisTurnosText.title,
-                color = MisTurnosColors.Text,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics { heading() },
+                style = MisTurnosText.monthPicker,
+                maxLines = 1,
+                modifier = Modifier.semantics { heading() },
             )
-            BotonRedondo(MisTurnosIcons.ChevronDerecha, stringResource(R.string.mes_siguiente), onMesSiguiente)
+            Icon(
+                MisTurnosIcons.ChevronAbajo,
+                contentDescription = null,
+                tint = MisTurnosColors.TextMuted,
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }
@@ -410,6 +478,7 @@ private fun CalendarioMuestra(oscuro: Boolean) {
             onDiaPulsado = {},
             onElegirTurno = { _, _ -> },
             onCerrarSelector = {},
+            selectorMes = AccionesSelectorMes.Vacias,
             onExportar = {},
         )
     }
