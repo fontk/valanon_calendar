@@ -2,4 +2,6 @@
 <resources>
     <!-- accent token from mis-turnos-kit/design/tokens/tokens.json -->
     <color name="ic_launcher_background">#0F6E64</color>
+    <!-- background token (light); values-night overrides it -->
+    <color name="fondo_ventana">#FFFFFF</color>
 </resources>

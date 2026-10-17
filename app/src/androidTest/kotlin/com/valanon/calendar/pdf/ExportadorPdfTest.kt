@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.model.TipoTurno
-import com.valanon.calendar.ui.theme.colores
+import com.valanon.calendar.ui.theme.coloresClaros
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -61,8 +61,8 @@ class ExportadorPdfTest {
                     (40 + columna * (anchoCelda + 6) + 8).toInt(),
                     (142 + fila * (86 + 6) + 8),
                 )
-                assertEquals(TipoTurno.NOCHE.colores.fondo.toArgb(), muestra(3, 0))
-                assertEquals(TipoTurno.MANANA.colores.fondo.toArgb(), muestra(0, 1))
+                assertEquals(TipoTurno.NOCHE.coloresClaros().fondo.toArgb(), muestra(3, 0))
+                assertEquals(TipoTurno.MANANA.coloresClaros().fondo.toArgb(), muestra(0, 1))
                 assertEquals(Color.WHITE, muestra(1, 1)) // 6 Oct, no shift
             }
         }

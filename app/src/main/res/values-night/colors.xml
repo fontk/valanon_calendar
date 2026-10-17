@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark background from DESIGN.md → "Tema oscuro" -->
+    <color name="fondo_ventana">#141413</color>
+</resources>

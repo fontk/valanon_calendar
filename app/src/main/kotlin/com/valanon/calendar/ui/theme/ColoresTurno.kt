@@ -1,9 +1,11 @@
 package com.valanon.calendar.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import com.valanon.calendar.data.model.TipoTurno
 
-/** Colours of one shift type (tokens.json → `shift`). Shared by the UI and the PDF export. */
+/** Colours of one shift type (tokens.json → `shift`). */
 data class ColoresTurno(
     val fondo: Color,
     val texto: Color,
@@ -12,8 +14,19 @@ data class ColoresTurno(
     val punto: Color,
 )
 
+/**
+ * Shift colours for the current theme. DESIGN.md keeps the shift colours in dark mode and
+ * only gives "noche" a lighter border (#6E68C9) so it does not melt into the background.
+ */
 val TipoTurno.colores: ColoresTurno
-    get() = when (this) {
+    @Composable @ReadOnlyComposable
+    get() = coloresClaros().let { base ->
+        if (LocalPaleta.current.oscuro && this == TipoTurno.NOCHE) base.copy(borde = Color(0xFF6E68C9)) else base
+    }
+
+/** Shift colours of the light design. Used outside composition, e.g. by the PDF, which is always light. */
+fun TipoTurno.coloresClaros(): ColoresTurno =
+    when (this) {
         TipoTurno.LIBRE -> ColoresTurno(
             fondo = Color(0xFFF2F2EF),
             texto = Color(0xFF5B5B57),

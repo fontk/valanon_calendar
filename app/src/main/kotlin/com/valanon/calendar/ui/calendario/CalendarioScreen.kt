@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -237,6 +236,8 @@ fun LeyendaTurnos(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(c.fondo)
+                    // Dark mode: outline keeps the "Noche" chip visible on the dark background.
+                    .then(if (MisTurnosColors.EsOscuro) Modifier.border(1.dp, c.borde, CircleShape) else Modifier)
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -322,7 +323,7 @@ fun CeldaDia(
     val colores = tipo?.colores
     val forma = RoundedCornerShape(12.dp)
     val borde = when {
-        esHoy -> BorderStroke(2.dp, MisTurnosColors.Accent)
+        esHoy -> BorderStroke(2.dp, MisTurnosColors.AccentOnBackground)
         colores != null -> BorderStroke(1.dp, colores.borde)
         else -> BorderStroke(1.dp, MisTurnosColors.LineSoft)
     }
@@ -333,7 +334,7 @@ fun CeldaDia(
         modifier = modifier
             .heightIn(min = 60.dp)
             .clip(forma)
-            .background(colores?.fondo ?: Color.White)
+            .background(colores?.fondo ?: MisTurnosColors.Background)
             .border(borde, forma)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = descripcion }
@@ -387,8 +388,15 @@ private fun BotonExportar(habilitado: Boolean, onClick: () -> Unit, modifier: Mo
 
 @Preview(name = "Calendario", widthDp = 390, heightDp = 844, showBackground = true)
 @Composable
-private fun CalendarioScreenPreview() {
-    MisTurnosTheme {
+private fun CalendarioScreenPreview() = CalendarioMuestra(oscuro = false)
+
+@Preview(name = "Calendario oscuro", widthDp = 390, heightDp = 844, showBackground = true)
+@Composable
+private fun CalendarioScreenOscuroPreview() = CalendarioMuestra(oscuro = true)
+
+@Composable
+private fun CalendarioMuestra(oscuro: Boolean) {
+    MisTurnosTheme(oscuro = oscuro) {
         CalendarioScreen(
             estado = CalendarioUiState(
                 mes = DatosMuestra.MES,

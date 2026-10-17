@@ -4,6 +4,7 @@ package com.valanon.calendar.ui.calendario
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -116,7 +117,7 @@ private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit)
         color = MisTurnosColors.Background,
         contentColor = MisTurnosColors.Text,
         border = if (esActual) {
-            BorderStroke(2.dp, MisTurnosColors.Accent)
+            BorderStroke(2.dp, MisTurnosColors.AccentOnBackground)
         } else {
             BorderStroke(1.dp, MisTurnosColors.Line)
         },
@@ -133,14 +134,17 @@ private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit)
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            val formaMuestra = RoundedCornerShape(8.dp)
             Box(
                 Modifier
                     .size(28.dp)
-                    .background(tipo.colores.muestra, RoundedCornerShape(8.dp)),
+                    .background(tipo.colores.muestra, formaMuestra)
+                    // In dark mode the "noche" swatch would vanish against the sheet.
+                    .then(if (MisTurnosColors.EsOscuro) Modifier.border(1.dp, tipo.colores.borde, formaMuestra) else Modifier),
             )
             Text(tipo.etiqueta, style = MisTurnosText.button, modifier = Modifier.weight(1f))
             if (esActual) {
-                Text(stringResource(R.string.turno_actual), style = MisTurnosText.caption, color = MisTurnosColors.Accent)
+                Text(stringResource(R.string.turno_actual), style = MisTurnosText.caption, color = MisTurnosColors.AccentOnBackground)
             }
         }
     }

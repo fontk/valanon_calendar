@@ -17,6 +17,9 @@ Design): `spec/SPEC.md`, `spec/USER_STORIES.md`, `design/DESIGN.md` y las maquet
   leyenda, y abre la hoja de compartir del sistema.
 - **Checklist**: añadir tareas, marcar y desmarcar, borrar con opción de deshacer, contador
   "X de Y hechas" y un botón flotante que desmarca todas sin borrarlas.
+- **Modo oscuro**: sigue el ajuste del sistema y cambia al momento, sin reiniciar la app.
+  Usa la paleta oscura de `design/DESIGN.md` y mantiene los colores de turno. El PDF
+  exportado sale siempre en claro, pensado para imprimir.
 
 ## Inicio rápido
 

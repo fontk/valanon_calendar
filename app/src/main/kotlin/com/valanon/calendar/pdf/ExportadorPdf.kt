@@ -11,8 +11,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
 import com.valanon.calendar.R
 import com.valanon.calendar.data.model.TipoTurno
-import com.valanon.calendar.ui.theme.MisTurnosColors
-import com.valanon.calendar.ui.theme.colores
+import com.valanon.calendar.ui.theme.PaletaClara
+import com.valanon.calendar.ui.theme.coloresClaros
 import com.valanon.calendar.util.CalendarioMes
 import com.valanon.calendar.util.FormatoFechas
 import kotlinx.coroutines.Dispatchers
@@ -52,11 +52,11 @@ class ExportadorPdf(private val context: Context) : GeneradorPdf {
         val anchoUtil = ANCHO_A4 - 2 * MARGEN
 
         // Title
-        canvas.drawText("Mis turnos — ${FormatoFechas.tituloMes(mes)}", MARGEN, 92f, texto(22f, 800, MisTurnosColors.Text))
+        canvas.drawText("Mis turnos — ${FormatoFechas.tituloMes(mes)}", MARGEN, 92f, texto(22f, 800, PaletaClara.text))
 
         // Weekday header
         val anchoCelda = (anchoUtil - 6 * HUECO) / 7
-        val cabecera = texto(10f, 700, MisTurnosColors.TextFaint, centrado = true)
+        val cabecera = texto(10f, 700, PaletaClara.textFaint, centrado = true)
         FormatoFechas.INICIALES_SEMANA.forEachIndexed { i, inicial ->
             canvas.drawText(inicial, MARGEN + i * (anchoCelda + HUECO) + anchoCelda / 2, 130f, cabecera)
         }
@@ -64,8 +64,8 @@ class ExportadorPdf(private val context: Context) : GeneradorPdf {
         // Grid
         val semanas = CalendarioMes.semanas(mes)
         val inicioRejilla = 142f
-        val numero = texto(16f, 800, MisTurnosColors.Text, centrado = true)
-        val etiqueta = texto(8.5f, 700, MisTurnosColors.Text, centrado = true, espaciado = 0.04f)
+        val numero = texto(16f, 800, PaletaClara.text, centrado = true)
+        val etiqueta = texto(8.5f, 700, PaletaClara.text, centrado = true, espaciado = 0.04f)
         val fondo = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         val borde = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1f }
 
@@ -76,14 +76,14 @@ class ExportadorPdf(private val context: Context) : GeneradorPdf {
                 val y = inicioRejilla + fila * (ALTO_CELDA + HUECO)
                 val rect = RectF(x, y, x + anchoCelda, y + ALTO_CELDA)
                 val tipo = turnos[fecha]
-                val colores = tipo?.colores
+                val colores = tipo?.coloresClaros()
 
-                fondo.color = (colores?.fondo ?: Color.White).toArgb()
-                borde.color = (colores?.borde ?: MisTurnosColors.LineSoft).toArgb()
+                fondo.color = (colores?.fondo ?: PaletaClara.background).toArgb()
+                borde.color = (colores?.borde ?: PaletaClara.lineSoft).toArgb()
                 canvas.drawRoundRect(rect, RADIO_CELDA, RADIO_CELDA, fondo)
                 canvas.drawRoundRect(rect, RADIO_CELDA, RADIO_CELDA, borde)
 
-                val colorTexto = (colores?.texto ?: MisTurnosColors.Text).toArgb()
+                val colorTexto = (colores?.texto ?: PaletaClara.text).toArgb()
                 numero.color = colorTexto
                 val centroY = rect.centerY()
                 if (tipo == null) {
@@ -102,13 +102,13 @@ class ExportadorPdf(private val context: Context) : GeneradorPdf {
     }
 
     private fun dibujarLeyenda(canvas: Canvas, top: Float) {
-        val textoChip = texto(10f, 700, MisTurnosColors.Text)
+        val textoChip = texto(10f, 700, PaletaClara.text)
         val fondo = Paint(Paint.ANTI_ALIAS_FLAG)
         val punto = Paint(Paint.ANTI_ALIAS_FLAG)
         val alto = 22f
         var x = MARGEN
         TipoTurno.entries.forEach { tipo ->
-            val c = tipo.colores
+            val c = tipo.coloresClaros()
             val ancho = 10f + 7f + 6f + textoChip.measureText(tipo.etiqueta) + 10f
             fondo.color = c.fondo.toArgb()
             canvas.drawRoundRect(RectF(x, top, x + ancho, top + alto), alto / 2, alto / 2, fondo)

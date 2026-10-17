@@ -43,6 +43,6 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
 - [x] `contentDescription` en todos los iconos y celdas; targets ≥ 44 dp.
 - [x] Comprobar con tamaño de fuente del sistema al 130 %.
 - [x] Previews de Compose con datos de muestra (los de las maquetas) solo en código de preview.
-- [ ] Tema oscuro (opcional): mantener los colores de turno, oscurecer fondos y texto.
-  - Pendiente: la app usa siempre el tema claro. DESIGN.md lo sitúa en la v1.1.
+- [x] Tema oscuro (opcional): mantener los colores de turno, oscurecer fondos y texto.
+  - Sigue el modo oscuro del sistema. El PDF se genera siempre en claro para imprimir.
 - [x] README del proyecto con cómo compilar e instalar.

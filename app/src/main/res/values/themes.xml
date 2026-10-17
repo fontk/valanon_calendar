@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The real theme is built in Compose (ui/theme/Theme.kt). This only styles the window. -->
+    <!--
+        The real theme is built in Compose (ui/theme/Theme.kt). This only styles the window
+        (and the launch splash), so it matches the app background before Compose draws.
+        values-night/themes.xml is the dark-mode variant.
+    -->
     <style name="Theme.MisTurnos" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@color/fondo_ventana</item>
     </style>
 </resources>

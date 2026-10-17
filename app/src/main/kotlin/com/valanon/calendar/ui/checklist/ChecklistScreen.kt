@@ -210,7 +210,7 @@ private fun AltaTarea(
             onValueChange = onBorradorCambia,
             singleLine = true,
             textStyle = MisTurnosText.body.copy(color = MisTurnosColors.Text),
-            cursorBrush = SolidColor(MisTurnosColors.Accent),
+            cursorBrush = SolidColor(MisTurnosColors.AccentOnBackground),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done,
@@ -291,9 +291,9 @@ fun FilaTarea(
                 checked = tarea.hecha,
                 onCheckedChange = null,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = MisTurnosColors.Accent,
+                    checkedColor = MisTurnosColors.AccentOnBackground,
                     uncheckedColor = MisTurnosColors.TextMuted,
-                    checkmarkColor = MisTurnosColors.OnAccent,
+                    checkmarkColor = MisTurnosColors.Background,
                 ),
             )
             Text(
@@ -341,8 +341,15 @@ private fun EstadoVacio(modifier: Modifier = Modifier) {
 
 @Preview(name = "Checklist", widthDp = 390, heightDp = 772, showBackground = true)
 @Composable
-private fun ChecklistScreenPreview() {
-    MisTurnosTheme {
+private fun ChecklistScreenPreview() = ChecklistMuestra(oscuro = false)
+
+@Preview(name = "Checklist oscuro", widthDp = 390, heightDp = 772, showBackground = true)
+@Composable
+private fun ChecklistScreenOscuroPreview() = ChecklistMuestra(oscuro = true)
+
+@Composable
+private fun ChecklistMuestra(oscuro: Boolean) {
+    MisTurnosTheme(oscuro = oscuro) {
         ChecklistScreen(
             estado = ChecklistUiState(tareas = DatosMuestra.tareas(), cargando = false),
             borrador = "",

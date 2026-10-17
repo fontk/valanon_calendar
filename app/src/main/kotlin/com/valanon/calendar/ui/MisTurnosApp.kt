@@ -116,7 +116,7 @@ private fun BarraInferior(rutaActual: String?, onSeleccionar: (Destino) -> Unit)
 
 @Composable
 private fun ItemBarra(destino: Destino, activo: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val color = if (activo) MisTurnosColors.Accent else MisTurnosColors.TextMuted
+    val color = if (activo) MisTurnosColors.AccentOnBackground else MisTurnosColors.TextMuted
     Column(
         modifier = modifier
             .fillMaxHeight()

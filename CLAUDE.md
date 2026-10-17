@@ -62,9 +62,17 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
   production never preloads sample data.
 - Visible month and selected day live in `SavedStateHandle`. The checklist draft is Compose
   state in the ViewModel (synchronous for the text field) mirrored to `SavedStateHandle`.
-- Visual values come from tokens: `ui/theme/Color.kt` (`MisTurnosColors`), `ColoresTurno.kt`
-  (`TipoTurno.colores`, shared by UI and PDF), `Type.kt` (`MisTurnosText`, Manrope variable
-  font). Icons are `ImageVector`s built from the mockups' SVG path data (`ui/icons`).
+- Visual values come from tokens: `ui/theme/Color.kt`, `ColoresTurno.kt`, `Type.kt`
+  (`MisTurnosText`, Manrope variable font). Icons are `ImageVector`s built from the mockups'
+  SVG path data (`ui/icons`).
+- Dark mode follows the system: `MisTurnosTheme(oscuro = isSystemInDarkTheme())` provides
+  `PaletaClara` or `PaletaOscura` through `LocalPaleta`. In composables read colours via
+  `MisTurnosColors.X` (composable getters) and `TipoTurno.colores`; never hard-code
+  `Color.White`. Use `AccentOnBackground` for accent text/borders/icons on the background
+  and `Accent` only for filled surfaces with white content. Outside composition (the PDF,
+  always light) use `PaletaClara` and `TipoTurno.coloresClaros()`.
+  `PaletaContrasteTest` checks text contrast for both palettes; `res/values-night` sets the
+  dark window background so there is no white flash on launch.
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
