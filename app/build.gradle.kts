@@ -55,6 +55,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
+    constraints {
+        // See libs.versions.toml → kotlinxSerialization (needed by MigrationTestHelper).
+        implementation(libs.kotlinx.serialization.core)
+    }
 
     // Jetpack Compose (versions managed by the BOM)
     implementation(platform(libs.androidx.compose.bom))

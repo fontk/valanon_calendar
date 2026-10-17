@@ -2,6 +2,7 @@ package com.valanon.calendar.di
 
 import android.content.Context
 import com.valanon.calendar.data.local.AppDatabase
+import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.data.repository.TareasRepositorio
 import com.valanon.calendar.data.repository.TurnosRepositorio
 import com.valanon.calendar.pdf.ExportadorPdf
@@ -19,6 +20,10 @@ class AppContainer(context: Context) {
     val turnosRepositorio: TurnosRepositorio by lazy { TurnosRepositorio(database.turnoDao()) }
 
     val tareasRepositorio: TareasRepositorio by lazy { TareasRepositorio(database.tareaDao()) }
+
+    val plantillasRepositorio: PlantillasRepositorio by lazy {
+        PlantillasRepositorio(database.plantillaDao(), database.trabajadorDao())
+    }
 
     val exportadorPdf: ExportadorPdf by lazy { ExportadorPdf(appContext) }
 }
