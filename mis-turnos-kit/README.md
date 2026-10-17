@@ -14,7 +14,7 @@ Este paquete contiene todo lo necesario para que un agente de programación impl
 | `db/schema.sql` | Esquema SQLite (tablas `turnos` y `tareas`) y consultas de referencia. |
 | `design/DESIGN.md` | Guía visual: colores, tipografía, espaciados, componentes y estados. |
 | `design/tokens/tokens.json` | Tokens de diseño en JSON (colores, radios, tamaños) para traducir a `Color.kt`/`Theme.kt`. |
-| `design/mockups/*.dc.html` | Los tres artboards del diseño (Calendario, Calendario con selector abierto, Checklist). Son HTML autocontenido: el marcado y los estilos inline son la referencia exacta de layout; el bloque `<script>` final es la lógica de la maqueta y sirve como pseudocódigo del comportamiento. |
+| `design/mockups/*.dc.html` | Los cuatro artboards del diseño (Calendario, selector de turno, selector de mes y año, Checklist). Son HTML autocontenido: el marcado y los estilos inline son la referencia exacta de layout; el bloque `<script>` final es la lógica de la maqueta y sirve como pseudocódigo del comportamiento. |
 
 ## Decisiones ya tomadas (no reabrir sin motivo)
 

@@ -1,6 +1,7 @@
 # Guía visual — Mis turnos
 
-Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/Checklist.dc.html` (390×844).
+Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/SelectorMes.dc.html`,
+`mockups/Checklist.dc.html` (390×844).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -15,7 +16,10 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 
 ## Pantalla Calendario (Main)
 1. Cabecera (padding 22/20/10): sobretítulo "MIS TURNOS"; fila con botón redondo 44 dp (borde `line`),
-   título de mes centrado, botón redondo 44 dp.
+   selector de mes y año centrado y botón redondo 44 dp. El selector es una píldora de 44 dp (radio 22,
+   fondo `surface`, padding horizontal 14, gap 6) con "Octubre 2026" en 20 sp/800 y un chevron hacia abajo
+   de 18 dp (trazo 2.4, color `textMuted`). Es el único elemento de la cabecera con fondo, para que se lea
+   como tocable.
 2. Leyenda: chips píldora (padding 5×10) con punto 8 dp y texto 12 sp; usan el `bg`/`fg` del turno; gap 6.
 3. Cabecera de semana: 7 columnas, 12 sp/700 `textFaint`, padding lateral 16.
 4. Rejilla: 7 columnas, gap 6, celdas 60 dp alto, radio 12. Número 15 sp/800 y abreviatura 10 sp/700 en
@@ -33,6 +37,18 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
   Borde 2 dp `accent` en la actual, 1 dp `line` en el resto.
 - "Cancelar": 48 dp, radio 14, fondo `surface`, texto 15/700.
 
+## Hoja de selección de mes y año (SelectorMes)
+- Misma hoja que el selector de turno: scrim, radio 24 arriba, padding 12/20/28, gap 14, asa 36×4.
+- Sobretítulo "IR A MES". Fila de año: botones redondos 44 dp (borde `line`) a los lados y el año en
+  24 sp/800 centrado.
+- Rejilla 3 columnas × 4 filas, gap 8, botones 52 dp radio 14, abreviaturas de tres letras en 15 sp/700.
+  Activo: fondo `accent`, texto blanco, borde 2 dp `accent`. Mes de hoy: borde 2 dp #B9CFCB (acento al
+  30 % sobre blanco). Resto: borde 1 dp `line`.
+- Fila final con "Hoy" (contorno `accent`, texto `accent`) y "Cancelar" (fondo `surface`), 48 dp cada uno,
+  mismo ancho.
+- En tema oscuro: fondo de la hoja = superficie oscura, botones de mes con borde `line` oscuro, el activo
+  mantiene `accent`; "hoy" usa `AccentOnBackground` al 40 %.
+
 ## Pantalla Checklist
 1. Cabecera: sobretítulo, "Checklist" 22/800 y progreso "3 de 6 hechas" 13/700 `textMuted` alineados en
    la línea base.
@@ -49,7 +65,7 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 ## Iconos (trazo 2 dp, esquinas y remates redondeados, 24×24 viewBox)
 - Calendario: `rect 3,5 18×16 r2` + línea y=10 + dos anillas x=8 y x=16 de y=3 a 7.
 - Checklist: `rect 3,4 18×16 r2` + marca `M9 11l2 2 4-4`.
-- Chevrons: `M15 6l-6 6 6 6` / `M9 6l6 6-6 6`.
+- Chevrons: `M15 6l-6 6 6 6` / `M9 6l6 6-6 6`; chevron abajo (selector de mes): `M6 9l6 6 6-6`, trazo 2.4.
 - Documento-descarga: hoja doblada + flecha hacia abajo en el centro.
 - Más: `M12 5v14M5 12h14` (trazo 2.4).
 - Papelera: tapa, cuerpo y dos líneas verticales.

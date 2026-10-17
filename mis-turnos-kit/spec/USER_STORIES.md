@@ -16,6 +16,21 @@ Como usuario quiero pasar al mes anterior o siguiente para planificar o consulta
   (incluido el cambio de año en diciembre → enero).
 - Los turnos ya guardados del mes destino se muestran al instante.
 
+### C2b — Ir directamente a un mes y año
+Como usuario quiero tocar el título del mes y elegir cualquier mes y año para no tener que pulsar las
+flechas muchas veces.
+- Dado el calendario, cuando toco el título "Octubre 2026", entonces se abre una hoja inferior con el año
+  2026, una rejilla de 12 meses con OCT resaltado como activo y los botones "Hoy" y "Cancelar".
+- Cuando pulso "Año siguiente" dos veces, entonces la hoja muestra 2028 y ningún mes aparece como activo
+  (el mes visible sigue siendo octubre de 2026 hasta que elija uno).
+- Cuando toco "MAR" con 2028 mostrado, entonces la hoja se cierra, el título pasa a "Marzo 2028" y la
+  rejilla muestra los turnos guardados de ese mes.
+- Dado que estoy viendo otro mes, cuando abro la hoja y pulso "Hoy", entonces el calendario vuelve al mes
+  actual y la hoja se cierra.
+- Cuando pulso "Cancelar", deslizo la hoja hacia abajo o toco fuera, entonces se cierra sin cambiar el mes
+  visible.
+- Cuando roto el dispositivo con la hoja abierta, entonces sigue abierta y con el mismo año mostrado.
+
 ### C3 — Marcar el turno de un día
 Como usuario quiero tocar un día y elegir Libre, Mañana, Tarde, Noche o Vacaciones para registrar mi turno.
 - Dado un día cualquiera, cuando lo toco, entonces se abre la hoja inferior con la fecha completa y las

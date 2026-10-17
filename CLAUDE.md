@@ -76,6 +76,17 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
+## Pending feature: month/year picker (spec 3.1.1, story C2b, TASKS Fase 6)
+
+The month title in `CabeceraMes` becomes a pill button ("Elegir mes y año") that opens a new
+`SelectorMes` bottom sheet (same pattern as `SelectorTurno.kt`): year row with ±1 arrows, a
+3×4 grid of month abbreviations, and "Hoy" / "Cancelar". Picking a month writes the same
+`KEY_MES` SavedStateHandle key that `cambiarMes` uses so `turnosDelMes` reloads by itself;
+the open flag and the year shown in the sheet also live in `SavedStateHandle`. Visual
+reference: `mis-turnos-kit/design/mockups/SelectorMes.dc.html` and `design/DESIGN.md`
+("Hoja de selección de mes y año"). Do not change the arrow navigation; the picker is an
+addition, and all strings go through `strings.xml` as usual.
+
 ## Database rules
 
 - Schema mirrors `mis-turnos-kit/db/schema.sql` name by name. `turnos.fecha` is ISO

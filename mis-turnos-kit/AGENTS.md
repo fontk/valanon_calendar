@@ -36,7 +36,9 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
 - `design/mockups/Main.dc.html`: pestaña Calendario. El `<div>` raíz es la pantalla a 390×844 px.
   Cada estilo inline es la medida de referencia (paddings, radios, tamaños de fuente en px; conviértelos a
   dp 1:1 y sp 1:1).
-- `design/mockups/Selector.dc.html`: mismo calendario con la hoja inferior de selección abierta.
+- `design/mockups/Selector.dc.html`: mismo calendario con la hoja inferior de selección de turno abierta.
+- `design/mockups/SelectorMes.dc.html`: mismo calendario con la hoja de selección de mes y año abierta
+  (se abre tocando el título del mes, que es un botón).
 - `design/mockups/Checklist.dc.html`: pestaña Checklist.
 - El bloque `<script type="text/x-dc">` del final de cada fichero contiene la lógica de la maqueta en
   JavaScript (cálculo de celdas del mes, mapa de turnos, alta/borrado de tareas). Úsalo como pseudocódigo

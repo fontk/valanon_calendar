@@ -46,3 +46,24 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
 - [x] Tema oscuro (opcional): mantener los colores de turno, oscurecer fondos y texto.
   - Sigue el modo oscuro del sistema. El PDF se genera siempre en claro para imprimir.
 - [x] README del proyecto con cómo compilar e instalar.
+
+## Fase 6 — Selector de mes y año (spec 3.1.1, historia C2b)
+- [ ] `strings.xml`: "Elegir mes y año", "Ir a mes", "Año anterior", "Año siguiente", "Hoy", abreviaturas
+      de mes (array `meses_abreviados`) y plantilla "%1$s de %2$d" para el `contentDescription` de cada mes.
+- [ ] `CalendarioViewModel`: estado `selectorMesAbierto: Boolean` y `anioSelector: Int` en
+      `SavedStateHandle`; métodos `abrirSelectorMes()` (fija `anioSelector` al año del mes visible),
+      `cerrarSelectorMes()`, `anioSelectorAnterior()`, `anioSelectorSiguiente()`, `irAMes(anio, mes)` e
+      `irAHoy()`. Exponerlos en `CalendarioUiState`.
+- [ ] `CabeceraMes`: sustituir el `Text` del título por un botón píldora (44 dp, fondo `surface`, texto
+      20 sp/800 + icono chevron-abajo 18 dp) con `contentDescription` "Elegir mes y año". Añadir
+      `MisTurnosIcons.ChevronAbajo` (path `M6 9l6 6 6-6`).
+- [ ] Nuevo composable `SelectorMes.kt` (mismo patrón que `SelectorTurno.kt`): `ModalBottomSheet` con
+      sobretítulo, fila de año, `LazyVerticalGrid`/`Column` de 4 filas × 3 meses y fila "Hoy" / "Cancelar".
+      Estados visuales de cada mes según spec (activo / hoy / resto). Debe funcionar en `PaletaOscura`.
+- [ ] Conectar en `CalendarioRoute`/`CalendarioScreen`; `irAMes` debe reutilizar la misma clave `KEY_MES`
+      que `cambiarMes` para que `turnosDelMes` recargue solo.
+- [ ] Tests JVM de `CalendarioViewModel`: abrir fija el año, las flechas cambian solo `anioSelector`,
+      `irAMes` cambia el mes visible y cierra, `irAHoy` vuelve a `YearMonth.now()`.
+- [ ] Preview de `SelectorMes` con datos de muestra y verificación manual de C2b en emulador.
+- [ ] Actualizar `CLAUDE.md` (sección Architecture) si cambia la forma de exponer el estado.
+

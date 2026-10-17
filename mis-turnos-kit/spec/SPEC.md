@@ -19,9 +19,33 @@ tareas reutilizable. Dos pestañas en una barra inferior: **Calendario** (izquie
 
 ### 3.1 Cabecera
 - Sobretítulo "MIS TURNOS" (12 sp, peso 700, mayúsculas, tracking 0.08em, color `textMuted`).
-- Fila con botón circular "Mes anterior" (44 dp, borde `line` #E6E6E1), título del mes centrado
-  ("Octubre 2026": mes con inicial mayúscula + año, 22 sp, peso 800) y botón "Mes siguiente".
-- La navegación de mes es ilimitada hacia delante y hacia atrás.
+- Fila con botón circular "Mes anterior" (44 dp, borde `line` #E6E6E1), el **selector de mes y año**
+  centrado y botón "Mes siguiente".
+- El selector de mes y año es un botón píldora (44 dp de alto, padding horizontal 14, radio 22, fondo
+  `surface` #F2F2EF) con el texto "Octubre 2026" (mes con inicial mayúscula + año, 20 sp, peso 800) y un
+  chevron hacia abajo de 18 dp en `textMuted`. `contentDescription`: "Elegir mes y año". Al tocarlo se
+  abre la hoja descrita en 3.1.1.
+- La navegación de mes es ilimitada hacia delante y hacia atrás, tanto con las flechas como con el selector.
+
+### 3.1.1 Selector de mes y año (hoja inferior)
+- `ModalBottomSheet` con asa, sobretítulo "IR A MES".
+- Fila de año: botón circular "Año anterior" (44 dp, borde `line`), año centrado (24 sp, peso 800) y botón
+  "Año siguiente". El año mostrado al abrir es el del mes visible; las flechas cambian solo el año
+  mostrado en la hoja, no el mes activo.
+- Rejilla de 12 meses en 3 columnas (gap 8): botones de 52 dp, radio 14, texto con las tres primeras letras
+  del mes en mayúsculas (ENE, FEB, MAR, ABR, MAY, JUN, JUL, AGO, SEP, OCT, NOV, DIC), 15 sp, peso 700.
+  `contentDescription` de cada uno: "octubre de 2026".
+  - Mes activo (el visible en el calendario, solo si el año mostrado coincide): fondo `accent`, texto
+    blanco, borde 2 dp `accent`.
+  - Mes de hoy (si el año mostrado es el actual y no es el activo): borde 2 dp #B9CFCB, fondo blanco.
+  - Resto: fondo blanco, borde 1 dp `line`.
+- Tocar un mes activa `YearMonth(añoMostrado, mes)` como mes visible y cierra la hoja. Los turnos del mes
+  elegido se cargan al instante (misma consulta por rango que la navegación con flechas).
+- Fila inferior con dos botones de 48 dp, radio 14, a partes iguales (gap 8): "Hoy" (borde 1 dp `accent`,
+  texto `accent`, fondo blanco) que activa el mes actual del dispositivo y cierra la hoja, y "Cancelar"
+  (fondo `surface`) que cierra sin cambios.
+- Cerrar deslizando o tocando el scrim equivale a "Cancelar".
+- El estado "hoja abierta" y el año mostrado sobreviven a la rotación (SavedStateHandle).
 
 ### 3.2 Leyenda
 Cinco chips en fila con salto de línea, cada uno con punto de color de 8 dp + etiqueta (12 sp, 700):
