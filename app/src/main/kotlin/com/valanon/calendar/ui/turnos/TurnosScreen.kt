@@ -36,8 +36,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
@@ -56,6 +56,7 @@ import com.valanon.calendar.ui.theme.MisTurnosText
 import com.valanon.calendar.ui.theme.MisTurnosTheme
 import com.valanon.calendar.ui.theme.colorPuntoCelda
 import com.valanon.calendar.util.FormatoFechas
+import com.valanon.calendar.util.PuntosDia
 import java.time.LocalDate
 
 /** Stateful entry point of the Turnos tab. [onIrAPlantillas] switches to the Plantillas tab. */
@@ -65,6 +66,11 @@ fun TurnosRoute(
     viewModel: TurnosViewModel = viewModel(factory = TurnosViewModel.Factory),
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    // "Today" can change while the app sits in the background (midnight).
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refrescarHoy()
+        onPauseOrDispose { }
+    }
     TurnosScreen(
         estado = estado,
         acciones = AccionesTurnos(
@@ -212,7 +218,7 @@ private fun ChipPlantillaActiva(nombre: String, onClick: () -> Unit, modifier: M
         contentColor = MisTurnosColors.Text,
         border = BorderStroke(1.dp, MisTurnosColors.Line),
         modifier = modifier
-            .height(36.dp)
+            .heightIn(min = 36.dp)
             .widthIn(max = 240.dp)
             .semantics { contentDescription = descripcion },
     ) {
@@ -289,10 +295,13 @@ fun CeldaDiaPuntos(
 @Composable
 private fun FilaPuntos(puntos: List<TipoTurno>, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier.fillMaxWidth().height(8.dp), contentAlignment = Alignment.Center) {
-        val (visibles, hueco) = puntosQueCaben(puntos.size, maxWidth)
-        val ocultos = puntos.size - visibles
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(hueco)) {
-            puntos.take(visibles).forEach { tipo ->
+        val disposicion = PuntosDia.calcular(puntos.size, maxWidth.value)
+        val ocultos = puntos.size - disposicion.visibles
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(disposicion.huecoDp.dp),
+        ) {
+            puntos.take(disposicion.visibles).forEach { tipo ->
                 Box(
                     Modifier
                         .size(7.dp)
@@ -305,23 +314,6 @@ private fun FilaPuntos(puntos: List<TipoTurno>, modifier: Modifier = Modifier) {
         }
     }
 }
-
-/** How many dots (≤ 5) fit in [ancho], and with which gap (3 dp, or 2 dp when tight). */
-private fun puntosQueCaben(total: Int, ancho: Dp): Pair<Int, Dp> {
-    val maximo = minOf(total, MAX_PUNTOS)
-    fun cabe(k: Int, hueco: Float): Boolean {
-        val extra = if (k < total) hueco + ANCHO_EXTRA else 0f
-        return k * 7f + (k - 1).coerceAtLeast(0) * hueco + extra <= ancho.value
-    }
-    val hueco = if (cabe(maximo, 3f)) 3f else 2f
-    val visibles = (maximo downTo 0).first { cabe(it, hueco) }
-    return visibles to hueco.dp
-}
-
-private const val MAX_PUNTOS = 5
-
-/** Approximate width of "+N" at 9 sp. */
-private const val ANCHO_EXTRA = 10f
 
 /** No "Trabajadores" template yet (spec 3b.1). */
 @Composable

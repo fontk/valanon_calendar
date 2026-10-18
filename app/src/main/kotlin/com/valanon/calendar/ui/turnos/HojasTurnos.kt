@@ -217,7 +217,7 @@ private fun BotonModo(editando: Boolean, onEditar: () -> Unit, onListo: () -> Un
             shape = forma,
             colors = ButtonDefaults.buttonColors(containerColor = MisTurnosColors.Accent, contentColor = MisTurnosColors.OnAccent),
             contentPadding = PaddingValues(horizontal = 14.dp),
-            modifier = Modifier.height(40.dp),
+            modifier = Modifier.heightIn(min = 40.dp),
         ) {
             Text(stringResource(R.string.listo), style = MisTurnosText.inlineButton)
         }
@@ -228,7 +228,7 @@ private fun BotonModo(editando: Boolean, onEditar: () -> Unit, onListo: () -> Un
             border = BorderStroke(1.dp, MisTurnosColors.AccentOnBackground),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MisTurnosColors.AccentOnBackground),
             contentPadding = PaddingValues(horizontal = 14.dp),
-            modifier = Modifier.height(40.dp),
+            modifier = Modifier.heightIn(min = 40.dp),
         ) {
             Icon(MisTurnosIcons.Lapiz, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
@@ -313,7 +313,7 @@ private fun BotonChipTurno(nombre: String, tipo: TipoTurno?, onClick: () -> Unit
         contentColor = tipo?.colores?.texto ?: MisTurnosColors.TextMuted,
         border = BorderStroke(2.dp, tipo?.colorPuntoCelda ?: MisTurnosColors.Line),
         modifier = Modifier
-            .height(40.dp)
+            .heightIn(min = 40.dp)
             .widthIn(min = 112.dp)
             .semantics { contentDescription = descripcion },
     ) {

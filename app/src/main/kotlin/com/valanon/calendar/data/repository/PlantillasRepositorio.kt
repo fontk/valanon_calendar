@@ -1,5 +1,6 @@
 package com.valanon.calendar.data.repository
 
+import com.valanon.calendar.data.local.Transacciones
 import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
@@ -18,6 +19,8 @@ class PlantillasRepositorio(
     private val plantillaDao: PlantillaDao,
     private val trabajadorDao: TrabajadorDao,
     private val asignacionDao: AsignacionDao,
+    /** Multi-step writes below run atomically (all or nothing). */
+    private val transacciones: Transacciones,
 ) {
     val plantillas: Flow<List<PlantillaConRecuento>> = plantillaDao.observarTodas()
 
@@ -29,8 +32,9 @@ class PlantillasRepositorio(
     fun numeroAsignaciones(plantillaId: Long): Flow<Int> = asignacionDao.observarContarDePlantilla(plantillaId)
 
     /** Creates a template named "<tipo> N" (N = number of templates + 1) at the end. Returns its id. */
-    suspend fun crear(tipo: TipoPlantilla): Long =
+    suspend fun crear(tipo: TipoPlantilla): Long = transacciones.ejecutar {
         plantillaDao.insertarAlFinal(tipo, "${tipo.etiqueta} ${plantillaDao.contar() + 1}")
+    }
 
     /** Returns false (and keeps the old name) if [nombre] is blank. */
     suspend fun renombrarPlantilla(id: Long, nombre: String): Boolean {
@@ -63,15 +67,16 @@ class PlantillasRepositorio(
      * Deletes the worker; its team shifts go with it (ON DELETE CASCADE). Returns those shifts,
      * read just before, so [restaurarTrabajador] can put them back.
      */
-    suspend fun eliminarTrabajador(id: Long): List<Asignacion> {
+    suspend fun eliminarTrabajador(id: Long): List<Asignacion> = transacciones.ejecutar {
         val asignaciones = asignacionDao.obtenerDeTrabajador(id)
         trabajadorDao.borrar(id)
-        return asignaciones
+        asignaciones
     }
 
     /** Undo of [eliminarTrabajador]: puts the worker back with its id and position, and its shifts. */
-    suspend fun restaurarTrabajador(trabajador: Trabajador, asignaciones: List<Asignacion> = emptyList()) {
-        trabajadorDao.insertar(trabajador)
-        if (asignaciones.isNotEmpty()) asignacionDao.insertarTodas(asignaciones)
-    }
+    suspend fun restaurarTrabajador(trabajador: Trabajador, asignaciones: List<Asignacion> = emptyList()) =
+        transacciones.ejecutar {
+            trabajadorDao.insertar(trabajador)
+            if (asignaciones.isNotEmpty()) asignacionDao.insertarTodas(asignaciones)
+        }
 }

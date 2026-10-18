@@ -14,7 +14,7 @@ import java.time.YearMonth
 class AsignacionesRepositorioTest {
 
     private val fakes = FakesPlantillas()
-    private val plantillas = PlantillasRepositorio(fakes.plantillas, fakes.trabajadores, fakes.asignaciones)
+    private val plantillas = fakes.repositorioPlantillas()
     private val repo = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
 
     @Test

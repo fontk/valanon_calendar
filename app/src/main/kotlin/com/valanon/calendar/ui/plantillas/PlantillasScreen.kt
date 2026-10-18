@@ -27,6 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -193,6 +196,7 @@ private fun TarjetaConInsignia(
 private fun SelectorTipoPlantilla(onElegir: (TipoPlantilla) -> Unit, onCerrar: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    var elegido by remember { mutableStateOf(false) }
     val cerrarY: (() -> Unit) -> Unit = { accion ->
         scope.launch { sheetState.hide() }.invokeOnCompletion { accion() }
     }
@@ -223,7 +227,14 @@ private fun SelectorTipoPlantilla(onElegir: (TipoPlantilla) -> Unit, onCerrar: (
                     subtitulo = tipo.descripcion,
                     borde = MisTurnosColors.Line,
                     color = MisTurnosColors.Sheet,
-                    onClick = { cerrarY { onElegir(tipo) } },
+                    onClick = {
+                        // One choice per sheet: a second tap would cancel the hide animation and
+                        // run onElegir again, creating two templates.
+                        if (!elegido) {
+                            elegido = true
+                            cerrarY { onElegir(tipo) }
+                        }
+                    },
                 )
             }
             Surface(

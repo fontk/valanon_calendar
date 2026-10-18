@@ -15,6 +15,7 @@ import com.valanon.calendar.ui.theme.PaletaClara
 import com.valanon.calendar.ui.theme.coloresClaros
 import com.valanon.calendar.util.CalendarioMes
 import com.valanon.calendar.util.FormatoFechas
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -26,14 +27,18 @@ import java.time.YearMonth
  * title, coloured 7-column grid using the app's shift colours, and the legend below.
  * Files go to `cacheDir/pdf/turnos-AAAA-MM.pdf`, which `res/xml/file_paths.xml` exposes to FileProvider.
  */
-class ExportadorPdf(private val context: Context) : GeneradorPdf {
+class ExportadorPdf(
+    private val context: Context,
+    /** Injectable so tests can run the export on a test dispatcher. */
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : GeneradorPdf {
 
     private val manrope: Typeface by lazy {
         runCatching { ResourcesCompat.getFont(context, R.font.manrope) }.getOrNull() ?: Typeface.SANS_SERIF
     }
 
     override suspend fun exportar(mes: YearMonth, turnos: Map<LocalDate, TipoTurno>): File =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val directorio = File(context.cacheDir, DIRECTORIO).apply { mkdirs() }
             val archivo = File(directorio, nombreArchivo(mes))
             val documento = PdfDocument()

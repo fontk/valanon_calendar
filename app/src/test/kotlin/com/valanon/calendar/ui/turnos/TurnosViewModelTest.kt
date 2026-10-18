@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
-import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.first
@@ -28,7 +27,7 @@ class TurnosViewModelTest {
     val mainRule = MainDispatcherRule()
 
     private val fakes = FakesPlantillas()
-    private val plantillas = PlantillasRepositorio(fakes.plantillas, fakes.trabajadores, fakes.asignaciones)
+    private val plantillas = fakes.repositorioPlantillas()
     private val repo = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
     private val zona = ZoneId.of("Europe/Madrid")
     private val hoy = LocalDate.of(2026, 10, 17)

@@ -2,6 +2,7 @@ package com.valanon.calendar.di
 
 import android.content.Context
 import com.valanon.calendar.data.local.AppDatabase
+import com.valanon.calendar.data.local.TransaccionesRoom
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.data.repository.TareasRepositorio
@@ -23,7 +24,12 @@ class AppContainer(context: Context) {
     val tareasRepositorio: TareasRepositorio by lazy { TareasRepositorio(database.tareaDao()) }
 
     val plantillasRepositorio: PlantillasRepositorio by lazy {
-        PlantillasRepositorio(database.plantillaDao(), database.trabajadorDao(), database.asignacionDao())
+        PlantillasRepositorio(
+            database.plantillaDao(),
+            database.trabajadorDao(),
+            database.asignacionDao(),
+            TransaccionesRoom(database),
+        )
     }
 
     val asignacionesRepositorio: AsignacionesRepositorio by lazy {

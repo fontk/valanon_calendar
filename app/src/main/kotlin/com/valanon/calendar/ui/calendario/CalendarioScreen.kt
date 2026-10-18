@@ -46,6 +46,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
@@ -73,6 +74,11 @@ import java.time.LocalDate
 @Composable
 fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = CalendarioViewModel.Factory)) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    // "Today" can change while the app sits in the background (midnight).
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refrescarHoy()
+        onPauseOrDispose { }
+    }
     val context = LocalContext.current
     val recursos = LocalResources.current
     val scope = rememberCoroutineScope()

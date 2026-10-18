@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.YearMonth
 
+/** "Trabajadores" templates and the active one, emitted together so they never disagree. */
+data class CatalogoPlantillas(
+    val todas: List<PlantillaConRecuento>,
+    val activa: PlantillaConRecuento?,
+)
+
 /**
  * Team shifts for the Turnos tab (spec 3b): which shift each worker of a "Trabajadores"
  * template has on each day, plus the active template stored in `ajustes`.
@@ -32,13 +38,19 @@ class AsignacionesRepositorio(
         plantillaDao.observarTodas().map { lista -> lista.filter { it.plantilla.tipo == TipoPlantilla.TRABAJADORES } }
 
     /**
-     * The saved active template or, if none was saved or it was deleted, the first available
-     * one (spec 3b.1). `null` when there is no "Trabajadores" template at all.
+     * Every "Trabajadores" template plus the active one, from a single pair of queries. The active
+     * one is the saved id or, if none was saved or it was deleted, the first template (spec 3b.1);
+     * `null` when there is none at all.
      */
-    val plantillaActiva: Flow<PlantillaConRecuento?> =
+    val catalogo: Flow<CatalogoPlantillas> =
         combine(plantillasDeTrabajadores, ajusteDao.observar(CLAVE_PLANTILLA_TURNOS)) { lista, guardada ->
-            lista.firstOrNull { it.plantilla.id == guardada?.toLongOrNull() } ?: lista.firstOrNull()
+            CatalogoPlantillas(
+                todas = lista,
+                activa = lista.firstOrNull { it.plantilla.id == guardada?.toLongOrNull() } ?: lista.firstOrNull(),
+            )
         }
+
+    val plantillaActiva: Flow<PlantillaConRecuento?> = catalogo.map { it.activa }
 
     fun trabajadores(plantillaId: Long): Flow<List<Trabajador>> = trabajadorDao.observarDePlantilla(plantillaId)
 

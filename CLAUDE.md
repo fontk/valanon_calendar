@@ -172,5 +172,27 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Strings in `res/values/strings.xml`, Spanish, exactly as in `spec/SPEC.md`. In composables
   read strings with `stringResource`/`LocalResources`, not `LocalContext` (lint error).
 - Touch targets >= 44 dp and every icon-only button has a `contentDescription`.
+- Controls that contain text use `heightIn(min = …)`, never a fixed `height(…)`, so they grow
+  with large system fonts instead of clipping.
 - Launcher icon is an adaptive vector icon (`mipmap-anydpi`), no PNGs.
+
+## Best-practice rules (from the review against the installed Android skills)
+
+- **Atomic multi-step writes**: a repository method that runs more than one DAO write (or a
+  read that a later write depends on) wraps them in `Transacciones.ejecutar { }`
+  (`data/local/Transacciones.kt`; `TransaccionesRoom` in the app, `SinTransaccion` in JVM tests).
+- **Compose stability**: `app/compose_stability.conf` declares `java.time.LocalDate`,
+  `YearMonth` and `kotlin.collections.*` stable. Keep UI state as immutable data classes with
+  read-only collections; never put mutable collections in UI state.
+- **One-shot sheet actions** that create data guard against double taps (see
+  `SelectorTipoPlantilla`): a second tap cancels the hide animation and would rerun the action.
+- **"Today"** is a `MutableStateFlow` refreshed from the Route with `LifecycleResumeEffect`
+  (`refrescarHoy()`); never cache `LocalDate.now()` for the life of a ViewModel.
+- **Shared Room flows** used by several derived flows in one ViewModel go through `shareIn`
+  (see `TurnosViewModel.catalogo`) instead of subscribing several times.
+- **Undo after delete** waits for the delete (`Deferred.await()`) before restoring.
+- **Pure layout logic** goes to `util/` with unit tests (e.g. `PuntosDia`), not private in a
+  composable file.
+- Fakes in `testing/Fakes.kt` mirror SQLite constraints (duplicate PK, foreign keys) and throw.
+- Manual DI stays (lazy singletons in `AppContainer`); Hilt is not warranted at this size.
 - `local.properties` is machine-specific and git-ignored.

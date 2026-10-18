@@ -15,6 +15,8 @@ import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.repository.PlantillasRepositorio
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -72,8 +74,11 @@ class PlantillaTrabajadoresViewModel(
         repositorio.numeroAsignaciones(plantillaId),
     ) { p, t, n -> Triple(p, t, n) }
 
-    /** Team shifts of each deleted worker, kept so "Deshacer" can restore them. */
-    private val asignacionesEliminadas = mutableMapOf<Long, List<Asignacion>>()
+    /**
+     * Pending deletes by worker id. The job's result is the worker's team shifts, read in the
+     * same transaction as the delete, so "Deshacer" can wait for it and restore them.
+     */
+    private val eliminaciones = mutableMapOf<Long, Deferred<List<Asignacion>>>()
 
     val uiState: StateFlow<PlantillaTrabajadoresUiState> =
         combine(datos, editandoId, renombrando, confirmandoBorrado) { (plantilla, trabajadores, asignaciones), editando, renom, conf ->
@@ -151,15 +156,15 @@ class PlantillaTrabajadoresViewModel(
 
     fun eliminar(trabajador: Trabajador) {
         if (editandoId.value == trabajador.id) cancelarEdicion()
-        viewModelScope.launch {
-            asignacionesEliminadas[trabajador.id] = repositorio.eliminarTrabajador(trabajador.id)
-        }
+        eliminaciones[trabajador.id] = viewModelScope.async { repositorio.eliminarTrabajador(trabajador.id) }
     }
 
     /** Undo of [eliminar]: puts the worker back with its id and position, and its team shifts. */
     fun deshacerEliminar(trabajador: Trabajador) {
+        val eliminacion = eliminaciones.remove(trabajador.id) ?: return
         viewModelScope.launch {
-            repositorio.restaurarTrabajador(trabajador, asignacionesEliminadas.remove(trabajador.id).orEmpty())
+            // Waits for the delete if it is still running, instead of racing it.
+            repositorio.restaurarTrabajador(trabajador, eliminacion.await())
         }
     }
 

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -310,7 +309,7 @@ private fun BarraDetalle(
                 val descripcion = stringResource(R.string.cambiar_nombre_plantilla)
                 Row(
                     modifier = Modifier
-                        .heightIn(min = 32.dp)
+                        .heightIn(min = 44.dp)
                         .clickable(role = Role.Button, onClick = acciones.empezarRenombrar)
                         .semantics(mergeDescendants = true) { contentDescription = descripcion },
                     verticalAlignment = Alignment.CenterVertically,
@@ -442,7 +441,7 @@ private fun CampoEnLinea(
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { onConfirmar() }),
         modifier = modifier
-            .height(40.dp)
+            .heightIn(min = 40.dp)
             .focusRequester(foco)
             .onPreviewKeyEvent { evento ->
                 if (onCancelar != null && evento.type == KeyEventType.KeyUp && evento.key == Key.Escape) {
@@ -456,7 +455,8 @@ private fun CampoEnLinea(
         decorationBox = { campo ->
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .heightIn(min = 40.dp) // grows with large system fonts instead of clipping
                     .clip(forma)
                     .background(fondo)
                     .then(if (borde != null) Modifier.border(borde, forma) else Modifier)
@@ -474,7 +474,7 @@ private fun BotonGuardar(onClick: () -> Unit) {
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MisTurnosColors.Accent, contentColor = MisTurnosColors.OnAccent),
         contentPadding = PaddingValues(horizontal = 12.dp),
-        modifier = Modifier.height(40.dp),
+        modifier = Modifier.heightIn(min = 40.dp),
     ) {
         Text(stringResource(R.string.guardar), style = MisTurnosText.inlineButton)
     }

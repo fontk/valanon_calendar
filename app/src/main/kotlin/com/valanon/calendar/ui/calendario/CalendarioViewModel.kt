@@ -13,6 +13,7 @@ import com.valanon.calendar.data.repository.TurnosRepositorio
 import com.valanon.calendar.pdf.GeneradorPdf
 import com.valanon.calendar.ui.componentes.NavegacionMes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -44,7 +45,8 @@ class CalendarioViewModel(
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : ViewModel() {
 
-    private val hoy: LocalDate = LocalDate.now(clock)
+    /** Re-read on every resume ([refrescarHoy]): tab ViewModels can outlive midnight. */
+    private val hoy = MutableStateFlow(LocalDate.now(clock))
 
     // Visible month, picker and open sheet survive rotation and process death.
     private val navegacion = NavegacionMes(savedStateHandle, clock)
@@ -57,12 +59,12 @@ class CalendarioViewModel(
     }
 
     val uiState: StateFlow<CalendarioUiState> =
-        combine(navegacion.mesTexto, diaSeleccionado, turnosDelMes, navegacion.selector) {
-                mesTexto, dia, (mesTurnos, turnos), (abierto, anio) ->
+        combine(navegacion.mesTexto, diaSeleccionado, turnosDelMes, navegacion.selector, hoy) {
+                mesTexto, dia, (mesTurnos, turnos), (abierto, anio), hoyActual ->
             val m = YearMonth.parse(mesTexto)
             CalendarioUiState(
                 mes = m,
-                hoy = hoy,
+                hoy = hoyActual,
                 turnos = if (mesTurnos == m) turnos else emptyMap(),
                 diaSeleccionado = dia?.let(LocalDate::parse),
                 selectorMesAbierto = abierto,
@@ -73,11 +75,16 @@ class CalendarioViewModel(
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
             initialValue = CalendarioUiState(
                 mes = navegacion.mes,
-                hoy = hoy,
+                hoy = hoy.value,
                 selectorMesAbierto = navegacion.selectorAbierto.value,
                 anioSelector = navegacion.anioSelector.value,
             ),
         )
+
+    /** Called when the screen resumes, so "today" is right after midnight or days in background. */
+    fun refrescarHoy() {
+        hoy.value = LocalDate.now(clock)
+    }
 
     fun mesAnterior() = navegacion.mesAnterior()
 

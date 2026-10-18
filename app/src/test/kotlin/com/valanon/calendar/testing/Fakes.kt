@@ -1,6 +1,8 @@
 package com.valanon.calendar.testing
 
+import com.valanon.calendar.data.local.SinTransaccion
 import com.valanon.calendar.data.local.dao.AjusteDao
+import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.entity.Ajuste
@@ -96,6 +98,8 @@ class FakeTrabajadorDao : TrabajadorDao {
     }
 
     override suspend fun insertar(trabajador: Trabajador): Long {
+        // Same as SQLite: an explicit id that already exists is a primary-key conflict.
+        check(filas.value.none { it.id == trabajador.id }) { "PK duplicada en trabajadores: ${trabajador.id}" }
         val id = if (trabajador.id == 0L) siguienteId++ else trabajador.id
         siguienteId = maxOf(siguienteId, id + 1)
         filas.update { it + trabajador.copy(id = id) }
@@ -153,7 +157,11 @@ class FakeAsignacionDao(private val trabajadores: FakeTrabajadorDao) : Asignacio
         }
 
     override suspend fun upsert(asignacion: Asignacion) {
-        val id = if (asignacion.id == 0L) siguienteId++ else asignacion.id
+        // Same as SQLite: the worker must exist (foreign key).
+        check(trabajadores.filas.value.any { it.id == asignacion.trabajadorId }) {
+            "FK rota: no existe el trabajador ${asignacion.trabajadorId}"
+        }
+        val id =if (asignacion.id == 0L) siguienteId++ else asignacion.id
         filas.update { l ->
             l.filterNot { it.fecha == asignacion.fecha && it.trabajadorId == asignacion.trabajadorId } + asignacion.copy(id = id)
         }
@@ -189,6 +197,8 @@ class FakesPlantillas {
     val plantillas = FakePlantillaDao(trabajadores)
     val asignaciones = FakeAsignacionDao(trabajadores)
     val ajustes = FakeAjusteDao()
+
+    fun repositorioPlantillas() = PlantillasRepositorio(plantillas, trabajadores, asignaciones, SinTransaccion)
 }
 
 /** Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. */

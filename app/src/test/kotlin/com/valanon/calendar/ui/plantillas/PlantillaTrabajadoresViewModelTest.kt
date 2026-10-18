@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
-import com.valanon.calendar.data.repository.PlantillasRepositorio
 import java.time.LocalDate
 import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
@@ -25,7 +24,7 @@ class PlantillaTrabajadoresViewModelTest {
 
     private val fakes = FakesPlantillas()
     private val trabajadoresDao = fakes.trabajadores
-    private val repositorio = PlantillasRepositorio(fakes.plantillas, fakes.trabajadores, fakes.asignaciones)
+    private val repositorio = fakes.repositorioPlantillas()
 
     /** Creates a template (optionally with workers) and a ViewModel on it, subscribed to its state. */
     private suspend fun TestScope.detalle(vararg nombres: String, renombrar: Boolean = false): PlantillaTrabajadoresViewModel {

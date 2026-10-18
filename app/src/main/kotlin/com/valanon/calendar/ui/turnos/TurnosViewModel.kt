@@ -14,6 +14,7 @@ import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.ui.componentes.NavegacionMes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Clock
@@ -83,10 +85,11 @@ private data class EstadoHojas(
 class TurnosViewModel(
     private val repositorio: AsignacionesRepositorio,
     private val savedStateHandle: SavedStateHandle,
-    clock: Clock = Clock.systemDefaultZone(),
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) : ViewModel() {
 
-    private val hoy: LocalDate = LocalDate.now(clock)
+    /** Re-read on every resume ([refrescarHoy]): tab ViewModels can outlive midnight. */
+    private val hoy = MutableStateFlow(LocalDate.now(clock))
     private val navegacion = NavegacionMes(savedStateHandle, clock, prefijo = PREFIJO)
 
     private val hojas = combine(
@@ -96,7 +99,11 @@ class TurnosViewModel(
         savedStateHandle.getStateFlow(KEY_HOJA_PLANTILLAS, false),
     ) { dia, editando, trabajador, hojaPlantillas -> EstadoHojas(dia, editando, trabajador, hojaPlantillas) }
 
-    private val plantillaId = repositorio.plantillaActiva.map { it?.plantilla?.id }.distinctUntilChanged()
+    /** One subscription to the templates + `ajustes`, shared by the id below and the UI state. */
+    private val catalogo = repositorio.catalogo
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000), replay = 1)
+
+    private val plantillaId = catalogo.map { it.activa?.plantilla?.id }.distinctUntilChanged()
 
     private val datos = combine(plantillaId, navegacion.mesTexto) { id, mes -> id to YearMonth.parse(mes) }
         .flatMapLatest { (id, mes) ->
@@ -111,20 +118,22 @@ class TurnosViewModel(
 
     val uiState: StateFlow<TurnosUiState> =
         combine(
-            combine(repositorio.plantillaActiva, repositorio.plantillasDeTrabajadores) { a, todas -> a to todas },
+            catalogo,
             datos,
             hojas,
             navegacion.mesTexto,
-            navegacion.selector,
-        ) { (activa, todas), d, h, mesTexto, (selectorAbierto, anio) ->
+            combine(navegacion.selector, hoy) { selector, dia -> selector to dia },
+        ) { catalogo, d, h, mesTexto, (selector, hoyActual) ->
+            val (selectorAbierto, anio) = selector
+            val activa = catalogo.activa
             val mes = YearMonth.parse(mesTexto)
             val vigentes = d.plantillaId == activa?.plantilla?.id && d.mes == mes
             TurnosUiState(
                 mes = mes,
-                hoy = hoy,
+                hoy = hoyActual,
                 cargando = false,
                 plantilla = activa,
-                plantillas = todas,
+                plantillas = catalogo.todas,
                 trabajadores = if (vigentes) d.trabajadores else emptyList(),
                 asignaciones = if (vigentes) d.asignaciones else emptyMap(),
                 diaAbierto = h.dia?.let(LocalDate::parse),
@@ -137,10 +146,15 @@ class TurnosViewModel(
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
-            initialValue = TurnosUiState(mes = navegacion.mes, hoy = hoy),
+            initialValue = TurnosUiState(mes = navegacion.mes, hoy = hoy.value),
         )
 
     // --- Month navigation (same behaviour as Calendario, own month) ---
+
+    /** Called when the screen resumes, so "today" is right after midnight or days in background. */
+    fun refrescarHoy() {
+        hoy.value = LocalDate.now(clock)
+    }
 
     fun mesAnterior() = navegacion.mesAnterior()
     fun mesSiguiente() = navegacion.mesSiguiente()

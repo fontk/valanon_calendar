@@ -14,8 +14,8 @@ android {
         applicationId = "com.valanon.calendar"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 6
+        versionName = "0.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +40,11 @@ android {
     }
 }
 
+composeCompiler {
+    // Immutable types the compiler cannot infer as stable (LocalDate, YearMonth, collections).
+    stabilityConfigurationFiles.add(layout.projectDirectory.file("compose_stability.conf"))
+}
+
 // Room exports the schema of every database version here. Commit this folder:
 // it is what makes migrations testable (see androidx.room:room-testing).
 room {
@@ -48,7 +53,6 @@ room {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.savedstate)
