@@ -51,7 +51,7 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 ```
 
 - `CalendarApp` (Application) owns `di/AppContainer`, a manual DI container with lazy
-  singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `plantillasRepositorio`,
+  singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `listasRepositorio`, `plantillasRepositorio`,
   `asignacionesRepositorio`,
   `exportadorPdf`).
   ViewModels get dependencies through `viewModelFactory { initializer { ... } }` reading
@@ -78,27 +78,32 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
-## Task-preset templates + multi-list Checklist (spec 4 & 4b, stories P2, P10, L0–L8, TASKS Fase 9) — PENDING
+## Task-preset templates + multi-list Checklist (spec 4 & 4b, stories P2, P10, L0–L8, TASKS Fase 9) — implemented
 
-- Second template type `TipoPlantilla.TAREAS`, items in `tareas_plantilla`. Edit it with the
-  SAME `PlantillaDetalleScreen` as Trabajadores (per-type texts + an avatar slot: initials in
-  a circle vs. order number with 10 dp radius); do not fork the screen or the ViewModel.
-- Checklist becomes multi-list: `listas` table, `tareas.lista_id` (ON DELETE CASCADE), one
-  active list stored in `ajustes` (`checklist.lista_id`, fallback = first by `orden`). UI: a
-  `LazyRow` of list chips (active one filled, "n/N" pill) ending with "+ Nueva"; a card for the
-  active list with rename, the **Reiniciar** button (the FAB is removed, with its string) and
-  a delete-list button + confirm dialog; the existing add/check/delete rows below, scoped to the
-  active list. "+ Nueva" opens a sheet listing Tareas templates plus "Lista en blanco".
-- Creating from a template COPIES its items as unchecked tasks in ONE transaction;
-  `listas.plantilla_id` is informational only (`ON DELETE SET NULL`). Never link `tareas` to
-  `tareas_plantilla`.
-- Schema **version 4**: `MIGRATION_3_4` creates `tareas_plantilla` and `listas`, inserts
-  "Mi checklist" only if `tareas` has rows, recreates `tareas` with `lista_id` (temp table +
-  copy + rename; keep ids, `hecha`, `orden`), index `idx_tareas_lista(lista_id, orden)`, and
-  writes `checklist.lista_id`. Mirror `mis-turnos-kit/db/schema.sql`; test with and without data.
-- References: `mis-turnos-kit/design/mockups/Checklist*.dc.html`, `PlantillaTareas.dc.html`,
-  `design/DESIGN.md` ("Pantalla Checklist"). When done, retitle this section "— implemented"
-  and update Database rules to version 4.
+- Second template type `TipoPlantilla.TAREAS`, items in `tareas_plantilla` (`TareaPlantillaDao`).
+  Both types share `PlantillaDetalleScreen` + `PlantillaDetalleViewModel`: the repository
+  works on `ElementoPlantilla` (id, plantillaId, texto, orden) and routes each operation by
+  type (`elementos`, `agregarElemento`, `cambiarTextoElemento`, `eliminarElemento`,
+  `restaurarElemento`); the ViewModel reads the type from the shared template flow. Per-type
+  texts are `TipoPlantilla.textos` (`TextosTipoPlantilla`), the badge is `InsigniaTipo`
+  (Tareas: `templateTasksBg/Fg`), the avatar is `AvatarElemento` (initials vs. `AvatarNumero`
+  with radius 10). Do not fork the screen or the ViewModel for a new type.
+- Checklist is multi-list (`ui/checklist/`): `ListasRepositorio.listas` emits all lists plus the
+  active one together (`ListasChecklist`; active = `ajustes` `checklist.lista_id` or the first
+  by `orden`). `ChecklistViewModel` shares that flow, and the active list's tasks are tagged
+  with its id (`flatMapLatest`) so a chip switch never shows the previous list's tasks.
+  UI: `FilaChipsListas` (`LazyRow`, active chip filled, "n/N" pill, dashed "+ Nueva"),
+  `TarjetaListaActiva` (rename, origin, Reiniciar, Eliminar), `SelectorPlantillaTareas`
+  sheet (`HojaNuevaLista.kt`), `DialogoEliminar`. There is no FAB any more.
+- Creating from a template COPIES its items as unchecked tasks in ONE transaction
+  (`TareaDao.copiarDePlantilla`); `listas.plantilla_id` is informational only
+  (`ON DELETE SET NULL`), and the card shows the template's CURRENT name through a LEFT JOIN
+  ("Lista en blanco" once it is deleted). Never link `tareas` to `tareas_plantilla`.
+- Deleting the active list activates the next one (or the previous if it was last). Undoing a
+  task delete after its list is gone is a no-op (`TareaDao.restaurar` is `INSERT … WHERE EXISTS`).
+- Shared pieces added to `ui/componentes`: `DialogoEliminar` (filled `danger` "Eliminar", also
+  used by the template detail), `EstadoVacioInsignia` (64 dp badge empty state of Checklist and
+  Turnos), `CampoEnLinea` + `BotonGuardar` (in-place rename), `Modifier.bordeDiscontinuo`.
 
 ## Turnos tab (spec 3b, stories T1–T7, TASKS Fase 8) — implemented
 
@@ -130,18 +135,18 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
   the open template (`saveState`/`restoreState`). System Back in the detail pops to the list.
 - `ui/plantillas/`: `PlantillasScreen` (cards, empty state, FAB, `SelectorTipoPlantilla`
   sheet) + `PlantillasViewModel` (`hojaTiposAbierta` in SavedStateHandle, `suspend crear(tipo)`
-  returns the id); `PlantillaTrabajadoresScreen` + `PlantillaTrabajadoresViewModel` (reads the
+  returns the id); `PlantillaDetalleScreen` + `PlantillaDetalleViewModel` (reads the
   nav args `id`/`renombrar` from SavedStateHandle; drafts are Compose state mirrored to the
   handle; `editandoId`, `renombrando`, `confirmandoBorrado` live in the handle). Deleting the
   template makes `uiState.cerrada` true and the route pops back.
-- Type-specific UI lives in `TipoPlantillaUi.kt` (`icono`, `descripcion`, `InsigniaTipo`).
-  `TipoPlantilla` has only `TRABAJADORES`: do not add other types or use templates from
-  Calendario/Checklist until asked (AGENTS.md).
+- Type-specific UI lives in `TipoPlantillaUi.kt` (`icono`, `descripcion`, `InsigniaTipo`,
+  `AvatarElemento`, `textos`). `TipoPlantilla` has `TRABAJADORES` and `TAREAS`: do not add
+  other types until asked (AGENTS.md).
 - Shared month pieces are in `ui/componentes`: `Mes.kt` (`CabeceraMes`, `RejillaMes` with a
   cell slot, `CabeceraDiasSemana`, `LeyendaTurnos`, `AccionesSelectorMes`), `SelectorMes.kt`,
   `SelectorTurno.kt` (`ContenidoSelectorTurno`), `NavegacionMes.kt` and `Avatar.kt`.
 - Shared list-tab pieces are in `ui/componentes/Pestanas.kt` (`CabeceraPestana`, `CampoAlta`,
-  `EstadoVacio`, `FabAccion`), used by Checklist and Plantillas.
+  `EstadoVacio`, `EstadoVacioInsignia`, `FabAccion`), used by Checklist, Plantillas and Turnos.
 - Avatars (`util/iniciales`) are decorative for accessibility (`clearAndSetSemantics`); the
   row's name is what TalkBack reads.
 
@@ -166,19 +171,25 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 
 ## Database rules
 
-- Schema **version 3**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
+- Schema **version 4**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
   v1 `turnos`, `tareas`; v2 adds `plantillas` and `trabajadores` (FK `plantilla_id` →
   `plantillas.id` ON DELETE CASCADE, index `idx_trabajadores_plantilla`); v3 adds
   `asignaciones` (FK `trabajador_id` ON DELETE CASCADE; the SQL `UNIQUE(fecha, trabajador_id)`
-  is the unique index `idx_asignaciones_fecha_trabajador`) and `ajustes` (key/value).
-- Migrations 1→2 and 2→3 are kept separate (v2 shipped in APK 0.4.0); both only create tables.
+  is the unique index `idx_asignaciones_fecha_trabajador`) and `ajustes` (key/value); v4 adds
+  `listas` (FK `plantilla_id` ON DELETE SET NULL + index `idx_listas_plantilla`, which
+  schema.sql lacks but avoids a full scan on template delete), `tareas_plantilla` (CASCADE,
+  `idx_tareas_plantilla`) and `tareas.lista_id` (CASCADE, `idx_tareas_lista(lista_id, orden)`).
+- Migrations are kept separate, one per shipped version. 1→2 and 2→3 only create tables;
+  `MIGRATION_3_4` also rebuilds `tareas` (temp table + copy + rename, keeping ids, `hecha` and
+  `orden`), puts existing tasks in "Mi checklist" (`NOMBRE_LISTA_MIGRADA`) only if there were
+  any, and makes it active (`CLAVE_LISTA_CHECKLIST`).
 - `turnos.fecha` is ISO `yyyy-MM-dd` text (`LocalDate.toString()`), so `BETWEEN` and ordering
   work on strings. Enum columns (`turnos.tipo`, `plantillas.tipo`) store `.valor` through
   `Conversores`. Room cannot express the SQL `CHECK` constraints; the enum conversion
   enforces them.
-- New rows go to the end in one statement (`MAX(orden) + 1`: tasks, templates, and workers
+- New rows go to the end in one statement (`MAX(orden) + 1`: lists, tasks per list, templates, and items
   per template). Undo re-inserts the deleted row with its id and `orden`.
-- Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2`, `TODAS_LAS_MIGRACIONES`).
+- Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2` … `MIGRATION_3_4`, `TODAS_LAS_MIGRACIONES`).
   Their SQL must equal the `createSql` Room exports in `app/schemas/.../<n>.json`.
 - Settings go in `ajustes` (`AjusteDao`), never DataStore/SharedPreferences.
 - Any entity change: bump `AppDatabase.VERSION`, add the `Migration` and append it to
@@ -204,7 +215,9 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
   schema; `CopiaSeguridadRepositorio` with SAF URIs) + `CopiaSeguridadDao` (`leerTodo` /
   `reemplazarTodo`, both `@Transaction`). When a table or column is added, extend the JSON
   (missing arrays must keep reading as empty, so older backups stay valid) and
-  `CopiaSeguridadTest`. Bump `FormatoCopia.VERSION` only for incompatible changes.
+  `CopiaSeguridadTest`. Bump `FormatoCopia.VERSION` only for incompatible changes. Version 2
+  added `listas`, `tareasPlantilla` and `tareas[].listaId`; version-1 files (0.6.0) still
+  import, their tasks going to "Mi checklist" like the database migration.
 
 ## Conventions
 

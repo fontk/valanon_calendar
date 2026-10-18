@@ -86,45 +86,79 @@ class MisTurnosAppTest {
     }
 
     @Test
-    fun l1aL6_checklistCompleta() {
+    fun l0aL8_checklistConVariasListas() {
         pestana("Checklist").performClick()
 
-        // L6: empty state, no progress counter
-        compose.onNodeWithText("Sin tareas todavía").assertIsDisplayed()
-        compose.onNodeWithText("Escribe una tarea arriba y pulsa Agregar.").assertIsDisplayed()
+        // L6: no lists at all → centered empty state with "Nueva lista"
+        esperarTexto("Sin listas todavía")
+        compose.onNodeWithText("Crea una lista desde una plantilla de tareas o empieza con una en blanco.").assertIsDisplayed()
+
+        // L7: no task templates → notice; "Lista en blanco" creates "Lista 1", active and empty
+        compose.onNode(hasText("Nueva lista") and hasClickAction()).performClick()
+        esperarTexto("¿Desde qué plantilla de tareas?")
+        compose.onNodeWithText("No tienes plantillas de tareas. Puedes crearlas en la pestaña Plantillas.").assertIsDisplayed()
+        compose.onNode(hasText("Lista en blanco") and hasClickAction()).performClick()
+        esperarTexto("Esta lista está vacía")
+        compose.onNodeWithContentDescription("Lista 1, 0 de 0 hechas, lista activa").assertIsDisplayed()
 
         // L1: add with the button and with IME Done; blank text is ignored
-        val campo = compose.onNode(hasSetTextAction())
+        val campo = compose.onNode(hasSetTextAction() and hasContentDescription("Nueva tarea"))
         campo.performTextInput("   ")
         compose.onNodeWithText("Agregar").performClick()
-        compose.onNodeWithText("Sin tareas todavía").assertIsDisplayed()
-
+        compose.onNodeWithText("Esta lista está vacía").assertIsDisplayed()
         campo.performTextInput("Preparar el uniforme")
         compose.onNodeWithText("Agregar").performClick()
         campo.performTextInput("Comprar comida")
         campo.performImeAction()
-        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("0 de 2 hechas")).fetchSemanticsNodes().isNotEmpty() }
+        esperarTexto("0 de 2 hechas")
 
         // L2: toggle
         compose.onNodeWithText("Preparar el uniforme").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("1 de 2 hechas")).fetchSemanticsNodes().isNotEmpty() }
+        esperarTexto("1 de 2 hechas")
 
-        // L4: reset unchecks without deleting
-        compose.onNodeWithContentDescription("Reiniciar todas las tareas").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("0 de 2 hechas")).fetchSemanticsNodes().isNotEmpty() }
+        // L0: a second blank list becomes active; tapping the first chip brings its tasks back
+        compose.onNodeWithContentDescription("Nueva lista").performClick()
+        compose.onNode(hasText("Lista en blanco") and hasClickAction()).performClick()
+        esperarDescripcion("Lista 2, 0 de 0 hechas, lista activa")
+        compose.onNodeWithText("Comprar comida").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Lista 1, 1 de 2 hechas").performClick()
+        esperarTexto("Comprar comida")
 
-        // L5: survives recreation
+        // L4: "Reiniciar" unchecks the active list without deleting
+        compose.onNodeWithContentDescription("Reiniciar las tareas de esta lista").performClick()
+        esperarTexto("0 de 2 hechas")
+
+        // L5: survives recreation, with the same active list
         compose.activityRule.scenario.recreate()
         pestana("Checklist").performClick()
-        compose.onNodeWithText("Comprar comida").assertIsDisplayed()
+        esperarTexto("Comprar comida")
+        compose.onNodeWithContentDescription("Lista 1, 0 de 2 hechas, lista activa").assertIsDisplayed()
 
-        // L3: delete both
-        repeat(2) {
-            compose.onAllNodes(hasContentDescription("Borrar tarea"))[0].performClick()
-            compose.waitForIdle()
-        }
-        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly("Sin tareas todavía")).fetchSemanticsNodes().isNotEmpty() }
+        // L3: delete a task
+        compose.onAllNodes(hasContentDescription("Borrar tarea"))[0].performClick()
+        esperarTexto("0 de 1 hecha")
+
+        // L8: cancel keeps it; delete removes the list and activates the neighbour
+        compose.onNodeWithContentDescription("Eliminar esta lista").performClick()
+        compose.onNodeWithText("¿Eliminar la lista «Lista 1»?").assertIsDisplayed()
+        compose.onNodeWithText("Cancelar").performClick()
+        compose.onNodeWithContentDescription("Eliminar esta lista").performClick()
+        compose.onNode(hasText("Eliminar", substring = false) and hasClickAction()).performClick()
+        esperarDescripcion("Lista 2, 0 de 0 hechas, lista activa")
+        compose.onNodeWithText("Esta lista está vacía").assertIsDisplayed()
+
+        // L8: deleting the only list leaves the empty state
+        compose.onNodeWithContentDescription("Eliminar esta lista").performClick()
+        compose.onNodeWithText("La lista está vacía.").assertIsDisplayed()
+        compose.onNode(hasText("Eliminar", substring = false) and hasClickAction()).performClick()
+        esperarTexto("Sin listas todavía")
     }
+
+    private fun esperarTexto(texto: String) =
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTextExactly(texto)).fetchSemanticsNodes().isNotEmpty() }
+
+    private fun esperarDescripcion(descripcion: String) =
+        compose.waitUntil(5_000) { compose.onAllNodes(hasContentDescription(descripcion)).fetchSemanticsNodes().isNotEmpty() }
 
     @Test
     fun c2b_selectorDeMesYAnio() {

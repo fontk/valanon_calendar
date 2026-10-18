@@ -60,6 +60,15 @@ object MisTurnosText {
     val chipPlantilla = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W700)
     val resumen = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W700)
     val addButton = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W800)
+
+    /** Centered empty state with a 64 dp badge (Checklist without lists, Turnos without templates). */
+    val emptyStateTitle = TextStyle(fontFamily = Manrope, fontSize = 17.sp, fontWeight = FontWeight.W800)
+    val emptyStateHelp = TextStyle(fontFamily = Manrope, fontSize = 14.sp, fontWeight = FontWeight.W500, lineHeight = 1.4.em)
+
+    /** Checklist: "2/5" pill of a list chip and the "Desde la plantilla «…»" line. */
+    val pill = TextStyle(fontFamily = Manrope, fontSize = 11.sp, fontWeight = FontWeight.W800)
+    val chipNueva = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W800)
+    val listOrigin = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W600)
 }
 
 /** Material 3 typography mapped onto Manrope so default components also use it. */

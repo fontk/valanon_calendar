@@ -8,14 +8,18 @@ import androidx.room.TypeConverters
 import com.valanon.calendar.data.local.dao.AjusteDao
 import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.CopiaSeguridadDao
+import com.valanon.calendar.data.local.dao.ListaDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TareaDao
+import com.valanon.calendar.data.local.dao.TareaPlantillaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.dao.TurnoDao
 import com.valanon.calendar.data.local.entity.Ajuste
 import com.valanon.calendar.data.local.entity.Asignacion
+import com.valanon.calendar.data.local.entity.Lista
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.local.entity.Turno
 
@@ -25,6 +29,7 @@ import com.valanon.calendar.data.local.entity.Turno
  * - v1: `turnos`, `tareas`.
  * - v2: + `plantillas`, `trabajadores` ([MIGRATION_1_2]).
  * - v3: + `asignaciones`, `ajustes` ([MIGRATION_2_3]).
+ * - v4: + `listas`, `tareas_plantilla`; `tareas` gains `lista_id` ([MIGRATION_3_4]).
  *
  * When you change an entity:
  *  1. bump [VERSION],
@@ -33,7 +38,10 @@ import com.valanon.calendar.data.local.entity.Turno
  *  4. extend MigrationTest.
  */
 @Database(
-    entities = [Turno::class, Tarea::class, Plantilla::class, Trabajador::class, Asignacion::class, Ajuste::class],
+    entities = [
+        Turno::class, Lista::class, Tarea::class, Plantilla::class, Trabajador::class, TareaPlantilla::class,
+        Asignacion::class, Ajuste::class,
+    ],
     version = AppDatabase.VERSION,
     exportSchema = true,
 )
@@ -42,11 +50,15 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun turnoDao(): TurnoDao
 
+    abstract fun listaDao(): ListaDao
+
     abstract fun tareaDao(): TareaDao
 
     abstract fun plantillaDao(): PlantillaDao
 
     abstract fun trabajadorDao(): TrabajadorDao
+
+    abstract fun tareaPlantillaDao(): TareaPlantillaDao
 
     abstract fun asignacionDao(): AsignacionDao
 
@@ -55,7 +67,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun copiaSeguridadDao(): CopiaSeguridadDao
 
     companion object {
-        const val VERSION = 3
+        const val VERSION = 4
         const val NAME = "mis_turnos.db"
 
         fun build(context: Context): AppDatabase =

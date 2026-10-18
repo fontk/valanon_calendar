@@ -11,6 +11,7 @@ import com.valanon.calendar.data.model.TipoTurno
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -50,7 +51,7 @@ class MigrationTest {
             val turnos = app.turnoDao().obtenerRango("2026-10-01", "2026-10-31")
             assertEquals(TipoTurno.NOCHE, turnos.single().tipo)
 
-            val tarea = app.tareaDao().observarTodas().first().single()
+            val tarea = app.tareaDao().observarDeLista(app.listaDao().ids().single()).first().single()
             assertEquals("Preparar el uniforme", tarea.texto)
             assertTrue(tarea.hecha)
 
@@ -88,10 +89,10 @@ class MigrationTest {
             .build()
         try {
             assertEquals(TipoTurno.TARDE, app.turnoDao().obtenerRango("2026-10-01", "2026-10-31").single().tipo)
-            assertEquals("Revisar el cuadrante", app.tareaDao().observarTodas().first().single().texto)
+            assertEquals("Revisar el cuadrante", app.tareaDao().observarDeLista(app.listaDao().ids().single()).first().single().texto)
             val plantilla = app.plantillaDao().observarTodas().first().single()
             assertEquals("Equipo de planta", plantilla.plantilla.nombre)
-            assertEquals(2, plantilla.numTrabajadores)
+            assertEquals(2, plantilla.numElementos)
 
             // New tables: one shift per day and worker, cascade from the worker, settings.
             app.asignacionDao().upsert(Asignacion(fecha = "2026-10-17", trabajadorId = 1, tipo = TipoTurno.NOCHE))
@@ -105,6 +106,85 @@ class MigrationTest {
             )
             app.ajusteDao().guardar(Ajuste("turnos.plantilla_id", "1"))
             assertEquals("1", app.ajusteDao().observar("turnos.plantilla_id").first())
+        } finally {
+            app.close()
+            contexto.deleteDatabase(nombre)
+        }
+    }
+
+    /**
+     * L5: v3 → v4 puts the single checklist into the list "Mi checklist", active, keeping ids,
+     * texts, `hecha` and `orden`; the rest of the data is untouched.
+     */
+    @Test
+    fun migra3a4ConTareasLasPoneEnMiChecklist() = runTest {
+        val nombre = "migracion-3-4-test.db"
+        helper.createDatabase(nombre, 3).use { db ->
+            db.execSQL("INSERT INTO turnos (fecha, tipo) VALUES ('2026-10-17', 'manana')")
+            db.execSQL("INSERT INTO tareas (id, texto, hecha, orden) VALUES (4, 'Preparar el uniforme', 1, 1)")
+            db.execSQL("INSERT INTO tareas (id, texto, hecha, orden) VALUES (9, 'Comprar comida', 0, 3)")
+            db.execSQL("INSERT INTO tareas (id, texto, hecha, orden) VALUES (7, 'Pedir cambio de turno', 0, 2)")
+            db.execSQL("INSERT INTO plantillas (id, tipo, nombre, orden) VALUES (1, 'trabajadores', 'Equipo de planta', 1)")
+            db.execSQL("INSERT INTO trabajadores (id, plantilla_id, nombre, orden) VALUES (1, 1, 'Lucía Martínez', 1)")
+            db.execSQL("INSERT INTO asignaciones (fecha, trabajador_id, tipo) VALUES ('2026-10-17', 1, 'noche')")
+            db.execSQL("INSERT INTO ajustes (clave, valor) VALUES ('turnos.plantilla_id', '1')")
+        }
+
+        // Runs MIGRATION_3_4 and validates the resulting schema (and foreign keys) against 4.json.
+        helper.runMigrationsAndValidate(nombre, 4, true, MIGRATION_3_4).close()
+
+        val contexto = InstrumentationRegistry.getInstrumentation().targetContext
+        val app = Room.databaseBuilder(contexto, AppDatabase::class.java, nombre)
+            .addMigrations(*TODAS_LAS_MIGRACIONES)
+            .build()
+        try {
+            val lista = app.listaDao().observarTodas().first().single()
+            assertEquals(NOMBRE_LISTA_MIGRADA, lista.lista.nombre)
+            assertNull(lista.lista.plantillaId)
+            assertEquals(3, lista.total)
+            assertEquals(1, lista.hechas)
+            assertEquals(lista.lista.id.toString(), app.ajusteDao().obtener(CLAVE_LISTA_CHECKLIST))
+
+            val tareas = app.tareaDao().observarDeLista(lista.lista.id).first()
+            assertEquals(listOf(4L, 7L, 9L), tareas.map { it.id })
+            assertEquals(listOf("Preparar el uniforme", "Pedir cambio de turno", "Comprar comida"), tareas.map { it.texto })
+            assertEquals(listOf(true, false, false), tareas.map { it.hecha })
+            assertEquals(listOf(1, 2, 3), tareas.map { it.orden })
+
+            // Untouched: own shifts, templates, team shifts and the other settings.
+            assertEquals(TipoTurno.MANANA, app.turnoDao().obtenerRango("2026-10-01", "2026-10-31").single().tipo)
+            assertEquals(1, app.asignacionDao().contarDePlantilla(1))
+            assertEquals("1", app.ajusteDao().obtener("turnos.plantilla_id"))
+
+            // New task tables work: a new task goes to the end of its list, lists cascade.
+            app.tareaDao().agregarAlFinal(lista.lista.id, "Nueva")
+            assertEquals(4, app.tareaDao().observarDeLista(lista.lista.id).first().last().orden)
+            app.listaDao().borrar(lista.lista.id)
+            assertTrue(app.tareaDao().observarDeLista(lista.lista.id).first().isEmpty())
+        } finally {
+            app.close()
+            contexto.deleteDatabase(nombre)
+        }
+    }
+
+    /** L5: v3 → v4 without tasks creates no list (the tab shows "Sin listas todavía"). */
+    @Test
+    fun migra3a4SinTareasNoCreaListas() = runTest {
+        val nombre = "migracion-3-4-vacia-test.db"
+        helper.createDatabase(nombre, 3).use { db ->
+            db.execSQL("INSERT INTO turnos (fecha, tipo) VALUES ('2026-10-17', 'libre')")
+        }
+
+        helper.runMigrationsAndValidate(nombre, 4, true, MIGRATION_3_4).close()
+
+        val contexto = InstrumentationRegistry.getInstrumentation().targetContext
+        val app = Room.databaseBuilder(contexto, AppDatabase::class.java, nombre)
+            .addMigrations(*TODAS_LAS_MIGRACIONES)
+            .build()
+        try {
+            assertTrue(app.listaDao().observarTodas().first().isEmpty())
+            assertNull(app.ajusteDao().obtener(CLAVE_LISTA_CHECKLIST))
+            assertEquals(TipoTurno.LIBRE, app.turnoDao().obtenerRango("2026-10-01", "2026-10-31").single().tipo)
         } finally {
             app.close()
             contexto.deleteDatabase(nombre)

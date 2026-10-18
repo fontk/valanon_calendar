@@ -14,6 +14,9 @@ interface AjusteDao {
     @Query("SELECT valor FROM ajustes WHERE clave = :clave")
     fun observar(clave: String): Flow<String?>
 
+    @Query("SELECT valor FROM ajustes WHERE clave = :clave")
+    suspend fun obtener(clave: String): String?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun guardar(ajuste: Ajuste)
 }

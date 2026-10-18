@@ -51,10 +51,10 @@ class PlantillasViewModelTest {
         val vm = crear()
         vm.uiState.launchIn(backgroundScope)
         val id = vm.crear(TipoPlantilla.TRABAJADORES)
-        repositorio.agregarTrabajador(id, "Lucía")
-        repositorio.agregarTrabajador(id, "Javier")
+        repositorio.agregarElemento(TipoPlantilla.TRABAJADORES, id, "Lucía")
+        repositorio.agregarElemento(TipoPlantilla.TRABAJADORES, id, "Javier")
 
-        assertEquals(2, vm.uiState.value.plantillas.single().numTrabajadores)
+        assertEquals(2, vm.uiState.value.plantillas.single().numElementos)
     }
 
     @Test

@@ -40,7 +40,7 @@ class TurnosViewModelTest {
     private suspend fun equipo(nombre: String = "Equipo de planta", vararg personas: String = arrayOf("Lucía", "Javier")): List<Long> {
         val id = plantillas.crear(TipoPlantilla.TRABAJADORES)
         plantillas.renombrarPlantilla(id, nombre)
-        personas.forEach { plantillas.agregarTrabajador(id, it) }
+        personas.forEach { plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, id, it) }
         return listOf(id) + repo.trabajadores(id).first().map { it.id }
     }
 
@@ -179,7 +179,7 @@ class TurnosViewModelTest {
         val (p) = equipo()
         val vm = crear()
 
-        plantillas.agregarTrabajador(p, "Ana")
+        plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, p, "Ana")
 
         assertEquals(listOf("Lucía", "Javier", "Ana"), vm.uiState.value.trabajadores.map { it.nombre })
         assertTrue(vm.uiState.value.turnosDe(hoy).isEmpty())

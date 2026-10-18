@@ -48,10 +48,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
@@ -71,6 +67,7 @@ import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.ui.componentes.AccionSecundaria
 import com.valanon.calendar.ui.componentes.AsaHoja
 import com.valanon.calendar.ui.componentes.Avatar
+import com.valanon.calendar.ui.componentes.bordeDiscontinuo
 import com.valanon.calendar.ui.componentes.ContenidoSelectorTurno
 import com.valanon.calendar.ui.componentes.Sobretitulo
 import com.valanon.calendar.ui.icons.MisTurnosIcons
@@ -277,16 +274,7 @@ private fun ChipTurno(tipo: TipoTurno?) {
         val borde = MisTurnosColors.UnassignedBorder
         Modifier
             .background(MisTurnosColors.Sheet, CircleShape)
-            .drawBehind {
-                drawRoundRect(
-                    color = borde,
-                    cornerRadius = CornerRadius(size.height / 2),
-                    style = Stroke(
-                        width = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())),
-                    ),
-                )
-            }
+            .bordeDiscontinuo(borde)
     }
     Text(
         text = tipo?.etiqueta ?: stringResource(R.string.sin_asignar),
@@ -394,7 +382,7 @@ fun SelectorPlantillaActiva(
                                 modifier = Modifier.weight(1f),
                             )
                             Text(
-                                pluralStringResource(R.plurals.contador_trabajadores, item.numTrabajadores, item.numTrabajadores),
+                                pluralStringResource(R.plurals.contador_trabajadores, item.numElementos, item.numElementos),
                                 style = MisTurnosText.cardSubtitle,
                                 color = MisTurnosColors.TextMuted,
                             )

@@ -138,7 +138,8 @@ private fun TarjetaPlantilla(item: PlantillaConRecuento, onClick: () -> Unit, mo
     val subtitulo = stringResource(
         R.string.subtitulo_plantilla,
         plantilla.tipo.etiqueta,
-        pluralStringResource(R.plurals.contador_trabajadores, item.numTrabajadores, item.numTrabajadores),
+        // "Trabajadores · 4 trabajadores" / "Tareas · 5 tareas"
+        pluralStringResource(plantilla.tipo.textos.contador, item.numElementos, item.numElementos),
     )
     TarjetaConInsignia(
         tipo = plantilla.tipo,

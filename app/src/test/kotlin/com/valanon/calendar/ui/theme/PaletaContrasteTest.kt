@@ -33,6 +33,7 @@ class PaletaContrasteTest {
         comprobar("$modo inverse snackbar", p.background, p.text)
         // Icons and borders (non-text) need 3:1.
         comprobar("$modo danger/background (papelera)", p.danger, p.background, minimo = 3.0)
+        comprobar("$modo templateTasksFg/templateTasksBg (insignia Tareas)", p.templateTasksFg, p.templateTasksBg, minimo = 3.0)
     }
 
     @Test

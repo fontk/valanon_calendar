@@ -17,14 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarDuration
@@ -33,7 +27,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,15 +35,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -58,8 +42,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,10 +49,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
-import com.valanon.calendar.data.local.entity.Trabajador
+import com.valanon.calendar.data.model.ElementoPlantilla
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.ui.componentes.Avatar
+import com.valanon.calendar.data.model.comoElemento
+import com.valanon.calendar.ui.componentes.BotonGuardar
 import com.valanon.calendar.ui.componentes.CampoAlta
+import com.valanon.calendar.ui.componentes.CampoEnLinea
+import com.valanon.calendar.ui.componentes.DialogoEliminar
 import com.valanon.calendar.ui.componentes.EstadoVacio
 import com.valanon.calendar.ui.componentes.Sobretitulo
 import com.valanon.calendar.ui.icons.MisTurnosIcons
@@ -80,11 +65,11 @@ import com.valanon.calendar.ui.theme.MisTurnosText
 import com.valanon.calendar.ui.theme.MisTurnosTheme
 import kotlinx.coroutines.launch
 
-/** Stateful entry point of a template's detail. [onVolver] pops back to the list. */
+/** Stateful entry point of a template's detail (any type). [onVolver] pops back to the list. */
 @Composable
-fun PlantillaTrabajadoresRoute(
+fun PlantillaDetalleRoute(
     onVolver: () -> Unit,
-    viewModel: PlantillaTrabajadoresViewModel = viewModel(factory = PlantillaTrabajadoresViewModel.Factory),
+    viewModel: PlantillaDetalleViewModel = viewModel(factory = PlantillaDetalleViewModel.Factory),
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val recursos = LocalResources.current
@@ -94,7 +79,7 @@ fun PlantillaTrabajadoresRoute(
     // Deleted (here, after confirming) or missing template: back to the list.
     LaunchedEffect(estado.cerrada) { if (estado.cerrada) onVolver() }
 
-    PlantillaTrabajadoresScreen(
+    PlantillaDetalleScreen(
         estado = estado,
         borrador = viewModel.borrador,
         borradorEdicion = viewModel.borradorEdicion,
@@ -111,16 +96,17 @@ fun PlantillaTrabajadoresRoute(
             cambiarEdicion = viewModel::actualizarBorradorEdicion,
             guardarEdicion = viewModel::guardarEdicion,
             cancelarEdicion = viewModel::cancelarEdicion,
-            eliminar = { trabajador ->
-                viewModel.eliminar(trabajador)
+            eliminar = { elemento ->
+                val mensaje = recursos.getString((estado.plantilla?.tipo ?: TipoPlantilla.TRABAJADORES).textos.eliminado)
+                viewModel.eliminar(elemento)
                 scope.launch {
                     snackbar.currentSnackbarData?.dismiss()
                     val resultado = snackbar.showSnackbar(
-                        message = recursos.getString(R.string.trabajador_eliminado),
+                        message = mensaje,
                         actionLabel = recursos.getString(R.string.deshacer),
                         duration = SnackbarDuration.Short,
                     )
-                    if (resultado == SnackbarResult.ActionPerformed) viewModel.deshacerEliminar(trabajador)
+                    if (resultado == SnackbarResult.ActionPerformed) viewModel.deshacerEliminar(elemento)
                 }
             },
             pedirBorrarPlantilla = viewModel::pedirBorrarPlantilla,
@@ -138,11 +124,11 @@ data class AccionesDetalle(
     val guardarNombre: () -> Unit,
     val cambiarBorrador: (String) -> Unit,
     val agregar: () -> Unit,
-    val empezarEdicion: (Trabajador) -> Unit,
+    val empezarEdicion: (ElementoPlantilla) -> Unit,
     val cambiarEdicion: (String) -> Unit,
     val guardarEdicion: () -> Unit,
     val cancelarEdicion: () -> Unit,
-    val eliminar: (Trabajador) -> Unit,
+    val eliminar: (ElementoPlantilla) -> Unit,
     val pedirBorrarPlantilla: () -> Unit,
     val cancelarBorrarPlantilla: () -> Unit,
     val borrarPlantilla: () -> Unit,
@@ -154,8 +140,8 @@ data class AccionesDetalle(
 }
 
 @Composable
-fun PlantillaTrabajadoresScreen(
-    estado: PlantillaTrabajadoresUiState,
+fun PlantillaDetalleScreen(
+    estado: PlantillaDetalleUiState,
     borrador: String,
     borradorEdicion: String,
     borradorNombre: String,
@@ -164,10 +150,12 @@ fun PlantillaTrabajadoresScreen(
     modifier: Modifier = Modifier,
 ) {
     val plantilla = estado.plantilla
+    val tipo = plantilla?.tipo ?: TipoPlantilla.TRABAJADORES
+    val textos = tipo.textos
     Box(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
         Column(Modifier.fillMaxSize()) {
             BarraDetalle(
-                tipo = plantilla?.tipo ?: TipoPlantilla.TRABAJADORES,
+                tipo = tipo,
                 nombre = plantilla?.nombre.orEmpty(),
                 renombrando = estado.renombrando,
                 borradorNombre = borradorNombre,
@@ -177,14 +165,14 @@ fun PlantillaTrabajadoresScreen(
                 valor = borrador,
                 onValorCambia = acciones.cambiarBorrador,
                 onAgregar = acciones.agregar,
-                placeholder = stringResource(R.string.nombre_trabajador_placeholder),
-                descripcion = stringResource(R.string.nombre_trabajador),
-                capitalizacion = KeyboardCapitalization.Words,
+                placeholder = stringResource(textos.placeholder),
+                descripcion = stringResource(textos.campo),
+                capitalizacion = textos.capitalizacion,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 16.dp),
             )
-            val n = estado.trabajadores.size
+            val n = estado.elementos.size
             Sobretitulo(
-                texto = pluralStringResource(R.plurals.contador_trabajadores, n, n),
+                texto = pluralStringResource(textos.contador, n, n),
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
             )
             LazyColumn(
@@ -192,20 +180,22 @@ fun PlantillaTrabajadoresScreen(
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (!estado.cargando && estado.trabajadores.isEmpty()) {
+                if (!estado.cargando && estado.elementos.isEmpty()) {
                     item(key = "vacio") {
                         EstadoVacio(
-                            titulo = stringResource(R.string.sin_trabajadores),
-                            ayuda = stringResource(R.string.sin_trabajadores_ayuda),
+                            titulo = stringResource(textos.vacio),
+                            ayuda = stringResource(textos.vacioAyuda),
                             anchoAyuda = 240.dp,
                             modifier = Modifier.fillMaxWidth().padding(top = 60.dp, bottom = 40.dp),
                         )
                     }
                 }
-                items(estado.trabajadores, key = { it.id }) { trabajador ->
-                    FilaTrabajador(
-                        trabajador = trabajador,
-                        editando = estado.editandoId == trabajador.id,
+                itemsIndexed(estado.elementos, key = { _, elemento -> elemento.id }) { indice, elemento ->
+                    FilaElemento(
+                        tipo = tipo,
+                        elemento = elemento,
+                        posicion = indice + 1,
+                        editando = estado.editandoId == elemento.id,
                         borradorEdicion = borradorEdicion,
                         acciones = acciones,
                         modifier = Modifier.animateItem(),
@@ -226,42 +216,25 @@ fun PlantillaTrabajadoresScreen(
     }
 
     if (estado.confirmandoBorrado && plantilla != null) {
-        val n = estado.trabajadores.size
-        AlertDialog(
-            onDismissRequest = acciones.cancelarBorrarPlantilla,
-            title = { Text(stringResource(R.string.eliminar_plantilla_titulo, plantilla.nombre), style = MisTurnosText.sheetTitle) },
-            text = {
-                val turnos = estado.numeroAsignaciones
-                Text(
-                    when {
-                        n == 0 -> stringResource(R.string.eliminar_plantilla_sin_trabajadores)
-                        turnos == 0 -> stringResource(
-                            R.string.frase,
-                            pluralStringResource(R.plurals.eliminar_plantilla_trabajadores, n, n),
-                        )
-                        // Spec 3b.5: "… y sus N turnos asignados" when the Turnos tab has assignments.
-                        else -> stringResource(
-                            R.string.frase_y,
-                            pluralStringResource(R.plurals.eliminar_plantilla_trabajadores, n, n),
-                            pluralStringResource(R.plurals.eliminar_plantilla_turnos, turnos, turnos),
-                        )
-                    },
-                    style = MisTurnosText.body,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = acciones.borrarPlantilla) {
-                    Text(stringResource(R.string.eliminar), style = MisTurnosText.buttonSmall, color = MisTurnosColors.Danger)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = acciones.cancelarBorrarPlantilla) {
-                    Text(stringResource(R.string.cancelar), style = MisTurnosText.buttonSmall, color = MisTurnosColors.Text)
-                }
-            },
-            containerColor = MisTurnosColors.Sheet,
-            titleContentColor = MisTurnosColors.Text,
-            textContentColor = MisTurnosColors.TextMuted,
+        val n = estado.elementos.size
+        val turnos = estado.numeroAsignaciones
+        val principal = when {
+            n == 0 -> stringResource(textos.eliminarPlantillaVacia)
+            turnos == 0 -> stringResource(R.string.frase, pluralStringResource(textos.eliminarPlantillaElementos, n, n))
+            // Spec 3b.5: "… y sus N turnos asignados" when the Turnos tab has assignments.
+            else -> stringResource(
+                R.string.frase_y,
+                pluralStringResource(textos.eliminarPlantillaElementos, n, n),
+                pluralStringResource(R.plurals.eliminar_plantilla_turnos, turnos, turnos),
+            )
+        }
+        // Tareas: "Las listas ya creadas en Checklist no se ven afectadas."
+        val nota = if (textos.eliminarPlantillaNota != 0) stringResource(textos.eliminarPlantillaNota) else null
+        DialogoEliminar(
+            titulo = stringResource(R.string.eliminar_plantilla_titulo, plantilla.nombre),
+            cuerpo = listOfNotNull(principal, nota).joinToString(" "),
+            onConfirmar = acciones.borrarPlantilla,
+            onCancelar = acciones.cancelarBorrarPlantilla,
         )
     }
 }
@@ -298,6 +271,7 @@ private fun BarraDetalle(
                         onConfirmar = acciones.guardarNombre,
                         onCancelar = null,
                         descripcion = descripcion,
+                        capitalizacion = KeyboardCapitalization.Sentences,
                         estilo = MisTurnosText.nameInput,
                         fondo = MisTurnosColors.Background,
                         borde = BorderStroke(2.dp, MisTurnosColors.AccentOnBackground),
@@ -332,14 +306,18 @@ private fun BarraDetalle(
     }
 }
 
+/** A worker or a preset task; [posicion] (1-based) is the avatar of a task. */
 @Composable
-fun FilaTrabajador(
-    trabajador: Trabajador,
+fun FilaElemento(
+    tipo: TipoPlantilla,
+    elemento: ElementoPlantilla,
+    posicion: Int,
     editando: Boolean,
     borradorEdicion: String,
     acciones: AccionesDetalle,
     modifier: Modifier = Modifier,
 ) {
+    val textos = tipo.textos
     val forma = RoundedCornerShape(14.dp)
     Row(
         modifier = modifier
@@ -355,14 +333,15 @@ fun FilaTrabajador(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Avatar(trabajador.nombre)
+        AvatarElemento(tipo, elemento, posicion)
         if (editando) {
             CampoEnLinea(
                 valor = borradorEdicion,
                 onValorCambia = acciones.cambiarEdicion,
                 onConfirmar = acciones.guardarEdicion,
                 onCancelar = acciones.cancelarEdicion,
-                descripcion = stringResource(R.string.nombre_trabajador),
+                descripcion = stringResource(textos.campo),
+                capitalizacion = textos.capitalizacion,
                 estilo = MisTurnosText.body,
                 fondo = MisTurnosColors.SurfaceInput,
                 borde = null,
@@ -386,97 +365,30 @@ fun FilaTrabajador(
             }
         } else {
             Text(
-                trabajador.nombre,
+                elemento.texto,
                 style = MisTurnosText.body,
                 color = MisTurnosColors.Text,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = { acciones.empezarEdicion(trabajador) }, modifier = Modifier.size(44.dp)) {
+            IconButton(onClick = { acciones.empezarEdicion(elemento) }, modifier = Modifier.size(44.dp)) {
                 Icon(
                     MisTurnosIcons.Lapiz,
-                    contentDescription = stringResource(R.string.editar_trabajador),
+                    contentDescription = stringResource(textos.editar),
                     tint = MisTurnosColors.TextMuted,
                     modifier = Modifier.size(20.dp),
                 )
             }
-            IconButton(onClick = { acciones.eliminar(trabajador) }, modifier = Modifier.size(44.dp)) {
+            IconButton(onClick = { acciones.eliminar(elemento) }, modifier = Modifier.size(44.dp)) {
                 Icon(
                     MisTurnosIcons.Papelera,
-                    contentDescription = stringResource(R.string.eliminar_trabajador),
+                    contentDescription = stringResource(textos.eliminar),
                     tint = MisTurnosColors.Danger,
                     modifier = Modifier.size(20.dp),
                 )
             }
         }
-    }
-}
-
-/**
- * 40 dp single-line field that takes focus when it appears. Enter/Done confirms; Escape
- * (hardware keyboard) cancels when [onCancelar] is given.
- */
-@Composable
-private fun CampoEnLinea(
-    valor: String,
-    onValorCambia: (String) -> Unit,
-    onConfirmar: () -> Unit,
-    onCancelar: (() -> Unit)?,
-    descripcion: String,
-    estilo: TextStyle,
-    fondo: Color,
-    borde: BorderStroke?,
-    modifier: Modifier = Modifier,
-) {
-    val foco = remember { FocusRequester() }
-    LaunchedEffect(Unit) { foco.requestFocus() }
-    val forma = RoundedCornerShape(12.dp)
-    BasicTextField(
-        value = valor,
-        onValueChange = onValorCambia,
-        singleLine = true,
-        textStyle = estilo.copy(color = MisTurnosColors.Text),
-        cursorBrush = SolidColor(MisTurnosColors.AccentOnBackground),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { onConfirmar() }),
-        modifier = modifier
-            .heightIn(min = 40.dp)
-            .focusRequester(foco)
-            .onPreviewKeyEvent { evento ->
-                if (onCancelar != null && evento.type == KeyEventType.KeyUp && evento.key == Key.Escape) {
-                    onCancelar()
-                    true
-                } else {
-                    false
-                }
-            }
-            .semantics { contentDescription = descripcion },
-        decorationBox = { campo ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 40.dp) // grows with large system fonts instead of clipping
-                    .clip(forma)
-                    .background(fondo)
-                    .then(if (borde != null) Modifier.border(borde, forma) else Modifier)
-                    .padding(horizontal = 12.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) { campo() }
-        },
-    )
-}
-
-@Composable
-private fun BotonGuardar(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MisTurnosColors.Accent, contentColor = MisTurnosColors.OnAccent),
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        modifier = Modifier.heightIn(min = 40.dp),
-    ) {
-        Text(stringResource(R.string.guardar), style = MisTurnosText.inlineButton)
     }
 }
 
@@ -508,19 +420,27 @@ private fun DetallePreview() = MuestraDetalle(oscuro = false, editando = false)
 @Composable
 private fun DetalleEditandoOscuroPreview() = MuestraDetalle(oscuro = true, editando = true)
 
+@Preview(name = "Detalle de plantilla de tareas", widthDp = 390, heightDp = 772, showBackground = true)
 @Composable
-private fun MuestraDetalle(oscuro: Boolean, editando: Boolean) {
-    val trabajadores = DatosMuestra.trabajadoresEquipo()
+private fun DetalleTareasPreview() = MuestraDetalle(oscuro = false, editando = false, tipo = TipoPlantilla.TAREAS)
+
+@Composable
+private fun MuestraDetalle(oscuro: Boolean, editando: Boolean, tipo: TipoPlantilla = TipoPlantilla.TRABAJADORES) {
+    val plantilla = DatosMuestra.plantillas().first { it.plantilla.tipo == tipo }.plantilla
+    val elementos = when (tipo) {
+        TipoPlantilla.TRABAJADORES -> DatosMuestra.trabajadoresEquipo().map { it.comoElemento() }
+        TipoPlantilla.TAREAS -> DatosMuestra.tareasRutinaApertura().map { it.comoElemento() }
+    }
     MisTurnosTheme(oscuro = oscuro) {
-        PlantillaTrabajadoresScreen(
-            estado = PlantillaTrabajadoresUiState(
-                plantilla = DatosMuestra.plantillas().first().plantilla,
-                trabajadores = trabajadores,
+        PlantillaDetalleScreen(
+            estado = PlantillaDetalleUiState(
+                plantilla = plantilla,
+                elementos = elementos,
                 cargando = false,
-                editandoId = if (editando) trabajadores[1].id else null,
+                editandoId = if (editando) elementos[1].id else null,
             ),
             borrador = "",
-            borradorEdicion = trabajadores[1].nombre,
+            borradorEdicion = elementos[1].texto,
             borradorNombre = "",
             snackbarHostState = remember { SnackbarHostState() },
             acciones = AccionesDetalle.Vacias,

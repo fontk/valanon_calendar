@@ -131,6 +131,60 @@ class PlantillasAppTest {
         esperarTexto("Sin plantillas todavía")
     }
 
+    /** P2 + P10 + L7: a task template is a preset; lists made from it are independent copies. */
+    @Test
+    fun p10l7_plantillaDeTareasComoPreset() {
+        pestana("Plantillas").performClick()
+
+        // P2: the type sheet offers Tareas; it creates "Tareas 1" and opens it renaming.
+        compose.onNodeWithContentDescription("Añadir plantilla").performClick()
+        compose.onNodeWithText("Preset de tareas para crear listas en Checklist").assertIsDisplayed()
+        compose.onNode(hasText("Tareas") and hasClickAction()).performClick()
+        val campoNombre = compose.onNode(hasSetTextAction() and hasContentDescription("Nombre de la plantilla"))
+        esperar { campoNombre.fetchSemanticsNode() }
+        campoNombre.assert(hasText("Tareas 1"))
+        compose.onNodeWithText("PLANTILLA · TAREAS").assertIsDisplayed()
+        campoNombre.performTextClearance()
+        campoNombre.performTextInput("Rutina de apertura")
+        campoNombre.performImeAction()
+
+        // P10: add tasks to the preset; rows are numbered.
+        val alta = compose.onNode(hasSetTextAction() and hasContentDescription("Texto de la tarea"))
+        listOf("Revisar el cuadrante", "Comprobar la caja", "Encender equipos").forEach {
+            alta.performTextInput(it)
+            alta.performImeAction()
+        }
+        esperarTexto("3 TAREAS")
+        compose.onAllNodes(hasContentDescription("Eliminar tarea"))[1].performClick()
+        esperarTexto("2 TAREAS")
+        compose.onNodeWithContentDescription("Volver a plantillas").performClick()
+        esperarTexto("Tareas · 2 tareas")
+
+        // L7: Checklist → Nueva lista → the preset → a list with its tasks unchecked, active.
+        pestana("Checklist").performClick()
+        compose.onNode(hasText("Nueva lista") and hasClickAction()).performClick()
+        esperarTexto("¿Desde qué plantilla de tareas?")
+        compose.onNodeWithText("2 tareas").assertIsDisplayed()
+        compose.onNode(hasText("Rutina de apertura") and hasClickAction()).performClick()
+        esperarTexto("Desde la plantilla «Rutina de apertura»")
+        compose.onNodeWithText("0 de 2 hechas").assertIsDisplayed()
+        compose.onNodeWithText("Encender equipos").assertIsDisplayed()
+
+        // P10: deleting the template says lists are not affected, and they are not.
+        pestana("Plantillas").performClick()
+        compose.onNodeWithText("Rutina de apertura").performClick()
+        compose.onNodeWithText("Eliminar plantilla").performClick()
+        compose.onNodeWithText(
+            "Se borrarán también sus 2 tareas. Las listas ya creadas en Checklist no se ven afectadas.",
+        ).assertIsDisplayed()
+        compose.onNode(hasText("Eliminar", substring = false) and hasClickAction()).performClick()
+        esperarTexto("Sin plantillas todavía")
+        pestana("Checklist").performClick()
+        esperarTexto("Encender equipos")
+        compose.onNodeWithText("Lista en blanco").assertIsDisplayed() // source gone → informative only
+        compose.onNodeWithText("0 de 2 hechas").assertIsDisplayed()
+    }
+
     private fun crearPlantillaConTrabajadores(nombre: String, vararg trabajadores: String) {
         pestana("Plantillas").performClick()
         compose.onNodeWithContentDescription("Añadir plantilla").performClick()

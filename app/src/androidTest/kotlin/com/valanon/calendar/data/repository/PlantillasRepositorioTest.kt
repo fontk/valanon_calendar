@@ -30,7 +30,7 @@ class PlantillasRepositorioTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
-        repo = PlantillasRepositorio(db.plantillaDao(), db.trabajadorDao(), db.asignacionDao(), TransaccionesRoom(db))
+        repo = PlantillasRepositorio(db.plantillaDao(), db.trabajadorDao(), db.tareaPlantillaDao(), db.asignacionDao(), TransaccionesRoom(db))
         asignaciones = AsignacionesRepositorio(db.asignacionDao(), db.ajusteDao(), db.plantillaDao(), db.trabajadorDao())
     }
 
@@ -40,20 +40,20 @@ class PlantillasRepositorioTest {
     @Test
     fun eliminarYRestaurarUnTrabajadorConSusTurnos() = runTest {
         val p = repo.crear(TipoPlantilla.TRABAJADORES)
-        repo.agregarTrabajador(p, "Lucía")
-        repo.agregarTrabajador(p, "Javier")
-        val (lucia, javier) = repo.trabajadores(p).first()
+        repo.agregarElemento(TipoPlantilla.TRABAJADORES, p, "Lucía")
+        repo.agregarElemento(TipoPlantilla.TRABAJADORES, p, "Javier")
+        val (lucia, javier) = repo.elementos(TipoPlantilla.TRABAJADORES, p).first()
         val dia = LocalDate.of(2026, 10, 17)
         asignaciones.asignar(dia, lucia.id, TipoTurno.NOCHE)
         asignaciones.asignar(dia.plusDays(1), lucia.id, TipoTurno.LIBRE)
         asignaciones.asignar(dia, javier.id, TipoTurno.MANANA)
 
-        val borradas = repo.eliminarTrabajador(lucia.id)
+        val borradas = repo.eliminarElemento(TipoPlantilla.TRABAJADORES, lucia.id)
         assertEquals(2, borradas.size)
         assertEquals(1, repo.numeroAsignaciones(p).first())
 
-        repo.restaurarTrabajador(lucia, borradas)
-        assertEquals(listOf("Lucía", "Javier"), repo.trabajadores(p).first().map { it.nombre })
+        repo.restaurarElemento(TipoPlantilla.TRABAJADORES, lucia, borradas)
+        assertEquals(listOf("Lucía", "Javier"), repo.elementos(TipoPlantilla.TRABAJADORES, p).first().map { it.texto })
         assertEquals(
             mapOf(
                 dia to mapOf(lucia.id to TipoTurno.NOCHE, javier.id to TipoTurno.MANANA),

@@ -48,7 +48,7 @@ class TurnosAppTest {
         val repo = app.container.plantillasRepositorio
         val id = repo.crear(TipoPlantilla.TRABAJADORES)
         repo.renombrarPlantilla(id, nombre)
-        trabajadores.forEach { repo.agregarTrabajador(id, it) }
+        trabajadores.forEach { repo.agregarElemento(TipoPlantilla.TRABAJADORES, id, it) }
         id
     }
 

@@ -39,8 +39,8 @@ class AsignacionesRepositorioTest {
     @Test
     fun `asignar reemplaza, quitar borra y el mes agrupa por dia y trabajador`() = runTest {
         val p = plantillas.crear(TipoPlantilla.TRABAJADORES)
-        plantillas.agregarTrabajador(p, "Lucía")
-        plantillas.agregarTrabajador(p, "Javier")
+        plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, p, "Lucía")
+        plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, p, "Javier")
         val (lucia, javier) = repo.trabajadores(p).first().map { it.id }
         val dia = LocalDate.of(2026, 10, 17)
 
@@ -62,8 +62,8 @@ class AsignacionesRepositorioTest {
     fun `el mes solo incluye a los trabajadores de la plantilla pedida`() = runTest {
         val a = plantillas.crear(TipoPlantilla.TRABAJADORES)
         val b = plantillas.crear(TipoPlantilla.TRABAJADORES)
-        plantillas.agregarTrabajador(a, "De A")
-        plantillas.agregarTrabajador(b, "De B")
+        plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, a, "De A")
+        plantillas.agregarElemento(TipoPlantilla.TRABAJADORES, b, "De B")
         val deA = repo.trabajadores(a).first().single().id
         val deB = repo.trabajadores(b).first().single().id
         val dia = LocalDate.of(2026, 10, 5)

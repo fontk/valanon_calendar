@@ -5,12 +5,12 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.local.dao.TareaDao
+import com.valanon.calendar.data.model.TipoPlantilla
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -21,71 +21,99 @@ class TareaDaoTest {
 
     private lateinit var db: AppDatabase
     private lateinit var dao: TareaDao
+    private var lista = 0L
+    private var otra = 0L
 
     @Before
-    fun setUp() {
+    fun setUp() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         dao = db.tareaDao()
+        lista = db.listaDao().insertarAlFinal("Mi checklist", null)
+        otra = db.listaDao().insertarAlFinal("Otra", null)
     }
 
     @After
     fun tearDown() = db.close()
 
     @Test
-    fun agregarAlFinalNumeraElOrdenYEmpiezaSinMarcar() = runTest {
-        assertNull(dao.maxOrden())
-        dao.agregarAlFinal("A")
-        dao.agregarAlFinal("B")
-        dao.agregarAlFinal("C")
+    fun agregarAlFinalNumeraElOrdenPorListaYEmpiezaSinMarcar() = runTest {
+        dao.agregarAlFinal(lista, "A")
+        dao.agregarAlFinal(otra, "X")
+        dao.agregarAlFinal(lista, "B")
+        dao.agregarAlFinal(lista, "C")
 
-        val tareas = dao.observarTodas().first()
+        val tareas = dao.observarDeLista(lista).first()
         assertEquals(listOf("A", "B", "C"), tareas.map { it.texto })
         assertEquals(listOf(1, 2, 3), tareas.map { it.orden })
         assertTrue(tareas.none { it.hecha })
-        assertEquals(3, dao.maxOrden())
+        assertEquals(listOf(1), dao.observarDeLista(otra).first().map { it.orden })
     }
 
     @Test
     fun trasBorrarLaUltimaLaSiguienteVaAlFinal() = runTest {
-        dao.agregarAlFinal("A")
-        val b = dao.agregarAlFinal("B")
+        dao.agregarAlFinal(lista, "A")
+        val b = dao.agregarAlFinal(lista, "B")
         dao.borrar(b)
-        dao.agregarAlFinal("C")
+        dao.agregarAlFinal(lista, "C")
 
-        assertEquals(listOf("A", "C"), dao.observarTodas().first().map { it.texto })
+        assertEquals(listOf("A", "C"), dao.observarDeLista(lista).first().map { it.texto })
     }
 
     @Test
-    fun actualizarHechaYReiniciarTodas() = runTest {
-        val a = dao.agregarAlFinal("A")
-        val b = dao.agregarAlFinal("B")
-        dao.actualizarHecha(a, true)
-        dao.actualizarHecha(b, true)
-        assertTrue(dao.observarTodas().first().all { it.hecha })
+    fun reiniciarListaSoloDesmarcaEsaLista() = runTest {
+        val a = dao.agregarAlFinal(lista, "A")
+        val b = dao.agregarAlFinal(lista, "B")
+        val x = dao.agregarAlFinal(otra, "X")
+        listOf(a, b, x).forEach { dao.actualizarHecha(it, true) }
 
-        dao.actualizarHecha(b, false)
-        assertEquals(listOf(true, false), dao.observarTodas().first().map { it.hecha })
+        dao.reiniciarLista(lista)
 
-        dao.reiniciarTodas()
-        val tareas = dao.observarTodas().first()
+        val tareas = dao.observarDeLista(lista).first()
         assertEquals(2, tareas.size)
         assertFalse(tareas.any { it.hecha })
+        assertTrue(dao.observarDeLista(otra).first().single().hecha)
     }
 
     @Test
-    fun insertarRestauraUnaTareaBorradaEnSuSitio() = runTest {
-        dao.agregarAlFinal("A")
-        val b = dao.agregarAlFinal("B")
-        dao.agregarAlFinal("C")
+    fun restaurarDevuelveUnaTareaBorradaASuSitio() = runTest {
+        dao.agregarAlFinal(lista, "A")
+        val b = dao.agregarAlFinal(lista, "B")
+        dao.agregarAlFinal(lista, "C")
         dao.actualizarHecha(b, true)
-        val borrada = dao.observarTodas().first().single { it.id == b }
+        val borrada = dao.observarDeLista(lista).first().single { it.id == b }
 
         dao.borrar(b)
-        dao.insertar(borrada)
+        dao.restaurar(borrada.id, borrada.listaId, borrada.texto, borrada.hecha, borrada.orden)
 
-        val tareas = dao.observarTodas().first()
+        val tareas = dao.observarDeLista(lista).first()
         assertEquals(listOf("A", "B", "C"), tareas.map { it.texto })
         assertEquals(borrada, tareas[1])
+    }
+
+    @Test
+    fun restaurarNoHaceNadaSiLaListaYaNoExiste() = runTest {
+        val a = dao.agregarAlFinal(lista, "A")
+        val tarea = dao.observarDeLista(lista).first().single { it.id == a }
+        db.listaDao().borrar(lista)
+
+        // No foreign-key failure: the undo is simply dropped.
+        dao.restaurar(tarea.id, tarea.listaId, tarea.texto, tarea.hecha, tarea.orden)
+
+        assertTrue(dao.observarDeLista(lista).first().isEmpty())
+    }
+
+    @Test
+    fun copiarDePlantillaCopiaTextosYOrdenSinMarcar() = runTest {
+        val p = db.plantillaDao().insertarAlFinal(TipoPlantilla.TAREAS, "Cierre de turno")
+        db.tareaPlantillaDao().agregarAlFinal(p, "Cuadrar la caja")
+        db.tareaPlantillaDao().agregarAlFinal(p, "Apagar equipos")
+
+        dao.copiarDePlantilla(otra, p)
+
+        val tareas = dao.observarDeLista(otra).first()
+        assertEquals(listOf("Cuadrar la caja", "Apagar equipos"), tareas.map { it.texto })
+        assertEquals(listOf(1, 2), tareas.map { it.orden })
+        assertTrue(tareas.none { it.hecha })
     }
 }

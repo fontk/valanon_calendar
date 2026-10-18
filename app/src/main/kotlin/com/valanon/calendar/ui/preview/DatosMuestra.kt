@@ -1,8 +1,11 @@
 package com.valanon.calendar.ui.preview
 
+import com.valanon.calendar.data.local.entity.Lista
+import com.valanon.calendar.data.local.entity.ListaConProgreso
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.model.TipoTurno
@@ -30,10 +33,12 @@ internal object DatosMuestra {
         }
     }
 
-    /** The two templates of Plantillas.dc.html. */
+    /** The templates of Plantillas.dc.html: two of workers and two task presets. */
     fun plantillas(): List<PlantillaConRecuento> = listOf(
         PlantillaConRecuento(Plantilla(id = 1, tipo = TipoPlantilla.TRABAJADORES, nombre = "Equipo de planta", orden = 1), 4),
         PlantillaConRecuento(Plantilla(id = 2, tipo = TipoPlantilla.TRABAJADORES, nombre = "Refuerzos fin de semana", orden = 2), 2),
+        PlantillaConRecuento(Plantilla(id = 3, tipo = TipoPlantilla.TAREAS, nombre = "Rutina de apertura", orden = 3), 5),
+        PlantillaConRecuento(Plantilla(id = 4, tipo = TipoPlantilla.TAREAS, nombre = "Cierre de turno", orden = 4), 3),
     )
 
     /** Workers of "Equipo de planta" in the mockup. */
@@ -69,16 +74,30 @@ internal object DatosMuestra {
         hoy = HOY,
         cargando = false,
         plantilla = plantillas().first(),
-        plantillas = plantillas(),
+        plantillas = plantillas().filter { it.plantilla.tipo == TipoPlantilla.TRABAJADORES },
         trabajadores = trabajadoresEquipo(),
         asignaciones = asignacionesEquipo(),
     )
 
-    fun tareas(): List<Tarea> = listOf(
-        Tarea(id = 1, texto = "Preparar el uniforme", hecha = true, orden = 1),
-        Tarea(id = 2, texto = "Revisar el cuadrante de la semana", hecha = true, orden = 2),
-        Tarea(id = 3, texto = "Comprar comida para la noche", hecha = false, orden = 3),
-        Tarea(id = 4, texto = "Cargar la batería de la linterna", hecha = false, orden = 4),
-        Tarea(id = 5, texto = "Pedir cambio de turno del día 24", hecha = false, orden = 5),
+    /** Preset of the "Rutina de apertura" task template (Checklist.dc.html). */
+    private val RUTINA_APERTURA = listOf(
+        "Revisar el cuadrante del día",
+        "Comprobar la caja y el cambio",
+        "Encender equipos y luces",
+        "Repasar pedidos pendientes",
+        "Limpiar la zona de atención",
     )
+
+    fun tareasRutinaApertura(): List<TareaPlantilla> = RUTINA_APERTURA
+        .mapIndexed { i, texto -> TareaPlantilla(id = i + 1L, plantillaId = 3, texto = texto, orden = i + 1) }
+
+    /** Checklist lists of the mockup: "Rutina de apertura" (from the template, active) and "Mi checklist". */
+    fun listas(): List<ListaConProgreso> = listOf(
+        ListaConProgreso(Lista(id = 1, nombre = "Rutina de apertura", plantillaId = 3, orden = 1), "Rutina de apertura", total = 5, hechas = 2),
+        ListaConProgreso(Lista(id = 2, nombre = "Mi checklist", plantillaId = null, orden = 2), null, total = 3, hechas = 1),
+    )
+
+    /** Tasks of the active list "Rutina de apertura": the first two done. */
+    fun tareas(): List<Tarea> = RUTINA_APERTURA
+        .mapIndexed { i, texto -> Tarea(id = i + 1L, listaId = 1, texto = texto, hecha = i < 2, orden = i + 1) }
 }

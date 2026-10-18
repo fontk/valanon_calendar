@@ -5,6 +5,7 @@ import com.valanon.calendar.data.backup.CopiaSeguridadRepositorio
 import com.valanon.calendar.data.local.AppDatabase
 import com.valanon.calendar.data.local.TransaccionesRoom
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
+import com.valanon.calendar.data.repository.ListasRepositorio
 import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.data.repository.TareasRepositorio
 import com.valanon.calendar.data.repository.TurnosRepositorio
@@ -24,10 +25,21 @@ class AppContainer(context: Context) {
 
     val tareasRepositorio: TareasRepositorio by lazy { TareasRepositorio(database.tareaDao()) }
 
+    val listasRepositorio: ListasRepositorio by lazy {
+        ListasRepositorio(
+            database.listaDao(),
+            database.tareaDao(),
+            database.plantillaDao(),
+            database.ajusteDao(),
+            TransaccionesRoom(database),
+        )
+    }
+
     val plantillasRepositorio: PlantillasRepositorio by lazy {
         PlantillasRepositorio(
             database.plantillaDao(),
             database.trabajadorDao(),
+            database.tareaPlantillaDao(),
             database.asignacionDao(),
             TransaccionesRoom(database),
         )

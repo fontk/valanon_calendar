@@ -49,8 +49,8 @@ import com.valanon.calendar.R
 import com.valanon.calendar.ui.calendario.CalendarioRoute
 import com.valanon.calendar.ui.checklist.ChecklistRoute
 import com.valanon.calendar.ui.icons.MisTurnosIcons
-import com.valanon.calendar.ui.plantillas.PlantillaTrabajadoresRoute
-import com.valanon.calendar.ui.plantillas.PlantillaTrabajadoresViewModel
+import com.valanon.calendar.ui.plantillas.PlantillaDetalleRoute
+import com.valanon.calendar.ui.plantillas.PlantillaDetalleViewModel
 import com.valanon.calendar.ui.plantillas.PlantillasRoute
 import com.valanon.calendar.ui.turnos.TurnosRoute
 import com.valanon.calendar.ui.theme.MisTurnosColors
@@ -71,9 +71,9 @@ enum class Destino(val ruta: String, @param:StringRes val etiqueta: Int, val ico
 object RutasPlantillas {
     const val LISTA = "plantillas"
     const val DETALLE =
-        "plantillas/{${PlantillaTrabajadoresViewModel.ARG_ID}}?${PlantillaTrabajadoresViewModel.ARG_RENOMBRAR}={${PlantillaTrabajadoresViewModel.ARG_RENOMBRAR}}"
+        "plantillas/{${PlantillaDetalleViewModel.ARG_ID}}?${PlantillaDetalleViewModel.ARG_RENOMBRAR}={${PlantillaDetalleViewModel.ARG_RENOMBRAR}}"
 
-    fun detalle(id: Long, renombrar: Boolean) = "plantillas/$id?${PlantillaTrabajadoresViewModel.ARG_RENOMBRAR}=$renombrar"
+    fun detalle(id: Long, renombrar: Boolean) = "plantillas/$id?${PlantillaDetalleViewModel.ARG_RENOMBRAR}=$renombrar"
 }
 
 @Composable
@@ -121,15 +121,15 @@ fun MisTurnosApp(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = RutasPlantillas.DETALLE,
                     arguments = listOf(
-                        navArgument(PlantillaTrabajadoresViewModel.ARG_ID) { type = NavType.LongType },
-                        navArgument(PlantillaTrabajadoresViewModel.ARG_RENOMBRAR) {
+                        navArgument(PlantillaDetalleViewModel.ARG_ID) { type = NavType.LongType },
+                        navArgument(PlantillaDetalleViewModel.ARG_RENOMBRAR) {
                             type = NavType.BoolType
                             defaultValue = false
                         },
                     ),
                 ) {
                     // System Back also pops to the list (default NavHost behaviour).
-                    PlantillaTrabajadoresRoute(onVolver = {
+                    PlantillaDetalleRoute(onVolver = {
                         navController.popBackStack(RutasPlantillas.LISTA, inclusive = false)
                     })
                 }

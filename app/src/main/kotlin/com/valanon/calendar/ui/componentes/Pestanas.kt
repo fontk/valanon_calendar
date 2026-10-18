@@ -164,6 +164,44 @@ fun EstadoVacio(
     }
 }
 
+/**
+ * Centered empty state of a whole tab (Checklist without lists, Turnos without templates): 64 dp
+ * badge (radius 20, `surface`) with a 32 dp icon, 17 sp title, 14 sp help and an action [boton].
+ * The caller gives it the free height (e.g. `Modifier.weight(1f)`) so it sits in the middle.
+ */
+@Composable
+fun EstadoVacioInsignia(
+    icono: ImageVector,
+    titulo: String,
+    ayuda: String,
+    modifier: Modifier = Modifier,
+    boton: @Composable () -> Unit,
+) {
+    Column(
+        modifier = modifier.padding(start = 40.dp, end = 40.dp, bottom = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(MisTurnosColors.Surface, RoundedCornerShape(20.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icono, contentDescription = null, tint = MisTurnosColors.EmptyBadgeIcon, modifier = Modifier.size(32.dp))
+        }
+        Text(
+            titulo,
+            style = MisTurnosText.emptyStateTitle,
+            color = MisTurnosColors.Text,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(ayuda, style = MisTurnosText.emptyStateHelp, color = MisTurnosColors.TextFaint, textAlign = TextAlign.Center)
+        Box(Modifier.padding(top = 8.dp)) { boton() }
+    }
+}
+
 /** 60 dp accent FAB (radius 18), placed by the caller 20 dp from the edges. */
 @Composable
 fun FabAccion(

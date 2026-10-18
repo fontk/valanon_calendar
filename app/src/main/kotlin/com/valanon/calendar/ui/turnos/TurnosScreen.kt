@@ -45,7 +45,7 @@ import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.ui.componentes.AccionesSelectorMes
 import com.valanon.calendar.ui.componentes.CabeceraDiasSemana
 import com.valanon.calendar.ui.componentes.CabeceraMes
-import com.valanon.calendar.ui.componentes.EstadoVacio
+import com.valanon.calendar.ui.componentes.EstadoVacioInsignia
 import com.valanon.calendar.ui.componentes.LeyendaTurnos
 import com.valanon.calendar.ui.componentes.RejillaMes
 import com.valanon.calendar.ui.componentes.SelectorMes
@@ -129,7 +129,9 @@ data class AccionesTurnos(
 @Composable
 fun TurnosScreen(estado: TurnosUiState, acciones: AccionesTurnos, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        // Without templates the empty state takes the free height to sit in the middle (spec 3b.1).
+        val desplazable = if (estado.sinPlantillas) Modifier else Modifier.verticalScroll(rememberScrollState())
+        Column(Modifier.fillMaxSize().then(desplazable)) {
             CabeceraMes(
                 sobretitulo = stringResource(R.string.turnos_sobretitulo),
                 mes = estado.mes,
@@ -139,7 +141,7 @@ fun TurnosScreen(estado: TurnosUiState, acciones: AccionesTurnos, modifier: Modi
             )
             val plantilla = estado.plantilla
             when {
-                estado.sinPlantillas -> EstadoSinPlantillas(acciones.irAPlantillas)
+                estado.sinPlantillas -> EstadoSinPlantillas(acciones.irAPlantillas, Modifier.weight(1f).fillMaxWidth())
                 plantilla != null -> {
                     Row(
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 12.dp),
@@ -317,20 +319,14 @@ private fun FilaPuntos(puntos: List<TipoTurno>, modifier: Modifier = Modifier) {
 
 /** No "Trabajadores" template yet (spec 3b.1). */
 @Composable
-private fun EstadoSinPlantillas(onIrAPlantillas: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 60.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+private fun EstadoSinPlantillas(onIrAPlantillas: () -> Unit, modifier: Modifier = Modifier) {
+    // Spec 3b.1: replaces the chip row, grid and legend; the month header stays.
+    EstadoVacioInsignia(
+        icono = MisTurnosIcons.Trabajadores,
+        titulo = stringResource(R.string.turnos_vacio_titulo),
+        ayuda = stringResource(R.string.turnos_vacio_ayuda),
+        modifier = modifier,
     ) {
-        EstadoVacio(
-            titulo = stringResource(R.string.turnos_vacio_titulo),
-            ayuda = stringResource(R.string.turnos_vacio_ayuda),
-            icono = MisTurnosIcons.Trabajadores,
-            anchoAyuda = 260.dp,
-        )
         Surface(
             onClick = onIrAPlantillas,
             shape = RoundedCornerShape(14.dp),
@@ -339,8 +335,13 @@ private fun EstadoSinPlantillas(onIrAPlantillas: () -> Unit) {
             border = BorderStroke(1.dp, MisTurnosColors.AccentOnBackground),
             modifier = Modifier.heightIn(min = 48.dp),
         ) {
-            Box(Modifier.padding(horizontal = 20.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.ir_a_plantillas), style = MisTurnosText.buttonSmall)
+            Row(
+                modifier = Modifier.padding(start = 20.dp, end = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(stringResource(R.string.ir_a_plantillas), style = MisTurnosText.addButton)
+                Icon(MisTurnosIcons.ChevronDerecha, contentDescription = null, modifier = Modifier.size(18.dp))
             }
         }
     }

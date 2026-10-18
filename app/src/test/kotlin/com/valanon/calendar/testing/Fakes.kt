@@ -7,13 +7,20 @@ import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.entity.Ajuste
 import com.valanon.calendar.data.local.entity.Asignacion
+import com.valanon.calendar.data.local.dao.ListaDao
 import com.valanon.calendar.data.local.dao.TareaDao
+import com.valanon.calendar.data.local.dao.TareaPlantillaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.dao.TurnoDao
+import com.valanon.calendar.data.local.entity.Lista
+import com.valanon.calendar.data.local.entity.ListaConProgreso
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
+import com.valanon.calendar.data.repository.ListasRepositorio
+import com.valanon.calendar.data.repository.TareasRepositorio
 import com.valanon.calendar.data.local.entity.Turno
 import com.valanon.calendar.data.model.TipoPlantilla
 import kotlinx.coroutines.flow.combine
@@ -45,32 +52,112 @@ class FakeTurnoDao : TurnoDao {
     override suspend fun borrar(fecha: String) = filas.update { it - fecha }
 }
 
-/** In-memory [TareaDao] mirroring the SQL in the real DAO. */
-class FakeTareaDao : TareaDao {
+/**
+ * In-memory [TareaDao] mirroring the SQL in the real DAO. [existeLista] enforces the foreign key
+ * to `listas` (wired by [FakesPlantillas]); [presets] is where [copiarDePlantilla] reads from.
+ */
+class FakeTareaDao(private val presets: FakeTareaPlantillaDao = FakeTareaPlantillaDao()) : TareaDao {
     val filas = MutableStateFlow<List<Tarea>>(emptyList())
     private var siguienteId = 1L
+    var existeLista: (Long) -> Boolean = { true }
 
-    override fun observarTodas(): Flow<List<Tarea>> =
-        filas.map { l -> l.sortedWith(compareBy({ it.orden }, { it.id })) }
+    override fun observarDeLista(listaId: Long): Flow<List<Tarea>> =
+        filas.map { l -> l.filter { it.listaId == listaId }.sortedWith(compareBy({ it.orden }, { it.id })) }
 
-    override suspend fun insertar(tarea: Tarea): Long {
+    private fun insertar(tarea: Tarea): Long {
+        check(existeLista(tarea.listaId)) { "FK rota: no existe la lista ${tarea.listaId}" }
+        check(filas.value.none { it.id == tarea.id }) { "PK duplicada en tareas: ${tarea.id}" }
         val id = if (tarea.id == 0L) siguienteId++ else tarea.id
         siguienteId = maxOf(siguienteId, id + 1)
         filas.update { it + tarea.copy(id = id) }
         return id
     }
 
-    override suspend fun agregarAlFinal(texto: String): Long =
-        insertar(Tarea(texto = texto, hecha = false, orden = (maxOrden() ?: 0) + 1))
+    private fun maxOrden(listaId: Long): Int = filas.value.filter { it.listaId == listaId }.maxOfOrNull { it.orden } ?: 0
+
+    override suspend fun agregarAlFinal(listaId: Long, texto: String): Long =
+        insertar(Tarea(listaId = listaId, texto = texto, hecha = false, orden = maxOrden(listaId) + 1))
+
+    override suspend fun restaurar(id: Long, listaId: Long, texto: String, hecha: Boolean, orden: Int) {
+        // INSERT … WHERE EXISTS: silently nothing if the list is gone.
+        if (existeLista(listaId)) insertar(Tarea(id, listaId, texto, hecha, orden))
+    }
+
+    override suspend fun copiarDePlantilla(listaId: Long, plantillaId: Long) {
+        presets.filas.value.filter { it.plantillaId == plantillaId }.sortedWith(compareBy({ it.orden }, { it.id }))
+            .forEach { insertar(Tarea(listaId = listaId, texto = it.texto, hecha = false, orden = it.orden)) }
+    }
 
     override suspend fun actualizarHecha(id: Long, hecha: Boolean) =
         filas.update { l -> l.map { if (it.id == id) it.copy(hecha = hecha) else it } }
 
     override suspend fun borrar(id: Long) = filas.update { l -> l.filterNot { it.id == id } }
 
-    override suspend fun reiniciarTodas() = filas.update { l -> l.map { it.copy(hecha = false) } }
+    override suspend fun reiniciarLista(listaId: Long) =
+        filas.update { l -> l.map { if (it.listaId == listaId) it.copy(hecha = false) else it } }
+}
 
-    override suspend fun maxOrden(): Int? = filas.value.maxOfOrNull { it.orden }
+/** In-memory [TareaPlantillaDao]; [FakePlantillaDao.borrar] cascades into it like the real FK. */
+class FakeTareaPlantillaDao : TareaPlantillaDao {
+    val filas = MutableStateFlow<List<TareaPlantilla>>(emptyList())
+    private var siguienteId = 1L
+
+    override fun observarDePlantilla(plantillaId: Long): Flow<List<TareaPlantilla>> =
+        filas.map { l -> l.filter { it.plantillaId == plantillaId }.sortedWith(compareBy({ it.orden }, { it.id })) }
+
+    override suspend fun agregarAlFinal(plantillaId: Long, texto: String): Long {
+        val orden = (filas.value.filter { it.plantillaId == plantillaId }.maxOfOrNull { it.orden } ?: 0) + 1
+        return insertar(TareaPlantilla(plantillaId = plantillaId, texto = texto, orden = orden))
+    }
+
+    override suspend fun cambiarTexto(id: Long, texto: String) =
+        filas.update { l -> l.map { if (it.id == id) it.copy(texto = texto) else it } }
+
+    override suspend fun borrar(id: Long) = filas.update { l -> l.filterNot { it.id == id } }
+
+    override suspend fun insertar(tarea: TareaPlantilla): Long {
+        check(filas.value.none { it.id == tarea.id }) { "PK duplicada en tareas_plantilla: ${tarea.id}" }
+        val id = if (tarea.id == 0L) siguienteId++ else tarea.id
+        siguienteId = maxOf(siguienteId, id + 1)
+        filas.update { it + tarea.copy(id = id) }
+        return id
+    }
+}
+
+/** In-memory [ListaDao] with the progress subqueries, the LEFT JOIN and the cascade into tasks. */
+class FakeListaDao(private val tareas: FakeTareaDao, private val plantillas: FakePlantillaDao) : ListaDao {
+    val filas = MutableStateFlow<List<Lista>>(emptyList())
+    private var siguienteId = 1L
+
+    override fun observarTodas(): Flow<List<ListaConProgreso>> =
+        combine(filas, tareas.filas, plantillas.filas) { ls, ts, ps ->
+            ls.sortedWith(compareBy({ it.orden }, { it.id })).map { l ->
+                val propias = ts.filter { it.listaId == l.id }
+                ListaConProgreso(l, ps.firstOrNull { it.id == l.plantillaId }?.nombre, propias.size, propias.count { it.hecha })
+            }
+        }
+
+    override suspend fun insertarAlFinal(nombre: String, plantillaId: Long?): Long {
+        check(plantillaId == null || plantillas.filas.value.any { it.id == plantillaId }) { "FK rota: plantilla $plantillaId" }
+        val id = siguienteId++
+        val orden = (filas.value.maxOfOrNull { it.orden } ?: 0) + 1
+        filas.update { it + Lista(id = id, nombre = nombre, plantillaId = plantillaId, orden = orden) }
+        return id
+    }
+
+    override suspend fun renombrar(id: Long, nombre: String) =
+        filas.update { l -> l.map { if (it.id == id) it.copy(nombre = nombre) else it } }
+
+    override suspend fun borrar(id: Long) {
+        filas.update { l -> l.filterNot { it.id == id } }
+        tareas.filas.update { l -> l.filterNot { it.listaId == id } }
+    }
+
+    override suspend fun ids(): List<Long> = filas.value.sortedWith(compareBy({ it.orden }, { it.id })).map { it.id }
+
+    /** ON DELETE SET NULL from `plantillas`. */
+    fun plantillaBorrada(plantillaId: Long) =
+        filas.update { l -> l.map { if (it.plantillaId == plantillaId) it.copy(plantillaId = null) else it } }
 }
 
 /** In-memory [TrabajadorDao]; [FakePlantillaDao.borrar] cascades into it like the real FK. */
@@ -107,18 +194,26 @@ class FakeTrabajadorDao : TrabajadorDao {
     }
 }
 
-/** In-memory [PlantillaDao] with the JOIN count and the ON DELETE CASCADE of the real schema. */
-class FakePlantillaDao(private val trabajadores: FakeTrabajadorDao) : PlantillaDao {
+/** In-memory [PlantillaDao] with the item count and the ON DELETE CASCADE / SET NULL of the real schema. */
+class FakePlantillaDao(
+    private val trabajadores: FakeTrabajadorDao,
+    private val tareasPlantilla: FakeTareaPlantillaDao = FakeTareaPlantillaDao(),
+) : PlantillaDao {
     val filas = MutableStateFlow<List<Plantilla>>(emptyList())
     private var siguienteId = 1L
 
+    /** SET NULL hook (FakeListaDao clears `plantilla_id` of the lists copied from it). */
+    var alBorrar: (Long) -> Unit = {}
+
     override fun observarTodas(): Flow<List<PlantillaConRecuento>> =
-        combine(filas, trabajadores.filas) { ps, ts ->
+        combine(filas, trabajadores.filas, tareasPlantilla.filas) { ps, ts, tps ->
             ps.sortedWith(compareBy({ it.orden }, { it.id }))
-                .map { p -> PlantillaConRecuento(p, ts.count { it.plantillaId == p.id }) }
+                .map { p -> PlantillaConRecuento(p, ts.count { it.plantillaId == p.id } + tps.count { it.plantillaId == p.id }) }
         }
 
     override fun observar(id: Long): Flow<Plantilla?> = filas.map { l -> l.firstOrNull { it.id == id } }
+
+    override suspend fun obtener(id: Long): Plantilla? = filas.value.firstOrNull { it.id == id }
 
     override suspend fun insertarAlFinal(tipo: TipoPlantilla, nombre: String): Long {
         val id = siguienteId++
@@ -133,6 +228,8 @@ class FakePlantillaDao(private val trabajadores: FakeTrabajadorDao) : PlantillaD
     override suspend fun borrar(id: Long) {
         filas.update { l -> l.filterNot { it.id == id } }
         trabajadores.filas.value.filter { it.plantillaId == id }.forEach { trabajadores.borrar(it.id) }
+        tareasPlantilla.filas.update { l -> l.filterNot { it.plantillaId == id } }
+        alBorrar(id)
     }
 
     override suspend fun contar(): Int = filas.value.size
@@ -188,17 +285,32 @@ class FakeAjusteDao : AjusteDao {
 
     override fun observar(clave: String): Flow<String?> = filas.map { it[clave] }
 
+    override suspend fun obtener(clave: String): String? = filas.value[clave]
+
     override suspend fun guardar(ajuste: Ajuste) = filas.update { it + (ajuste.clave to ajuste.valor) }
 }
 
-/** The four related fakes wired together, as the real database is. */
+/** The related fakes (templates, their items, team shifts, Checklist lists and tasks) wired together as the real database is. */
 class FakesPlantillas {
     val trabajadores = FakeTrabajadorDao()
-    val plantillas = FakePlantillaDao(trabajadores)
+    val tareasPlantilla = FakeTareaPlantillaDao()
+    val plantillas = FakePlantillaDao(trabajadores, tareasPlantilla)
     val asignaciones = FakeAsignacionDao(trabajadores)
     val ajustes = FakeAjusteDao()
+    val tareas = FakeTareaDao(tareasPlantilla)
+    val listas = FakeListaDao(tareas, plantillas)
 
-    fun repositorioPlantillas() = PlantillasRepositorio(plantillas, trabajadores, asignaciones, SinTransaccion)
+    init {
+        tareas.existeLista = { id -> listas.filas.value.any { it.id == id } }
+        plantillas.alBorrar = listas::plantillaBorrada
+    }
+
+    fun repositorioPlantillas() =
+        PlantillasRepositorio(plantillas, trabajadores, tareasPlantilla, asignaciones, SinTransaccion)
+
+    fun repositorioListas() = ListasRepositorio(listas, tareas, plantillas, ajustes, SinTransaccion)
+
+    fun repositorioTareas() = TareasRepositorio(tareas)
 }
 
 /** Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. */

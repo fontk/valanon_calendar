@@ -57,7 +57,7 @@ class PlantillaDaoTest {
         dao.insertarAlFinal(TipoPlantilla.TRABAJADORES, "Vacía")
         repeat(3) { trabajadores.agregarAlFinal(a, "T$it") }
 
-        val recuentos = dao.observarTodas().first().associate { it.plantilla.nombre to it.numTrabajadores }
+        val recuentos = dao.observarTodas().first().associate { it.plantilla.nombre to it.numElementos }
         assertEquals(mapOf("Con gente" to 3, "Vacía" to 0), recuentos)
     }
 

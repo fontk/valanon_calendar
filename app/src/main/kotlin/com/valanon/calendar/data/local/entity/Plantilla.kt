@@ -16,8 +16,8 @@ data class Plantilla(
     val orden: Int,
 )
 
-/** A template plus how many workers it has, for the list cards. */
+/** A template plus how many items it has (workers or preset tasks, by type), for the list cards. */
 data class PlantillaConRecuento(
     @Embedded val plantilla: Plantilla,
-    @ColumnInfo(name = "num_trabajadores") val numTrabajadores: Int,
+    @ColumnInfo(name = "num_elementos") val numElementos: Int,
 )

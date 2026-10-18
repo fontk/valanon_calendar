@@ -51,9 +51,37 @@
     <string name="borrar_tarea">Borrar tarea</string>
     <string name="tarea_borrada">Tarea borrada</string>
     <string name="deshacer">Deshacer</string>
-    <string name="reiniciar_tareas">Reiniciar todas las tareas</string>
     <string name="sin_tareas">Sin tareas todavía</string>
     <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
+
+    <!-- Checklist: varias listas (spec 4.0–4.6) -->
+    <string name="nueva">Nueva</string>
+    <string name="nueva_lista">Nueva lista</string>
+    <string name="desde_que_plantilla">¿Desde qué plantilla de tareas?</string>
+    <string name="lista_en_blanco">Lista en blanco</string>
+    <!-- Default name of a blank list: "Lista 3" -->
+    <string name="lista_n">Lista %1$d</string>
+    <string name="desde_la_plantilla">Desde la plantilla «%1$s»</string>
+    <string name="cambiar_nombre_lista">Cambiar nombre de la lista</string>
+    <string name="nombre_lista">Nombre de la lista</string>
+    <string name="reiniciar_lista">Reiniciar las tareas de esta lista</string>
+    <string name="eliminar_lista">Eliminar esta lista</string>
+    <string name="eliminar_lista_titulo">¿Eliminar la lista «%1$s»?</string>
+    <plurals name="eliminar_lista_cuerpo">
+        <item quantity="one">Se borrará su tarea y su progreso. La plantilla de origen no cambia.</item>
+        <item quantity="many">Se borrarán sus %1$d tareas y su progreso. La plantilla de origen no cambia.</item>
+        <item quantity="other">Se borrarán sus %1$d tareas y su progreso. La plantilla de origen no cambia.</item>
+    </plurals>
+    <string name="eliminar_lista_vacia">La lista está vacía.</string>
+    <string name="lista_vacia">Esta lista está vacía</string>
+    <string name="sin_listas">Sin listas todavía</string>
+    <string name="sin_listas_ayuda">Crea una lista desde una plantilla de tareas o empieza con una en blanco.</string>
+    <string name="sin_plantillas_tareas">No tienes plantillas de tareas. Puedes crearlas en la pestaña Plantillas.</string>
+    <!-- Progress pill of a list chip: "2/5" -->
+    <string name="progreso_corto">%1$d/%2$d</string>
+    <!-- Chip description: "Rutina de apertura, 2 de 5 hechas[, lista activa]" -->
+    <string name="chip_lista">%1$s, %2$s</string>
+    <string name="chip_lista_activa">%1$s, %2$s, lista activa</string>
 
     <!-- Copia de seguridad (exportar / importar todos los datos) -->
     <string name="copia_seguridad">Copia de seguridad</string>
@@ -115,6 +143,7 @@
     <string name="nueva_plantilla">Nueva plantilla</string>
     <string name="que_tipo_plantilla">¿Qué tipo de plantilla?</string>
     <string name="tipo_trabajadores_descripcion">Lista de nombres para usar en otras pestañas</string>
+    <string name="tipo_tareas_descripcion">Preset de tareas para crear listas en Checklist</string>
     <!-- Card subtitle: "Trabajadores · 4 trabajadores" -->
     <string name="subtitulo_plantilla">%1$s · %2$s</string>
     <string name="volver_a_plantillas">Volver a plantillas</string>
@@ -135,6 +164,25 @@
     <string name="eliminar_plantilla_titulo">¿Eliminar la plantilla «%1$s»?</string>
     <string name="eliminar_plantilla_sin_trabajadores">La plantilla no tiene trabajadores.</string>
     <string name="eliminar">Eliminar</string>
+
+    <!-- Plantilla de tipo Tareas (spec 4b.3) -->
+    <string name="tarea_preset_placeholder">Nueva tarea del preset…</string>
+    <string name="texto_tarea">Texto de la tarea</string>
+    <string name="editar_tarea">Editar tarea</string>
+    <string name="eliminar_tarea">Eliminar tarea</string>
+    <string name="eliminar_plantilla_sin_tareas">La plantilla no tiene tareas.</string>
+    <string name="eliminar_plantilla_tareas_nota">Las listas ya creadas en Checklist no se ven afectadas.</string>
+    <!-- "5 tareas": card subtitle, section label (uppercase) and "Nueva lista" sheet -->
+    <plurals name="contador_tareas">
+        <item quantity="one">%d tarea</item>
+        <item quantity="many">%d tareas</item>
+        <item quantity="other">%d tareas</item>
+    </plurals>
+    <plurals name="eliminar_plantilla_tareas">
+        <item quantity="one">Se borrará también su tarea</item>
+        <item quantity="many">Se borrarán también sus %d tareas</item>
+        <item quantity="other">Se borrarán también sus %d tareas</item>
+    </plurals>
 
     <plurals name="contador_plantillas">
         <item quantity="one">%d plantilla</item>

@@ -45,6 +45,11 @@ data class PaletaMisTurnos(
     val dayWithData: Color,
     /** Turnos: dashed outline of the "Sin asignar" chip (tokens.json → unassignedBorder). */
     val unassignedBorder: Color,
+    /** Badge of the "Tareas" template type, in Plantillas and Checklist (tokens.json → templateTasks*). */
+    val templateTasksBg: Color,
+    val templateTasksFg: Color,
+    /** Icon of the 64 dp empty-state badge (Checklist without lists, Turnos without templates). */
+    val emptyBadgeIcon: Color,
 )
 
 val PaletaClara = PaletaMisTurnos(
@@ -73,6 +78,9 @@ val PaletaClara = PaletaMisTurnos(
     dangerBorder = Color(0xFFE6C9C3),
     dayWithData = Color(0xFFFAFAF8),
     unassignedBorder = Color(0xFFC9C9C4),
+    templateTasksBg = Color(0xFFEDE9FF),
+    templateTasksFg = Color(0xFF4B43B8),
+    emptyBadgeIcon = Color(0xFF9A9A95),
 )
 
 val PaletaOscura = PaletaMisTurnos(
@@ -101,6 +109,9 @@ val PaletaOscura = PaletaMisTurnos(
     dangerBorder = Color(0xFF5E3129),
     dayWithData = Color(0xFF1F1F1D), // DESIGN.md: dark surface, one level above the background
     unassignedBorder = Color(0xFF55554F),
+    templateTasksBg = Color(0xFF2A2650), // same violet, dark like surfaceAccent
+    templateTasksFg = Color(0xFFB9B2FF),
+    emptyBadgeIcon = Color(0xFF8F8F89),
 )
 
 val LocalPaleta = staticCompositionLocalOf { PaletaClara }
@@ -135,4 +146,7 @@ object MisTurnosColors {
     val DangerBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.dangerBorder
     val DayWithData: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.dayWithData
     val UnassignedBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.unassignedBorder
+    val TemplateTasksBg: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.templateTasksBg
+    val TemplateTasksFg: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.templateTasksFg
+    val EmptyBadgeIcon: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.emptyBadgeIcon
 }

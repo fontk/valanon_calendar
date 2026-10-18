@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.local.AppDatabase
+import com.valanon.calendar.data.local.CLAVE_LISTA_CHECKLIST
+import com.valanon.calendar.data.local.NOMBRE_LISTA_MIGRADA
 import com.valanon.calendar.data.local.entity.Ajuste
 import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Turno
@@ -52,18 +54,28 @@ class CopiaSeguridadTest {
         archivo.delete()
     }
 
+    /** Id of the blank list filled by [rellenar]. */
+    private var lista = 0L
+
     /** Some data in every table. */
     private suspend fun rellenar() {
         db.turnoDao().upsert(Turno("2026-10-17", TipoTurno.NOCHE))
         db.turnoDao().upsert(Turno("2026-10-18", TipoTurno.LIBRE))
-        db.tareaDao().agregarAlFinal("Preparar el uniforme")
-        val tarea = db.tareaDao().agregarAlFinal("Comprar comida")
+        lista = db.listaDao().insertarAlFinal("Mi checklist", null)
+        db.tareaDao().agregarAlFinal(lista, "Preparar el uniforme")
+        val tarea = db.tareaDao().agregarAlFinal(lista, "Comprar comida")
         db.tareaDao().actualizarHecha(tarea, true)
         val p = db.plantillaDao().insertarAlFinal(TipoPlantilla.TRABAJADORES, "Equipo de planta")
         val lucia = db.trabajadorDao().agregarAlFinal(p, "Lucía Martínez")
         db.trabajadorDao().agregarAlFinal(p, "Javier Ortega")
         db.asignacionDao().upsert(Asignacion(fecha = "2026-10-17", trabajadorId = lucia, tipo = TipoTurno.MANANA))
         db.ajusteDao().guardar(Ajuste("turnos.plantilla_id", "$p"))
+        val preset = db.plantillaDao().insertarAlFinal(TipoPlantilla.TAREAS, "Cierre de turno")
+        db.tareaPlantillaDao().agregarAlFinal(preset, "Cuadrar la caja")
+        db.tareaPlantillaDao().agregarAlFinal(preset, "Apagar equipos")
+        val copiada = db.listaDao().insertarAlFinal("Cierre de turno", preset)
+        db.tareaDao().copiarDePlantilla(copiada, preset)
+        db.ajusteDao().guardar(Ajuste(CLAVE_LISTA_CHECKLIST, "$copiada"))
     }
 
     @Test
@@ -85,9 +97,38 @@ class CopiaSeguridadTest {
             despues.asignaciones.map { Triple(it.fecha, it.trabajadorId, it.tipo) },
         )
         // The app keeps working after an import: new rows go after the imported ones.
-        val nueva = db.tareaDao().agregarAlFinal("Nueva")
+        val nueva = db.tareaDao().agregarAlFinal(lista, "Nueva")
         assertTrue(nueva > antes.tareas.maxOf { it.id })
-        assertEquals(3, db.tareaDao().observarTodas().first().last().orden)
+        assertEquals(3, db.tareaDao().observarDeLista(lista).first().last().orden)
+        assertTrue(db.listaDao().insertarAlFinal("Otra", null) > antes.listas.maxOf { it.id })
+    }
+
+    /** A backup made by 0.6.0 (format 1, single checklist) still imports: its tasks land in "Mi checklist". */
+    @Test
+    fun importarUnaCopiaVersion1PoneLasTareasEnMiChecklist() = runTest {
+        archivo.writeText(
+            """
+            {"formato":"mis-turnos-copia","version":1,"creado":"2026-10-01T10:00:00Z",
+             "turnos":[{"fecha":"2026-10-17","tipo":"noche"}],
+             "tareas":[{"id":3,"texto":"Preparar el uniforme","hecha":true,"orden":1},
+                       {"id":5,"texto":"Comprar comida","hecha":false,"orden":2}],
+             "plantillas":[{"id":1,"tipo":"trabajadores","nombre":"Equipo","orden":1}],
+             "trabajadores":[{"id":1,"plantillaId":1,"nombre":"Lucía","orden":1}],
+             "asignaciones":[], "ajustes":[{"clave":"turnos.plantilla_id","valor":"1"}]}
+            """.trimIndent(),
+        )
+
+        copia.importar(uri)
+
+        val listas = db.listaDao().observarTodas().first()
+        val miChecklist = listas.single()
+        assertEquals(NOMBRE_LISTA_MIGRADA, miChecklist.lista.nombre)
+        assertEquals(2 to 1, miChecklist.total to miChecklist.hechas)
+        assertEquals(miChecklist.lista.id.toString(), db.ajusteDao().obtener(CLAVE_LISTA_CHECKLIST))
+        assertEquals("1", db.ajusteDao().obtener("turnos.plantilla_id"))
+        val tareas = db.tareaDao().observarDeLista(miChecklist.lista.id).first()
+        assertEquals(listOf(3L, 5L), tareas.map { it.id })
+        assertEquals(listOf(true, false), tareas.map { it.hecha })
     }
 
     @Test
@@ -111,6 +152,8 @@ class CopiaSeguridadTest {
             """{"formato":"mis-turnos-copia","version":99}""",
             """{"formato":"mis-turnos-copia","version":1,"turnos":[{"fecha":"2026-10-17","tipo":"siesta"}]}""",
             """{"formato":"mis-turnos-copia","version":1,"trabajadores":[{"id":1,"plantillaId":7,"nombre":"X","orden":1}]}""",
+            """{"formato":"mis-turnos-copia","version":2,"tareas":[{"id":1,"listaId":9,"texto":"X","hecha":false,"orden":1}]}""",
+            """{"formato":"mis-turnos-copia","version":2,"tareas":[{"id":1,"texto":"Sin listaId","hecha":false,"orden":1}]}""",
         )
         for (contenido in casos) {
             archivo.writeText(contenido)
@@ -137,7 +180,8 @@ class CopiaSeguridadTest {
         copia.exportar(uri)
         val texto = archivo.readText()
         assertTrue(texto.contains("\"formato\": \"mis-turnos-copia\""))
-        assertTrue(texto.contains("\"version\": 1"))
+        assertTrue(texto.contains("\"version\": 2"))
+        assertTrue(texto.contains("\"tareasPlantilla\""))
         assertTrue(texto.contains("\"creado\": \"2026-10-18T10:00:00Z\""))
         assertTrue(texto.contains("Lucía Martínez"))
     }
