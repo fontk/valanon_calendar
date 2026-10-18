@@ -5,9 +5,11 @@ Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/Selecto
 `mockups/PlantillaDetalle.dc.html`, `mockups/Turnos.dc.html`, `mockups/TurnosDia.dc.html`,
 `mockups/TurnosEditar.dc.html`, `mockups/TurnosSelector.dc.html`, más los estados adicionales
 `PlantillasVacio`, `PlantillaEditar`, `PlantillaBorrar`, `TurnosVacio`, `TurnosPlantilla` y `TurnosGrande`
-(390×844). Los seis de Plantillas y los siete de Turnos son, en cada caso, el mismo componente con la
-pantalla inicial distinta (prop `pantallaInicial`: Plantillas → lista / vacio / tipos / detalle / editar /
-borrar; Turnos → calendario / vacio / plantilla / grande / dia / editar / selector).
+y `PlantillaTareas`, `Checklist`, `ChecklistNueva`, `ChecklistBorrar`, `ChecklistVacio` (390×844). Los
+siete de Plantillas, los siete de Turnos y los cuatro de Checklist son, en cada caso, el mismo componente
+con la pantalla inicial distinta (prop `pantallaInicial`: Plantillas → lista / vacio / tipos / detalle /
+editar / borrar / tareas; Turnos → calendario / vacio / plantilla / grande / dia / editar / selector;
+Checklist → lista / nueva / borrar / vacio).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -78,18 +80,32 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 5. Hoja "¿Qué equipo quieres ver?": filas 56 dp radio 14 con nombre 16/700 y recuento 13/600; la activa con
    borde 2 dp `accent`.
 
-## Pantalla Checklist
-1. Cabecera: sobretítulo, "Checklist" 22/800 y progreso "3 de 6 hechas" 13/700 `textMuted` alineados en
-   la línea base.
-2. Alta: fila con gap 8; campo 50 dp (radio 14, fondo `surfaceInput`, borde `line`, padding 16, texto
-   16/600, placeholder "Nueva tarea…") y botón "Agregar" 50 dp (padding 18, fondo `accent`, icono + 18 dp).
-3. Lista: gap 8, padding inferior 100 dp para que el FAB no tape la última fila. Fila: min 60 dp, radio 14,
-   borde `lineSoft`, padding 8/8/8/14; casilla 24 dp en `accent`; texto 16/600; papelera 44 dp con icono
-   20 dp en `danger`. Hecha → fondo `surfaceInput`, texto `textFaint` tachado.
-4. Estado vacío centrado a 80 dp del alta: icono 44 dp gris #B9B9B3, "Sin tareas todavía" 15/700, ayuda
-   13/500 a 220 dp de ancho máximo.
-5. FAB 60 dp, radio 18, fondo `accent`, icono reiniciar 26 dp, a 20 dp del borde derecho y 20 dp sobre la
-   barra inferior, sombra `elevation.fab`.
+## Pantalla Checklist (Checklist, ChecklistNueva, ChecklistBorrar, ChecklistVacio)
+1. Cabecera: sobretítulo, "Checklist" 22/800 y progreso de la lista activa "2 de 5 hechas" 13/700
+   `textMuted` alineados en la línea base.
+2. Fila de chips de lista con scroll horizontal (padding 2/20/14, gap 8): chips de 36 dp, radio 999,
+   padding 0/12, texto 13/700 + píldora de progreso "2/5" (11/800, padding 2×7, radio 999). Activa: fondo
+   `accent`, texto blanco, píldora blanca al 22 %; resto: borde `line`, píldora `surface`. Último chip
+   "+ Nueva": borde 1 dp discontinuo `accent`, texto `accent` 13/800, icono + 16 dp.
+3. Tarjeta de la lista activa: margen 0/20/12, padding 10/6/10/14, radio 16, fondo `surfaceInput`; nombre
+   16/800 con lápiz 14 dp, subtítulo de origen 12/600 `textMuted`; a la derecha botón Reiniciar (44 dp,
+   icono 22 dp en `accent`) y papelera (44 dp, icono 20 dp en `danger`). En renombrado: campo 40 dp con
+   borde 2 dp `accent` + "Guardar".
+4. Alta: fila con gap 8; campo 50 dp (radio 14, fondo blanco, borde `line`, padding 16, texto 16/600,
+   placeholder "Nueva tarea…") y botón "Agregar" 50 dp (padding 18, fondo `accent`, icono + 18 dp).
+5. Lista: gap 8, padding inferior 24 dp (ya no hay FAB). Fila: min 60 dp, radio 14, borde `lineSoft`,
+   padding 8/8/8/14; casilla 24 dp en `accent`; texto 16/600; papelera 44 dp con icono 20 dp en `danger`.
+   Hecha → fondo `surfaceInput`, texto `textFaint` tachado.
+6. Estado vacío de la lista activa a 60 dp del alta: icono 44 dp gris #B9B9B3, "Esta lista está vacía"
+   15/700, ayuda 13/500 a 220 dp. Sin listas: estado vacío centrado con insignia 64 dp (radio 20, fondo
+   `surface`), título 17/800, ayuda 14/500 y botón relleno `accent` "Nueva lista" 48 dp.
+7. Hoja "Nueva lista": misma hoja base; sobretítulo "NUEVA LISTA", título 20/800; tarjetas de plantilla
+   64 dp mínimo (radio 16, borde `line`, insignia 40 dp #EDE9FF con icono checklist #4B43B8, nombre 16/800,
+   "5 tareas" 13/600); aviso en caja `surfaceInput` 13/600 si no hay plantillas; "Lista en blanco" 56 dp
+   con borde discontinuo #C9C9C4 e insignia `surface` con +; "Cancelar" 48 dp.
+8. Diálogo de eliminar lista: igual que el de eliminar plantilla.
+9. La insignia del tipo Tareas (Plantillas y Checklist) usa #EDE9FF / #4B43B8 (`tokens.templateTasks`),
+   un violeta de la misma familia que el acento para distinguir el tipo sin competir con él.
 
 ## Pestaña Plantillas (Plantillas, PlantillasTipo, PlantillaDetalle)
 1. Lista: cabecera igual que Checklist ("Plantillas" + contador). Tarjetas de 72 dp mínimo, radio 16,
@@ -106,6 +122,8 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
    13/800, nombre 16/600, lápiz 44 dp `textMuted`, papelera 44 dp `danger`. Fila en edición: borde 2 dp
    `accent`, campo 40 dp fondo `surfaceInput` sin borde, "Guardar" y X (40 dp, fondo `surface`).
    Botón "Eliminar plantilla": 48 dp, radio 14, borde #E6C9C3, texto e icono `danger`, 12 dp bajo la lista.
+   Tipo Tareas (mockup `PlantillaTareas`): mismo detalle con avatar cuadrado (radio 10) que muestra el
+   número de orden en lugar de las iniciales, sobretítulo "PLANTILLA · TAREAS" y textos propios.
    Diálogo de confirmación (`AlertDialog`, mockup `PlantillaBorrar`): tarjeta radio 24, padding 24, título
    20/800, cuerpo 15/500 `textMuted`, acciones alineadas a la derecha: "Cancelar" texto en `accent` y
    "Eliminar" relleno `danger` con texto blanco, 44 dp.

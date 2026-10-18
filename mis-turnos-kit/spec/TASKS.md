@@ -186,3 +186,62 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
 - [x] Modo oscuro: puntos con los mismos `dot`; fondo de día con datos = superficie oscura +1 nivel.
 - [x] Verificar T1–T7 en emulador y actualizar `CLAUDE.md` (Architecture, Database rules: versión 3).
 
+## Fase 9 — Plantillas de tareas y Checklist con varias listas (spec 4, 4b, historias P2, P10, L0–L8). Requiere Fase 7.
+
+### 9.1 Datos
+- [ ] `TipoPlantilla.TAREAS("tareas")`. Entidad `TareaPlantilla(id, plantillaId FK CASCADE, texto, orden)` con
+      índice en `plantilla_id`; `TareaPlantillaDao` con las mismas operaciones que `TrabajadorDao`.
+- [ ] Entidad `Lista(id, nombre, plantillaId: Long? FK SET NULL, orden)`; `Tarea` gana `listaId` FK CASCADE
+      (índice en `lista_id`). `ListaDao`: `observarTodas(): Flow<List<ListaConProgreso>>` (COUNT total y
+      COUNT hechas), `insertarAlFinal`, `renombrar`, `borrar`. `TareaDao`: todas las consultas filtran por
+      `lista_id` (`observarDeLista`, `agregarAlFinal(listaId, texto)`, `reiniciarLista(listaId)`).
+- [ ] `AppDatabase.VERSION = 4` y `MIGRATION_3_4`: crear `tareas_plantilla` y `listas`; si `tareas` tiene
+      filas, insertar la lista "Mi checklist" y escribir `checklist.lista_id` en `ajustes`; recrear `tareas`
+      con `lista_id` (tabla temporal, `INSERT … SELECT`, `DROP`, `ALTER … RENAME`), copiar los datos y
+      recrear el índice `idx_tareas_orden` como `(lista_id, orden)`. Exportar `app/schemas/.../4.json`.
+- [ ] `ListasRepositorio.crearDesdePlantilla(plantillaId)` en una transacción: inserta la lista y copia
+      `tareas_plantilla` → `tareas` con `hecha = 0` y el mismo `orden`; `crearEnBlanco()`.
+      `listaActiva(): Flow<Lista?>` resolviendo `checklist.lista_id` o la primera por `orden`.
+- [ ] Tests: `MigrationTest` 3 → 4 con y sin tareas previas (ids, textos, `hecha` y orden intactos),
+      `ListaDaoTest` (progreso agregado, cascade de tareas, SET NULL al borrar la plantilla),
+      `TareaPlantillaDaoTest`, test del repositorio de copia desde plantilla.
+
+### 9.2 Plantillas: tipo Tareas
+- [ ] `SelectorTipoPlantilla` itera `TipoPlantilla.entries` con icono, colores y descripción por tipo
+      (insignia #EDE9FF / #4B43B8 para Tareas).
+- [ ] Tarjeta de plantilla: insignia y subtítulo según tipo ("Tareas · 5 tareas").
+- [ ] `PlantillaDetalleScreen` generalizado con un `TextosTipoPlantilla` (sobretítulo, placeholder,
+      plural, aria, estado vacío) y un slot de avatar (iniciales en círculo / número con radio 10 dp);
+      `PlantillaDetalleViewModel` recibe el tipo y usa el DAO correspondiente (trabajadores o
+      tareas_plantilla). Cuerpo del diálogo de borrado con la frase extra para Tareas.
+- [ ] Tests JVM del ViewModel con ambos tipos.
+
+### 9.3 Checklist con listas
+- [ ] `ChecklistViewModel`: `listas`, `listaActiva`, `tareas` de la activa, `borrador`, `renombrando`,
+      `borradorNombre`, `hojaNuevaAbierta`, `confirmandoBorrado` (SavedStateHandle); acciones `activar(id)`
+      (guarda `checklist.lista_id`), `crearDesdePlantilla`, `crearEnBlanco`, `renombrar`, `reiniciar`
+      (solo la activa), `pedirBorrar`, `borrarLista` (activa la vecina), y las de tareas ya existentes
+      restringidas a la activa.
+- [ ] `ChecklistScreen`: `FilaChipsListas` (`LazyRow`, chip activo relleno, píldora n/N, chip "+ Nueva"),
+      `TarjetaListaActiva` (nombre editable, origen, botones Reiniciar y Eliminar de 44 dp), alta, lista de
+      tareas, estados vacíos (lista vacía / sin listas). **Eliminar el FAB** y su string.
+- [ ] `SelectorPlantillaTareas` (`ModalBottomSheet`): plantillas de tipo Tareas + "Lista en blanco" + aviso
+      cuando no hay plantillas.
+- [ ] `AlertDialog` de eliminar lista con nombre y recuento.
+- [ ] Tests JVM: activar persiste, crear desde plantilla copia N tareas sin marcar y activa la nueva,
+      reiniciar no toca otras listas, borrar activa la vecina, borrar la última deja estado vacío.
+
+### 9.4 Cierre
+- [ ] `strings.xml`: "Nueva", "Nueva lista", "¿Desde qué plantilla de tareas?", "Lista en blanco",
+      "Lista %1$d", "Desde la plantilla «%1$s»", "Cambiar nombre de la lista", "Reiniciar las tareas de esta
+      lista", "Eliminar esta lista", "¿Eliminar la lista «%1$s»?", plural "Se borrarán sus %1$d tareas y su
+      progreso. La plantilla de origen no cambia.", "La lista está vacía.", "Esta lista está vacía",
+      "Sin listas todavía", "Crea una lista desde una plantilla de tareas o empieza con una en blanco.",
+      "No tienes plantillas de tareas. Puedes crearlas en la pestaña Plantillas.", "Mi checklist",
+      "%1$d/%2$d", "Tareas", "Preset de tareas para crear listas en Checklist", "Nueva tarea del preset…",
+      plural "%1$d tareas", "Editar tarea", "Eliminar tarea", "Las listas ya creadas en Checklist no se ven
+      afectadas." Eliminar "Reiniciar todas las tareas".
+- [ ] Previews con `DatosMuestra` (listas "Rutina de apertura" y "Mi checklist", plantillas de tareas
+      "Rutina de apertura" y "Cierre de turno").
+- [ ] Verificar P2, P10 y L0–L8 en emulador; actualizar `CLAUDE.md` (Architecture, Database rules: versión 4).
+

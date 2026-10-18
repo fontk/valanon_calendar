@@ -5,7 +5,8 @@
 App personal para registrar el turno de trabajo de cada día en un calendario y llevar una checklist de
 tareas reutilizable. Cuatro pestañas en una barra inferior, en este orden: **Calendario** (destino
 inicial, los turnos del propio usuario), **Turnos** (los turnos de los compañeros de una plantilla de
-trabajadores, día a día), **Checklist** y **Plantillas** (datos reutilizables por otras pestañas). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
+trabajadores, día a día), **Checklist** (varias listas de tareas, creadas desde plantillas de tareas o en
+blanco) y **Plantillas** (datos reutilizables por otras pestañas: trabajadores y presets de tareas). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
 
 ## 2. Navegación
 
@@ -187,15 +188,39 @@ mismos cinco valores de turno, colores y abreviaturas de la pestaña Calendario.
 
 ## 4. Pestaña Checklist
 
-### 4.1 Cabecera
-- Sobretítulo "MIS TURNOS", título "Checklist" (22 sp, 800) y a la derecha el progreso "3 de 6 hechas"
-  (13 sp, 700, `textMuted`). Si no hay tareas, el progreso se oculta.
+La pestaña gestiona **varias listas** de tareas. Cada lista se crea desde una plantilla de tareas (4b,
+tipo Tareas), que actúa como preset y copia sus tareas sin marcar, o en blanco. Solo hay una lista
+**activa** a la vez y todas las acciones (agregar, marcar, borrar, reiniciar, eliminar) actúan sobre ella.
 
-### 4.2 Alta de tarea
+### 4.0 Listas
+- Bajo la cabecera, una fila horizontal con scroll (gap 8, padding 2/20/14) de **chips de lista**
+  (36 dp, radio 999, texto 13 sp/700) con el nombre y una píldora de progreso "2/5" (11 sp, 800). La
+  activa: fondo `accent`, texto blanco, píldora blanca al 22 %; el resto: fondo blanco, borde `line`,
+  píldora `surface`. Tocar un chip la activa (y descarta el texto escrito en el campo de nueva tarea).
+  `contentDescription`: "Rutina de apertura, 2 de 5 hechas, lista activa". Orden: por `orden`.
+- Al final de la fila, el chip "+ Nueva" (borde 1 dp discontinuo `accent`, texto `accent`) abre la hoja 4.5.
+- Debajo, la **tarjeta de la lista activa** (margen 0/20/12, padding 10/6/10/14, radio 16, fondo
+  `surfaceInput`): nombre (16 sp, 800) con lápiz de 14 dp — tocarlo lo convierte en un campo de 40 dp con
+  "Guardar", igual que el nombre de una plantilla —, subtítulo "Desde la plantilla «Rutina de apertura»"
+  o "Lista en blanco" (12 sp, 600, `textMuted`), y a la derecha dos botones de 44 dp: **Reiniciar**
+  (icono de flechas circulares en `accent`, `contentDescription` "Reiniciar las tareas de esta lista";
+  sustituye al antiguo FAB, que desaparece) y **Eliminar lista** (papelera en `danger`,
+  `contentDescription` "Eliminar esta lista"), que abre el diálogo 4.6.
+- La lista activa se recuerda en `ajustes` (clave `checklist.lista_id`). Si se elimina, pasa a ser activa
+  la lista vecina (la siguiente, o la anterior si era la última).
+- Sin ninguna lista: estado vacío centrado (insignia 64 dp con el icono de checklist, "Sin listas todavía",
+  "Crea una lista desde una plantilla de tareas o empieza con una en blanco." y botón relleno "Nueva lista"
+  que abre 4.5). La fila de chips, la tarjeta y el alta se ocultan.
+
+### 4.1 Cabecera
+- Sobretítulo "MIS TURNOS", título "Checklist" (22 sp, 800) y a la derecha el progreso de la lista activa
+  "3 de 6 hechas" (13 sp, 700, `textMuted`). Si la lista activa no tiene tareas, el progreso se oculta.
+
+### 4.2 Alta de tarea (en la lista activa)
 - Campo de texto (50 dp, radio 14, fondo #F7F7F4, borde `line`) con placeholder "Nueva tarea…" y botón
   "Agregar" (50 dp, fondo `accent`, icono +). Pulsar el botón o la acción IME Done añade la tarea.
 - Se ignoran textos vacíos o solo espacios; se recorta el texto. Tras añadir, el campo se vacía.
-- La tarea nueva se inserta al final de la lista con `hecha = 0`.
+- La tarea nueva se inserta al final de la lista activa con `hecha = 0` y `lista_id` = lista activa.
 
 ### 4.3 Lista
 - Cada fila: altura mínima 60 dp, radio 14, borde `lineSoft`. Contiene: casilla de 24 dp (color `accent`),
@@ -205,20 +230,39 @@ mismos cinco valores de turno, colores y abreviaturas de la pestaña Calendario.
 - La papelera borra la tarea de inmediato (sin confirmación), opcionalmente con Snackbar "Tarea borrada"
   y acción "Deshacer".
 - Orden: por `orden` ascendente (campo entero), que coincide con el orden de creación.
-- Estado vacío: icono de checklist grande en gris, "Sin tareas todavía" y "Escribe una tarea arriba y
-  pulsa Agregar."
+- Estado vacío de la lista activa: icono de checklist grande en gris, "Esta lista está vacía" y
+  "Escribe una tarea arriba y pulsa Agregar."
 
-### 4.4 Botón flotante
-- FAB de 60 dp, radio 18, fondo `accent`, icono de dos flechas circulares, situado a 20 dp del borde
-  derecho y 20 dp por encima de la barra inferior. `contentDescription`: "Reiniciar todas las tareas".
-- Acción: `UPDATE tareas SET hecha = 0`. No borra tareas. Las tareas se mantienen; solo se desmarcan.
+### 4.4 Reiniciar la lista activa
+- Botón de 44 dp en la tarjeta de la lista activa (ver 4.0). Ya no existe el FAB.
+- Acción: `UPDATE tareas SET hecha = 0 WHERE lista_id = :listaId`. No borra tareas; solo desmarca las de
+  la lista activa. Las demás listas no cambian.
+
+### 4.5 Nueva lista (hoja inferior)
+- Sobretítulo "NUEVA LISTA", título "¿Desde qué plantilla de tareas?". Una tarjeta por plantilla de tipo
+  Tareas (64 dp mínimo, radio 16, borde `line`, insignia 40 dp #EDE9FF con icono de checklist en #4B43B8,
+  nombre 16 sp/800, "5 tareas" 13 sp/600) y, al final, la opción "Lista en blanco" (56 dp, borde
+  discontinuo #C9C9C4, insignia `surface` con +). Si no hay plantillas de tareas se muestra el aviso "No
+  tienes plantillas de tareas. Puedes crearlas en la pestaña Plantillas." encima de "Lista en blanco".
+  Botón "Cancelar".
+- Elegir una plantilla crea la lista con su nombre, `plantilla_id` = la plantilla y una tarea por cada
+  elemento del preset (mismo texto y orden, `hecha = 0`); "Lista en blanco" crea "Lista N" sin tareas y
+  `plantilla_id` NULL. En ambos casos la nueva lista pasa a ser la activa y la hoja se cierra. Las tareas
+  son **copias**: cambiar la plantilla después no modifica listas ya creadas, y viceversa.
+
+### 4.6 Eliminar lista
+- `AlertDialog` "¿Eliminar la lista «Rutina de apertura»?" con cuerpo "Se borrarán sus 5 tareas y su
+  progreso. La plantilla de origen no cambia." (o "La lista está vacía." si no tiene tareas) y botones
+  "Eliminar" (relleno `danger`) / "Cancelar". Confirmar borra la lista y sus tareas (ON DELETE CASCADE) y
+  activa la lista vecina.
 
 ## 4b. Pestaña Plantillas
 
-Las plantillas son conjuntos de datos reutilizables que otras pestañas consumirán en el futuro (por
-ejemplo, asignar trabajadores a los turnos del calendario). En esta versión existe un único tipo de
-plantilla, **Trabajadores**: una lista con N trabajadores cuya única propiedad es el nombre. El modelo
-y la interfaz están preparados para añadir más tipos sin rediseñar la pestaña.
+Las plantillas son conjuntos de datos reutilizables que otras pestañas consumen. Hay dos tipos:
+**Trabajadores** (una lista con N trabajadores cuya única propiedad es el nombre; la usa la pestaña
+Turnos) y **Tareas** (un preset con N tareas cuya única propiedad es el texto; la usa Checklist para
+crear listas). Ambos comparten la misma pantalla de detalle (4b.3) cambiando solo textos e icono. El
+modelo (`TipoPlantilla`) está preparado para añadir más tipos sin rediseñar la pestaña.
 
 ### 4b.1 Lista de plantillas
 - Cabecera: sobretítulo "MIS TURNOS", título "Plantillas" (22 sp, 800) y a la derecha el contador
@@ -238,13 +282,27 @@ y la interfaz están preparados para añadir más tipos sin rediseñar la pesta�
 - `ModalBottomSheet` con asa, sobretítulo "NUEVA PLANTILLA" y título "¿Qué tipo de plantilla?" (20 sp, 800).
 - Una opción por tipo disponible, como tarjeta de 72 dp mínimo, radio 16, borde `line`: insignia 44 dp
   con el icono del tipo, nombre del tipo (16 sp, 800), descripción (13 sp, 600, `textMuted`) y chevron.
-  En v1 solo "Trabajadores" — "Lista de nombres para usar en otras pestañas".
+  En este orden: "Trabajadores" — "Lista de nombres para usar en otras pestañas" (insignia
+  `surfaceAccent`/`accent`, icono de dos personas) y "Tareas" — "Preset de tareas para crear listas en
+  Checklist" (insignia #EDE9FF/#4B43B8, icono de checklist).
 - Botón "Cancelar" (48 dp, fondo `surface`).
-- Tocar un tipo crea la plantilla en la base de datos con nombre por defecto "Trabajadores N" (N =
-  número de plantillas + 1), cierra la hoja y abre su detalle con el campo de nombre ya en modo edición
-  para que el usuario lo cambie si quiere.
+- Tocar un tipo crea la plantilla en la base de datos con nombre por defecto "Trabajadores N" o
+  "Tareas N" (N = número de plantillas + 1), cierra la hoja y abre su detalle con el campo de nombre ya en
+  modo edición para que el usuario lo cambie si quiere.
+- En la lista de plantillas, la insignia de cada tarjeta usa el icono y los colores de su tipo y el
+  subtítulo dice "Trabajadores · 4 trabajadores" o "Tareas · 5 tareas".
 
-### 4b.3 Detalle de una plantilla de trabajadores
+### 4b.3 Detalle de una plantilla (trabajadores o tareas)
+
+El detalle es el mismo componente para ambos tipos. Para el tipo Tareas cambian solo estos textos:
+sobretítulo "PLANTILLA · TAREAS", placeholder "Nueva tarea del preset…", etiqueta "N TAREAS" / "1 TAREA",
+estado vacío "Sin tareas todavía" / "Escribe una tarea arriba y pulsa Agregar.", `contentDescription`
+"Editar tarea" / "Eliminar tarea", y el avatar muestra el número de orden (1, 2, 3…) con radio 10 dp en
+lugar de las iniciales en círculo. El resto de reglas (alta, edición en línea, eliminar con Deshacer,
+renombrar, eliminar plantilla) son idénticas. El cuerpo del diálogo de eliminar una plantilla de tareas
+añade "Las listas ya creadas en Checklist no se ven afectadas."
+
+Descripción detallada tomando como ejemplo el tipo Trabajadores:
 - Barra superior (padding 14/12/10/8): botón "Volver a plantillas" (44 dp, flecha izquierda), sobretítulo
   "PLANTILLA · TRABAJADORES" y el nombre de la plantilla (20 sp, 800) con un icono de lápiz de 16 dp al
   lado; tocar el nombre (`contentDescription` "Cambiar nombre de la plantilla") lo convierte en un campo
@@ -272,27 +330,36 @@ y la interfaz están preparados para añadir más tipos sin rediseñar la pesta�
 - El botón Atrás del sistema en el detalle vuelve a la lista de plantillas, no sale de la app.
 
 ### 4b.4 Reglas de datos
-- `plantillas.tipo` solo admite `trabajadores` en v1; el enum `TipoPlantilla` es el punto de extensión.
-- Las plantillas no se referencian todavía desde Calendario ni Checklist; cuando se haga, el borrado
-  deberá avisar de las referencias afectadas (fuera de alcance ahora).
+- `plantillas.tipo` admite `trabajadores` y `tareas`; el enum `TipoPlantilla` es el punto de extensión.
+  Los elementos de cada tipo viven en su propia tabla (`trabajadores`, `tareas_plantilla`).
+- Una plantilla de tareas es un preset: las listas de Checklist creadas desde ella guardan copias de sus
+  tareas y `listas.plantilla_id` como referencia informativa (`ON DELETE SET NULL`), de modo que borrar
+  la plantilla no toca las listas.
 
 ## 5. Persistencia
 
-Ver `db/schema.sql`. Seis tablas:
+Ver `db/schema.sql`. Ocho tablas:
 
 - `turnos(fecha TEXT PRIMARY KEY, tipo TEXT NOT NULL CHECK(tipo IN (...)))`
-- `tareas(id INTEGER PRIMARY KEY AUTOINCREMENT, texto TEXT NOT NULL, hecha INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL)`
+- `listas(id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, plantilla_id INTEGER NULL REFERENCES plantillas(id) ON DELETE SET NULL, orden INTEGER NOT NULL)`
+- `tareas(id INTEGER PRIMARY KEY AUTOINCREMENT, lista_id INTEGER NOT NULL REFERENCES listas(id) ON DELETE CASCADE, texto TEXT NOT NULL, hecha INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL)`
+- `tareas_plantilla(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, texto TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `plantillas(id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL CHECK(tipo IN ('trabajadores')), nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `trabajadores(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `asignaciones(id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, trabajador_id INTEGER NOT NULL REFERENCES trabajadores(id) ON DELETE CASCADE, tipo TEXT NOT NULL CHECK(tipo IN (...)), UNIQUE(fecha, trabajador_id))`
-- `ajustes(clave TEXT PRIMARY KEY, valor TEXT NOT NULL)` — pares clave/valor de la app (por ahora solo
-  `turnos.plantilla_id`). Sustituye a DataStore/SharedPreferences, que siguen prohibidos.
+- `ajustes(clave TEXT PRIMARY KEY, valor TEXT NOT NULL)` — pares clave/valor de la app
+  (`turnos.plantilla_id`, `checklist.lista_id`). Sustituye a DataStore/SharedPreferences, que siguen
+  prohibidos.
 
 La app lee los turnos del mes visible con un rango `fecha BETWEEN ? AND ?` y observa cambios con `Flow`.
 `plantillas` y `trabajadores` llegan en la versión 2 del esquema de Room con una `Migration(1, 2)`;
-`asignaciones` y `ajustes` en la versión 3 con una `Migration(2, 3)`. Ambas migraciones solo crean tablas e
-índices (no tocan datos existentes). Si la Fase 7 aún no se ha publicado, pueden fusionarse en una única
-versión 2. Turnos lee las asignaciones del mes visible con `fecha BETWEEN ? AND ?` filtrando por los
+`asignaciones` y `ajustes` en la versión 3 con una `Migration(2, 3)`. Esas migraciones solo crean tablas e
+índices. La versión 4 (`Migration(3, 4)`) añade `tareas_plantilla` y `listas`, y **mueve** las tareas
+existentes: crea la lista "Mi checklist" (`orden` 1, `plantilla_id` NULL), recrea `tareas` con la columna
+`lista_id` apuntando a esa lista (SQLite no permite añadir una columna NOT NULL con FK sin valor por
+defecto: se hace con tabla temporal + copia + renombrado) y guarda `checklist.lista_id` en `ajustes`. Si una
+instalación no tiene tareas, la lista "Mi checklist" no se crea. Si ninguna versión intermedia se ha
+publicado, las migraciones pueden fusionarse. Turnos lee las asignaciones del mes visible con `fecha BETWEEN ? AND ?` filtrando por los
 trabajadores de la plantilla activa (JOIN con `trabajadores`).
 
 ## 6. Accesibilidad y calidad
@@ -305,6 +372,7 @@ trabajadores de la plantilla activa (JOIN con `trabajadores`).
 ## 7. Fuera de alcance (v1)
 
 Cuentas, sincronización, notificaciones, widgets, varios calendarios, turnos partidos, estadísticas.
-Otros tipos de plantilla, el uso de plantillas desde Calendario o Checklist, exportar a PDF el calendario
-del equipo, copiar los turnos de un día a otro y ver varias plantillas a la vez quedan para versiones
-posteriores; el modelo de datos ya lo permite.
+Otros tipos de plantilla, el uso de plantillas desde Calendario, exportar a PDF el calendario del equipo,
+copiar los turnos de un día a otro, ver varias plantillas a la vez, reordenar listas o tareas arrastrando y
+"volver a sincronizar" una lista con su plantilla quedan para versiones posteriores; el modelo de datos ya
+lo permite.

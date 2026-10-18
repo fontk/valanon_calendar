@@ -78,6 +78,28 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
+## Task-preset templates + multi-list Checklist (spec 4 & 4b, stories P2, P10, L0–L8, TASKS Fase 9) — PENDING
+
+- Second template type `TipoPlantilla.TAREAS`, items in `tareas_plantilla`. Edit it with the
+  SAME `PlantillaDetalleScreen` as Trabajadores (per-type texts + an avatar slot: initials in
+  a circle vs. order number with 10 dp radius); do not fork the screen or the ViewModel.
+- Checklist becomes multi-list: `listas` table, `tareas.lista_id` (ON DELETE CASCADE), one
+  active list stored in `ajustes` (`checklist.lista_id`, fallback = first by `orden`). UI: a
+  `LazyRow` of list chips (active one filled, "n/N" pill) ending with "+ Nueva"; a card for the
+  active list with rename, the **Reiniciar** button (the FAB is removed, with its string) and
+  a delete-list button + confirm dialog; the existing add/check/delete rows below, scoped to the
+  active list. "+ Nueva" opens a sheet listing Tareas templates plus "Lista en blanco".
+- Creating from a template COPIES its items as unchecked tasks in ONE transaction;
+  `listas.plantilla_id` is informational only (`ON DELETE SET NULL`). Never link `tareas` to
+  `tareas_plantilla`.
+- Schema **version 4**: `MIGRATION_3_4` creates `tareas_plantilla` and `listas`, inserts
+  "Mi checklist" only if `tareas` has rows, recreates `tareas` with `lista_id` (temp table +
+  copy + rename; keep ids, `hecha`, `orden`), index `idx_tareas_lista(lista_id, orden)`, and
+  writes `checklist.lista_id`. Mirror `mis-turnos-kit/db/schema.sql`; test with and without data.
+- References: `mis-turnos-kit/design/mockups/Checklist*.dc.html`, `PlantillaTareas.dc.html`,
+  `design/DESIGN.md` ("Pantalla Checklist"). When done, retitle this section "— implemented"
+  and update Database rules to version 4.
+
 ## Turnos tab (spec 3b, stories T1–T7, TASKS Fase 8) — implemented
 
 - Second bottom-bar destination (`Destino.TURNOS`, route `turnos`): the team's shifts of the

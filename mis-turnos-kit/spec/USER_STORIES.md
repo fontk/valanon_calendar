@@ -106,10 +106,36 @@ color de su turno, para ver de un vistazo cómo está el equipo.
 
 ## Checklist
 
+### L0 — Varias listas, una activa
+Como usuario quiero tener varias listas de tareas y trabajar con una cada vez.
+- Dado dos listas, cuando abro Checklist, entonces veo sus chips con el progreso "2/5" y "1/3", la última
+  activa resaltada en acento, su tarjeta con nombre y origen, y debajo solo sus tareas.
+- Cuando toco otro chip, entonces esa lista pasa a ser la activa, la tarjeta y las tareas cambian, y el
+  progreso de la cabecera también.
+- Cuando cierro y reabro la app, entonces sigue activa la misma lista.
+- Cuando toco el nombre de la lista y escribo otro, entonces el chip y la tarjeta muestran el nuevo nombre.
+
+### L7 — Crear una lista desde una plantilla de tareas
+- Cuando pulso "+ Nueva", entonces se abre la hoja "¿Desde qué plantilla de tareas?" con una tarjeta por
+  plantilla de tareas (nombre y número de tareas), la opción "Lista en blanco" y "Cancelar".
+- Cuando toco "Rutina de apertura" (5 tareas), entonces aparece una lista nueva con ese nombre, "Desde la
+  plantilla «Rutina de apertura»", sus 5 tareas sin marcar, y queda activa.
+- Cuando toco "Lista en blanco", entonces aparece "Lista N" vacía, activa, con el estado "Esta lista está
+  vacía".
+- Dado que no tengo plantillas de tareas, cuando abro la hoja, entonces veo el aviso que me remite a
+  Plantillas y solo puedo crear una lista en blanco.
+- Cuando después edito la plantilla de origen, entonces la lista ya creada no cambia.
+
+### L8 — Eliminar una lista
+- Cuando pulso la papelera de la tarjeta de la lista activa, entonces aparece el diálogo con el nombre y el
+  número de tareas; "Cancelar" no hace nada; "Eliminar" borra la lista con sus tareas y activa la vecina.
+- Dado que elimino la única lista, entonces veo el estado vacío "Sin listas todavía" con el botón "Nueva
+  lista".
+
 ### L1 — Añadir tarea
-Como usuario quiero escribir una tarea y agregarla para no olvidarla.
+Como usuario quiero escribir una tarea y agregarla a la lista activa para no olvidarla.
 - Dado texto en el campo, cuando pulso "Agregar" o la acción Done del teclado, entonces la tarea aparece
-  al final de la lista sin marcar y el campo queda vacío.
+  al final de la lista activa sin marcar y el campo queda vacío; las demás listas no cambian.
 - Dado el campo vacío o solo espacios, cuando pulso "Agregar", entonces no ocurre nada.
 
 ### L2 — Marcar y desmarcar
@@ -121,17 +147,24 @@ Como usuario quiero marcar una tarea como hecha y poder desmarcarla.
 Como usuario quiero borrar una tarea con el icono de papelera.
 - Cuando pulso la papelera de una tarea, entonces desaparece de la lista y de la base de datos.
 
-### L4 — Reiniciar checks
-Como usuario quiero un botón flotante que desmarque todas las tareas para reutilizar la lista cada día.
-- Dado varias tareas marcadas, cuando pulso el FAB, entonces todas quedan desmarcadas y ninguna se borra.
+### L4 — Reiniciar checks de la lista activa
+Como usuario quiero un botón que desmarque todas las tareas de la lista activa para reutilizarla cada día.
+- Dado varias tareas marcadas en la lista activa y otras marcadas en otra lista, cuando pulso el botón
+  Reiniciar de la tarjeta de la lista activa, entonces solo las de la lista activa quedan desmarcadas,
+  ninguna se borra y la otra lista conserva sus marcas.
+- Ya no existe el botón flotante.
 
-### L5 — Persistencia de tareas
-- Dado tareas creadas y algunas marcadas, cuando cierro y reabro la app, entonces la lista y los estados
-  son idénticos.
+### L5 — Persistencia de tareas y migración
+- Dado listas y tareas creadas y algunas marcadas, cuando cierro y reabro la app, entonces las listas, su
+  orden y los estados son idénticos.
+- Dado una instalación anterior con tareas en la checklist única, cuando actualizo, entonces aparecen en
+  una lista llamada "Mi checklist", activa, con sus estados intactos (migración a la versión 4).
 
-### L6 — Estado vacío
-- Dado que no hay tareas, entonces se muestra "Sin tareas todavía" con la ayuda "Escribe una tarea arriba
-  y pulsa Agregar." y no se muestra el contador de progreso.
+### L6 — Estados vacíos
+- Dado una lista activa sin tareas, entonces se muestra "Esta lista está vacía" con la ayuda "Escribe una
+  tarea arriba y pulsa Agregar." y no se muestra el contador de progreso.
+- Dado que no hay ninguna lista, entonces se muestra "Sin listas todavía" con el botón "Nueva lista" y se
+  ocultan los chips, la tarjeta y el campo de alta.
 
 ## Plantillas
 
@@ -144,8 +177,10 @@ Como usuario quiero una pestaña Plantillas donde ver todas mis plantillas.
 
 ### P2 — Crear una plantilla eligiendo su tipo
 Como usuario quiero pulsar + y elegir qué tipo de plantilla crear.
-- Cuando pulso el FAB, entonces se abre la hoja "¿Qué tipo de plantilla?" con la opción "Trabajadores" y
-  "Cancelar".
+- Cuando pulso el FAB, entonces se abre la hoja "¿Qué tipo de plantilla?" con las opciones "Trabajadores"
+  y "Tareas", y "Cancelar".
+- Cuando toco "Tareas", entonces se crea una plantilla llamada "Tareas N", se abre su detalle con el nombre
+  en modo edición, el sobretítulo "PLANTILLA · TAREAS" y el placeholder "Nueva tarea del preset…".
 - Cuando toco "Trabajadores", entonces se crea una plantilla llamada "Trabajadores N", se abre su
   detalle con el nombre en modo edición y la lista de trabajadores vacía.
 - Cuando pulso "Cancelar", entonces la hoja se cierra y no se crea nada.
@@ -182,6 +217,13 @@ Como usuario quiero pulsar + y elegir qué tipo de plantilla crear.
 - Cuando pulso "Eliminar plantilla", entonces aparece el diálogo de confirmación con el nombre y el número
   de trabajadores; "Cancelar" no hace nada y "Eliminar" borra la plantilla con sus trabajadores y vuelve
   a la lista.
+
+### P10 — Plantilla de tareas como preset
+Como usuario quiero definir una plantilla con las tareas habituales para crear listas a partir de ella.
+- Dado una plantilla de tareas con 5 tareas, cuando la abro, entonces veo "5 TAREAS" y cada fila con su
+  número de orden, texto, lápiz y papelera; puedo añadir, editar y eliminar igual que con trabajadores.
+- Cuando elimino la plantilla, entonces el diálogo indica que las listas ya creadas en Checklist no se ven
+  afectadas, y tras confirmar esas listas siguen intactas.
 
 ### P9 — Persistencia de plantillas
 - Dado plantillas con trabajadores, cuando fuerzo el cierre de la app y la reabro, entonces todo sigue

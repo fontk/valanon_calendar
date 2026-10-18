@@ -11,10 +11,10 @@ Este paquete contiene todo lo necesario para que un agente de programación impl
 | `spec/SPEC.md` | Especificación funcional completa de las dos pestañas (Calendario y Checklist). |
 | `spec/USER_STORIES.md` | Historias de usuario con criterios de aceptación verificables. |
 | `spec/TASKS.md` | Plan de trabajo por fases, listo para ir marcando. |
-| `db/schema.sql` | Esquema SQLite (tablas `turnos`, `tareas`, `plantillas`, `trabajadores`, `asignaciones`, `ajustes`) y consultas de referencia. |
+| `db/schema.sql` | Esquema SQLite (tablas `turnos`, `listas`, `tareas`, `plantillas`, `trabajadores`, `tareas_plantilla`, `asignaciones`, `ajustes`) y consultas de referencia. |
 | `design/DESIGN.md` | Guía visual: colores, tipografía, espaciados, componentes y estados. |
 | `design/tokens/tokens.json` | Tokens de diseño en JSON (colores, radios, tamaños) para traducir a `Color.kt`/`Theme.kt`. |
-| `design/mockups/*.dc.html` | Los diecisiete artboards del diseño (Calendario, selector de turno, selector de mes y año, Checklist, Plantillas en seis estados y Turnos en siete estados). Son HTML autocontenido: el marcado y los estilos inline son la referencia exacta de layout; el bloque `<script>` final es la lógica de la maqueta y sirve como pseudocódigo del comportamiento. |
+| `design/mockups/*.dc.html` | Los veintidós artboards del diseño (Calendario, selector de turno, selector de mes y año, Checklist, Plantillas en siete estados, Turnos en siete estados y Checklist con listas en cuatro estados). Son HTML autocontenido: el marcado y los estilos inline son la referencia exacta de layout; el bloque `<script>` final es la lógica de la maqueta y sirve como pseudocódigo del comportamiento. |
 
 ## Decisiones ya tomadas (no reabrir sin motivo)
 

@@ -49,8 +49,13 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
   equipo, sin plantillas, hoja de elección de plantilla, equipo de 7 con "+N", hoja "Equipo del día" en
   lectura y en edición, y el selector de turno de un trabajador, que es el mismo selector de Calendario
   reutilizado). Mismo patrón de un componente con `pantallaInicial`.
-- `PlantillasVacio`, `PlantillaEditar` y `PlantillaBorrar` (`.dc.html`) completan Plantillas: lista vacía,
-  edición en línea de un trabajador y diálogo de confirmación al eliminar la plantilla.
+- `PlantillasVacio`, `PlantillaEditar`, `PlantillaBorrar` y `PlantillaTareas` (`.dc.html`) completan
+  Plantillas: lista vacía, edición en línea de un trabajador, diálogo de confirmación al eliminar la
+  plantilla y el detalle de una plantilla de tipo Tareas (preset).
+- `design/mockups/Checklist.dc.html`, `ChecklistNueva`, `ChecklistBorrar`, `ChecklistVacio`: la pestaña
+  Checklist con varias listas (chips de lista, tarjeta de la lista activa con Reiniciar y Eliminar, hoja
+  "Nueva lista" desde una plantilla de tareas, diálogo de eliminar lista, estado sin listas). Sustituye al
+  diseño anterior de una sola lista con FAB.
 - El bloque `<script type="text/x-dc">` del final de cada fichero contiene la lógica de la maqueta en
   JavaScript (cálculo de celdas del mes, mapa de turnos, alta/borrado de tareas). Úsalo como pseudocódigo
   del comportamiento esperado, no lo portes literalmente.
@@ -71,8 +76,12 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
 - No cambiar los cinco tipos de turno ni sus colores sin pedir confirmación.
 - No sustituir SQLite/Room por DataStore, SharedPreferences ni archivos JSON.
 - No añadir inicio de sesión, sincronización en la nube ni notificaciones: fuera de alcance.
-- No añadir tipos de plantilla distintos de Trabajadores. La única pestaña que consume plantillas es
-  Turnos (plantillas de trabajadores → asignaciones por día); no conectar plantillas a Calendario ni a
-  Checklist sin que se pida.
+- No añadir tipos de plantilla distintos de Trabajadores y Tareas. Turnos consume plantillas de
+  trabajadores (asignaciones por día) y Checklist consume plantillas de tareas (crea listas copiando el
+  preset); no conectar plantillas a Calendario sin que se pida.
+- Las tareas de una lista son copias del preset: nunca enlazar `tareas` con `tareas_plantilla`; la única
+  referencia es `listas.plantilla_id` (informativa, `ON DELETE SET NULL`).
+- Sin datos de ejemplo precargados: la lista "Mi checklist" solo se crea en la migración cuando la
+  instalación ya tenía tareas.
 - La pestaña Turnos nunca escribe en la tabla `turnos` (los turnos del propio usuario); usa `asignaciones`.
 - La preferencia de plantilla activa va en la tabla `ajustes` de Room, nunca en DataStore/SharedPreferences.
