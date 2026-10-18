@@ -11,6 +11,16 @@ build/
 .externalNativeBuild/
 .cxx/
 
+# Packaged apps and generated files outside build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+*.log
+.navigation/
+output-metadata.json
+
 # Local config (SDK path, signing, etc.)
 /local.properties
 *.jks
