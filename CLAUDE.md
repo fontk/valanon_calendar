@@ -52,11 +52,12 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 
 - `CalendarApp` (Application) owns `di/AppContainer`, a manual DI container with lazy
   singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `plantillasRepositorio`,
+  `asignacionesRepositorio`,
   `exportadorPdf`).
   ViewModels get dependencies through `viewModelFactory { initializer { ... } }` reading
   `APPLICATION_KEY` plus `createSavedStateHandle()` (see `CalendarioViewModel.Factory`).
 - `ui/MisTurnosApp.kt`: Scaffold with a custom bottom bar and a `NavHost` with string routes
-  `calendario` (start), `checklist` and the `plantillas_tab` graph. Tab switches use `saveState`/`restoreState`, so each
+  `calendario` (start), `turnos`, `checklist` and the `plantillas_tab` graph (bar order). Tab switches use `saveState`/`restoreState`, so each
   tab keeps its ViewModel (visible month, typed draft).
 - Screens follow the Route/Screen split: `XRoute` is stateful (ViewModel, snackbar, share
   intent), `XScreen` is stateless and previewable. Previews use `ui/preview/DatosMuestra.kt`;
@@ -77,28 +78,30 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
-## Pending feature: Turnos tab (spec 3b, stories T1–T7, TASKS Fase 8) — after Fase 6 and 7
+## Turnos tab (spec 3b, stories T1–T7, TASKS Fase 8) — implemented
 
-Second bottom-bar destination `turnos`, between Calendario and Checklist: a month grid of the
-*team's* shifts. Each day cell shows up to 5 dots (one per worker of the active Trabajadores
-template, coloured with `TipoTurno.colores.dot`) plus "+N". Tapping a day opens the
-"Equipo del día" sheet: the template's workers with their shift as a chip; "Editar" makes each
-chip a button that swaps the sheet content for the SAME `SelectorTurno` used by Calendario
-(generalise it: title, subtitle, current shift, optional back arrow and secondary "Quitar turno"
-action — do not copy it). Picking an option or "Quitar turno" persists immediately and returns to
-the team list in edit mode; "Listo" returns to read mode. One ModalBottomSheet with
-`AnimatedContent`, never two stacked sheets. A chip under the
-header picks the active template (stored in the new `ajustes` table, key `turnos.plantilla_id`).
-Data: Room schema **version 3** with `Asignacion` (unique on `fecha` + `trabajador_id`, cascade
-from `Trabajador`) and `Ajuste`; `MIGRATION_2_3` mirrors `mis-turnos-kit/db/schema.sql`.
-Turnos has its own visible month (`KEY_MES_TURNOS`) and NEVER touches the `turnos` table, which
-holds the user's own shifts. Reuse `CabeceraMes`/`RejillaMes` from Calendario (extract them to
-`ui/componentes` with a cell-content slot) rather than copying them. References:
-`mis-turnos-kit/design/mockups/Turnos*.dc.html` and `design/DESIGN.md` ("Pestaña Turnos").
+- Second bottom-bar destination (`Destino.TURNOS`, route `turnos`): the team's shifts of the
+  active "Trabajadores" template. `ui/turnos/TurnosViewModel` + `TurnosScreen` + `HojasTurnos`.
+- Own visible month: `NavegacionMes(handle, clock, prefijo = "turnos")` → keys `turnosMes`,
+  `turnosSelectorMesAbierto`, `turnosAnioSelector`. Calendario uses the same class with the
+  historical unprefixed keys. Never read or write the `turnos` table from this tab.
+- Active template: `AsignacionesRepositorio.plantillaActiva` = the id saved in `ajustes`
+  (`turnos.plantilla_id`) or, if missing/deleted, the first template by `orden`.
+- Grid: shared `RejillaMes` with `CeldaDiaPuntos` (day number + up to 5 dots + "+N"; on very
+  narrow cells it draws fewer dots rather than clipping). Dot colour = `TipoTurno.colorPuntoCelda`
+  (the "noche" `dot` token is too light on white, so light mode uses the mockup's #2E2A6B).
+- "Equipo del día": ONE `ModalBottomSheet` whose content swaps (`AnimatedContent`) between the
+  team list and the shared `ContenidoSelectorTurno` (back arrow + "Quitar turno"). While the
+  picker is shown, swipe/scrim (`confirmValueChange`) and Back (`BackHandler`, sheet created
+  with `shouldDismissOnBackPress = false`) return to the team list instead of closing.
+  Picking a shift saves immediately (`INSERT OR REPLACE`) and returns to the list in edit mode.
+- Day, edit mode, selected worker and the template sheet live in SavedStateHandle.
+- Deleting a worker returns its assignments so the Plantillas "Deshacer" restores them; the
+  delete-template dialog adds "y sus N turnos asignados".
 
 ## Plantillas tab (spec 4b, stories P1–P9, TASKS Fase 7) — implemented
 
-- Third bottom-bar destination. `Destino.PLANTILLAS.ruta` (`plantillas_tab`) is a nested
+- Fourth bottom-bar destination. `Destino.PLANTILLAS.ruta` (`plantillas_tab`) is a nested
   navigation graph with `RutasPlantillas.LISTA` (`plantillas`) and `RutasPlantillas.DETALLE`
   (`plantillas/{id}?renombrar={renombrar}`). The active tab is found through
   `destination.hierarchy`; re-selecting the current tab does nothing, and switching tabs keeps
@@ -112,6 +115,9 @@ holds the user's own shifts. Reuse `CabeceraMes`/`RejillaMes` from Calendario (e
 - Type-specific UI lives in `TipoPlantillaUi.kt` (`icono`, `descripcion`, `InsigniaTipo`).
   `TipoPlantilla` has only `TRABAJADORES`: do not add other types or use templates from
   Calendario/Checklist until asked (AGENTS.md).
+- Shared month pieces are in `ui/componentes`: `Mes.kt` (`CabeceraMes`, `RejillaMes` with a
+  cell slot, `CabeceraDiasSemana`, `LeyendaTurnos`, `AccionesSelectorMes`), `SelectorMes.kt`,
+  `SelectorTurno.kt` (`ContenidoSelectorTurno`), `NavegacionMes.kt` and `Avatar.kt`.
 - Shared list-tab pieces are in `ui/componentes/Pestanas.kt` (`CabeceraPestana`, `CampoAlta`,
   `EstadoVacio`, `FabAccion`), used by Checklist and Plantillas.
 - Avatars (`util/iniciales`) are decorative for accessibility (`clearAndSetSemantics`); the
@@ -138,9 +144,12 @@ holds the user's own shifts. Reuse `CabeceraMes`/`RejillaMes` from Calendario (e
 
 ## Database rules
 
-- Schema **version 2**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
+- Schema **version 3**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
   v1 `turnos`, `tareas`; v2 adds `plantillas` and `trabajadores` (FK `plantilla_id` →
-  `plantillas.id` ON DELETE CASCADE, index `idx_trabajadores_plantilla`).
+  `plantillas.id` ON DELETE CASCADE, index `idx_trabajadores_plantilla`); v3 adds
+  `asignaciones` (FK `trabajador_id` ON DELETE CASCADE; the SQL `UNIQUE(fecha, trabajador_id)`
+  is the unique index `idx_asignaciones_fecha_trabajador`) and `ajustes` (key/value).
+- Migrations 1→2 and 2→3 are kept separate (v2 shipped in APK 0.4.0); both only create tables.
 - `turnos.fecha` is ISO `yyyy-MM-dd` text (`LocalDate.toString()`), so `BETWEEN` and ordering
   work on strings. Enum columns (`turnos.tipo`, `plantillas.tipo`) store `.valor` through
   `Conversores`. Room cannot express the SQL `CHECK` constraints; the enum conversion
@@ -149,6 +158,7 @@ holds the user's own shifts. Reuse `CabeceraMes`/`RejillaMes` from Calendario (e
   per template). Undo re-inserts the deleted row with its id and `orden`.
 - Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2`, `TODAS_LAS_MIGRACIONES`).
   Their SQL must equal the `createSql` Room exports in `app/schemas/.../<n>.json`.
+- Settings go in `ajustes` (`AjusteDao`), never DataStore/SharedPreferences.
 - Any entity change: bump `AppDatabase.VERSION`, add the `Migration` and append it to
   `TODAS_LAS_MIGRACIONES`, rebuild, commit the new JSON, and extend `MigrationTest`.
 - `MigrationTestHelper` needs kotlinx-serialization 1.8.x; the app is constrained to it in

@@ -41,7 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.ui.calendario.AsaHoja
+import com.valanon.calendar.ui.componentes.AsaHoja
 import com.valanon.calendar.ui.componentes.CabeceraPestana
 import com.valanon.calendar.ui.componentes.EstadoVacio
 import com.valanon.calendar.ui.componentes.FabAccion

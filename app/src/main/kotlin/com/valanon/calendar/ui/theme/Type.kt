@@ -53,6 +53,12 @@ object MisTurnosText {
     val inlineButton = TextStyle(fontFamily = Manrope, fontSize = 14.sp, fontWeight = FontWeight.W800)
     val nameInput = TextStyle(fontFamily = Manrope, fontSize = 16.sp, fontWeight = FontWeight.W700)
     val detailTitle = TextStyle(fontFamily = Manrope, fontSize = 20.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.01).em)
+    val dotsExtra = TextStyle(fontFamily = Manrope, fontSize = 9.sp, fontWeight = FontWeight.W800)
+    val teamName = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W700)
+    val chipTurno = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W700)
+    val chipTurnoBoton = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W700)
+    val chipPlantilla = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W700)
+    val resumen = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W700)
     val addButton = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W800)
 }
 

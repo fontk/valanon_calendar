@@ -41,6 +41,10 @@ data class PaletaMisTurnos(
     val sheetButton: Color,
     /** Outline of destructive buttons ("Eliminar plantilla"), tokens.json → dangerBorder. */
     val dangerBorder: Color,
+    /** Turnos: background of a day with at least one assignment (tokens.json → dayWithData). */
+    val dayWithData: Color,
+    /** Turnos: dashed outline of the "Sin asignar" chip (tokens.json → unassignedBorder). */
+    val unassignedBorder: Color,
 )
 
 val PaletaClara = PaletaMisTurnos(
@@ -67,6 +71,8 @@ val PaletaClara = PaletaMisTurnos(
     sheet = Color(0xFFFFFFFF),
     sheetButton = Color(0xFFF2F2EF),
     dangerBorder = Color(0xFFE6C9C3),
+    dayWithData = Color(0xFFFAFAF8),
+    unassignedBorder = Color(0xFFC9C9C4),
 )
 
 val PaletaOscura = PaletaMisTurnos(
@@ -93,6 +99,8 @@ val PaletaOscura = PaletaMisTurnos(
     sheet = Color(0xFF1F1F1D), // "fondo de la hoja = superficie oscura"
     sheetButton = Color(0xFF2E2E2B), // stays visible on the dark sheet
     dangerBorder = Color(0xFF5E3129),
+    dayWithData = Color(0xFF1F1F1D), // DESIGN.md: dark surface, one level above the background
+    unassignedBorder = Color(0xFF55554F),
 )
 
 val LocalPaleta = staticCompositionLocalOf { PaletaClara }
@@ -125,4 +133,6 @@ object MisTurnosColors {
     val Sheet: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheet
     val SheetButton: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.sheetButton
     val DangerBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.dangerBorder
+    val DayWithData: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.dayWithData
+    val UnassignedBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.unassignedBorder
 }

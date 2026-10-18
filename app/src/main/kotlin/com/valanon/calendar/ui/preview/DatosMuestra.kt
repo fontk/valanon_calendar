@@ -6,6 +6,7 @@ import com.valanon.calendar.data.local.entity.Tarea
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.ui.turnos.TurnosUiState
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -38,6 +39,40 @@ internal object DatosMuestra {
     /** Workers of "Equipo de planta" in the mockup. */
     fun trabajadoresEquipo(): List<Trabajador> = listOf("Lucía Martínez", "Javier Ortega", "Ana Belén Ruiz", "Marcos Pérez")
         .mapIndexed { i, nombre -> Trabajador(id = i + 1L, plantillaId = 1, nombre = nombre, orden = i + 1) }
+
+    /**
+     * October assignments of Turnos.dc.html: worker i follows the 8-day pattern shifted by
+     * 2·i, Ana is on vacation from the 26th and Marcos has nothing after the 20th.
+     */
+    fun asignacionesEquipo(): Map<LocalDate, Map<Long, TipoTurno>> {
+        val patron = listOf(
+            TipoTurno.MANANA, TipoTurno.MANANA, TipoTurno.TARDE, TipoTurno.TARDE,
+            TipoTurno.NOCHE, TipoTurno.NOCHE, TipoTurno.LIBRE, TipoTurno.LIBRE,
+        )
+        return (1..MES.lengthOfMonth()).associate { dia ->
+            MES.atDay(dia) to buildMap {
+                for (i in 0 until 4) {
+                    val id = i + 1L
+                    when {
+                        id == 3L && dia >= 26 -> put(id, TipoTurno.VACACIONES)
+                        id == 4L && dia > 20 -> Unit
+                        else -> put(id, patron[(dia - 1 + i * 2) % patron.size])
+                    }
+                }
+            }
+        }
+    }
+
+    /** Turnos tab state of the mockup (Equipo de planta, October 2026). */
+    fun estadoTurnos() = TurnosUiState(
+        mes = MES,
+        hoy = HOY,
+        cargando = false,
+        plantilla = plantillas().first(),
+        plantillas = plantillas(),
+        trabajadores = trabajadoresEquipo(),
+        asignaciones = asignacionesEquipo(),
+    )
 
     fun tareas(): List<Tarea> = listOf(
         Tarea(id = 1, texto = "Preparar el uniforme", hecha = true, orden = 1),

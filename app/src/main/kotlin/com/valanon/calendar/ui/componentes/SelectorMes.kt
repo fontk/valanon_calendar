@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.valanon.calendar.ui.calendario
+package com.valanon.calendar.ui.componentes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -38,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valanon.calendar.R
-import com.valanon.calendar.ui.componentes.Sobretitulo
 import com.valanon.calendar.ui.icons.MisTurnosIcons
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText

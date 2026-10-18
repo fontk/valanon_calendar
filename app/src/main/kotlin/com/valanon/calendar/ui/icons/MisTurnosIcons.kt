@@ -62,6 +62,9 @@ object MisTurnosIcons {
         )
     }
 
+    /** Clock: Turnos tab (DESIGN.md → Iconos). */
+    val Turnos: ImageVector by lazy { icono("Turnos", 2f, circulo(12f, 12f, 9f), "M12 7v5l3 2") }
+
     // --- Plantillas (DESIGN.md → Iconos; paths from design/mockups/Plantillas.dc.html) ---
 
     private val capas = arrayOf("M12 3l9 5-9 5-9-5 9-5z", "M3 13l9 5 9-5", "M3 17l9 5 9-5")

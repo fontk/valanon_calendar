@@ -11,6 +11,7 @@ import com.valanon.calendar.CalendarApp
 import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.data.repository.TurnosRepositorio
 import com.valanon.calendar.pdf.GeneradorPdf
+import com.valanon.calendar.ui.componentes.NavegacionMes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,21 +46,19 @@ class CalendarioViewModel(
 
     private val hoy: LocalDate = LocalDate.now(clock)
 
-    // Visible month and open sheets survive rotation and process death.
-    private val mes: StateFlow<String> = savedStateHandle.getStateFlow(KEY_MES, YearMonth.from(hoy).toString())
+    // Visible month, picker and open sheet survive rotation and process death.
+    private val navegacion = NavegacionMes(savedStateHandle, clock)
     private val diaSeleccionado: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_DIA, null)
-    private val selectorMesAbierto: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_SELECTOR_MES, false)
-    private val anioSelector: StateFlow<Int> = savedStateHandle.getStateFlow(KEY_ANIO_SELECTOR, hoy.year)
 
     /** Shifts tagged with the month they belong to, so a month switch never shows stale colours. */
-    private val turnosDelMes = mes.flatMapLatest { valor ->
+    private val turnosDelMes = navegacion.mesTexto.flatMapLatest { valor ->
         val m = YearMonth.parse(valor)
         repositorio.observarMes(m).map { m to it }
     }
 
     val uiState: StateFlow<CalendarioUiState> =
-        combine(mes, diaSeleccionado, turnosDelMes, selectorMesAbierto, anioSelector) {
-                mesTexto, dia, (mesTurnos, turnos), abierto, anio ->
+        combine(navegacion.mesTexto, diaSeleccionado, turnosDelMes, navegacion.selector) {
+                mesTexto, dia, (mesTurnos, turnos), (abierto, anio) ->
             val m = YearMonth.parse(mesTexto)
             CalendarioUiState(
                 mes = m,
@@ -73,55 +72,31 @@ class CalendarioViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
             initialValue = CalendarioUiState(
-                mes = YearMonth.parse(mes.value),
+                mes = navegacion.mes,
                 hoy = hoy,
-                selectorMesAbierto = selectorMesAbierto.value,
-                anioSelector = anioSelector.value,
+                selectorMesAbierto = navegacion.selectorAbierto.value,
+                anioSelector = navegacion.anioSelector.value,
             ),
         )
 
-    fun mesAnterior() = cambiarMes(-1)
+    fun mesAnterior() = navegacion.mesAnterior()
 
-    fun mesSiguiente() = cambiarMes(1)
+    fun mesSiguiente() = navegacion.mesSiguiente()
 
-    private fun cambiarMes(delta: Long) {
-        savedStateHandle[KEY_MES] = YearMonth.parse(mes.value).plusMonths(delta).toString()
-    }
+    // --- Month/year picker (spec 3.1.1, story C2b), shared with Turnos via NavegacionMes ---
 
-    // --- Month/year picker (spec 3.1.1, story C2b) ---
+    fun abrirSelectorMes() = navegacion.abrirSelector()
 
-    /** Opens the picker showing the year of the visible month. */
-    fun abrirSelectorMes() {
-        savedStateHandle[KEY_ANIO_SELECTOR] = YearMonth.parse(mes.value).year
-        savedStateHandle[KEY_SELECTOR_MES] = true
-    }
+    fun cerrarSelectorMes() = navegacion.cerrarSelector()
 
-    fun cerrarSelectorMes() {
-        savedStateHandle[KEY_SELECTOR_MES] = false
-    }
+    fun anioSelectorAnterior() = navegacion.anioAnterior()
 
-    fun anioSelectorAnterior() {
-        savedStateHandle[KEY_ANIO_SELECTOR] = anioSelector.value - 1
-    }
+    fun anioSelectorSiguiente() = navegacion.anioSiguiente()
 
-    fun anioSelectorSiguiente() {
-        savedStateHandle[KEY_ANIO_SELECTOR] = anioSelector.value + 1
-    }
+    /** Makes [anio]-[mes] (1..12) the visible month and closes the picker; shifts reload by themselves. */
+    fun irAMes(anio: Int, mes: Int) = navegacion.irAMes(anio, mes)
 
-    /**
-     * Makes [anio]-[mes] (1..12) the visible month and closes the picker. Writes the same
-     * [KEY_MES] as the arrows, so `turnosDelMes` reloads the shifts by itself.
-     */
-    fun irAMes(anio: Int, mes: Int) {
-        savedStateHandle[KEY_MES] = YearMonth.of(anio, mes).toString()
-        cerrarSelectorMes()
-    }
-
-    /** "Hoy": back to the device's current month, and close the picker. */
-    fun irAHoy() {
-        val actual = YearMonth.now(clock)
-        irAMes(actual.year, actual.monthValue)
-    }
+    fun irAHoy() = navegacion.irAHoy()
 
     fun seleccionarDia(fecha: LocalDate) {
         savedStateHandle[KEY_DIA] = fecha.toString()
@@ -138,15 +113,12 @@ class CalendarioViewModel(
 
     /** Generates the PDF of the visible month and returns the file. */
     suspend fun exportarPdf(): File {
-        val m = YearMonth.parse(mes.value)
+        val m = navegacion.mes
         return generadorPdf.exportar(m, repositorio.obtenerMes(m))
     }
 
     companion object {
-        private const val KEY_MES = "mes"
         private const val KEY_DIA = "dia"
-        private const val KEY_SELECTOR_MES = "selectorMesAbierto"
-        private const val KEY_ANIO_SELECTOR = "anioSelector"
 
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

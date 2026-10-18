@@ -18,6 +18,10 @@ Design): `spec/SPEC.md`, `spec/USER_STORIES.md`, `design/DESIGN.md` y las maquet
   mes actual.
 - **Exportar a PDF**: genera `turnos-AAAA-MM.pdf` en A4 con la rejilla coloreada y la
   leyenda, y abre la hoja de compartir del sistema.
+- **Turnos del equipo**: calendario con los turnos de los compañeros de una plantilla de
+  trabajadores. Cada día muestra un punto por persona con el color de su turno. Al tocar un día
+  se ve el equipo, y en modo edición se cambia el turno de cada uno con el mismo selector del
+  calendario. Tiene su propio mes visible y permite elegir qué plantilla ver.
 - **Checklist**: añadir tareas, marcar y desmarcar, borrar con opción de deshacer, contador
   "X de Y hechas" y un botón flotante que desmarca todas sin borrarlas.
 - **Plantillas**: listas reutilizables que otras pestañas podrán usar más adelante. De momento
@@ -104,9 +108,10 @@ app/src/main/kotlin/com/valanon/calendar/
 │   ├── MainActivity.kt            Única Activity
 │   ├── MisTurnosApp.kt            Barra inferior y NavHost (calendario, checklist)
 │   ├── calendario/                Pantalla, hoja de selección y ViewModel
+│   ├── turnos/                    Calendario del equipo, hoja del día y ViewModel
 │   ├── checklist/                 Pantalla y ViewModel
 │   ├── plantillas/                Lista, hoja de tipos, detalle de trabajadores y ViewModels
-│   ├── componentes/               Piezas compartidas (cabecera, campo de alta, estado vacío…)
+│   ├── componentes/               Piezas compartidas (mes, selectores, campo de alta, avatar…)
 │   ├── icons/MisTurnosIcons.kt    Iconos de trazo copiados de las maquetas
 │   ├── preview/DatosMuestra.kt    Datos de las maquetas, solo para @Preview
 │   └── theme/                     Tokens de color, colores de turno, Manrope y tema
@@ -121,15 +126,17 @@ licenses/Manrope-OFL.txt           Licencia de la fuente incluida
 ## Base de datos (SQLite / Room)
 
 - Archivo `mis_turnos.db` en el almacenamiento privado de la app.
-- Esquema idéntico a `mis-turnos-kit/db/schema.sql`, versión 2:
+- Esquema idéntico a `mis-turnos-kit/db/schema.sql`, versión 3:
   - `turnos(fecha TEXT PK, tipo TEXT)`, con la fecha en ISO `yyyy-MM-dd` y el tipo en
     minúsculas sin tilde (`libre`, `manana`, `tarde`, `noche`, `vacaciones`).
   - `tareas(id INTEGER PK AUTOINCREMENT, texto TEXT, hecha INTEGER DEFAULT 0, orden INTEGER)`
     con el índice `idx_tareas_orden`.
   - `plantillas(id, tipo, nombre, orden)` y `trabajadores(id, plantilla_id, nombre, orden)`.
     Borrar una plantilla borra sus trabajadores en cascada.
-- La migración de la versión 1 a la 2 solo crea las tablas de plantillas. Los turnos y las
-  tareas de quien actualiza la app se conservan.
+  - `asignaciones(id, fecha, trabajador_id, tipo)`, un turno por trabajador y día, y
+    `ajustes(clave, valor)`, que guarda la plantilla activa de Turnos.
+- Las migraciones 1→2 y 2→3 solo crean tablas nuevas. Quien actualiza la app conserva sus
+  turnos, tareas, plantillas y trabajadores.
 - Room no admite restricciones `CHECK`. Los valores de `tipo` los valida el conversor de
   `TipoTurno`, y `hecha` es un `Boolean` que Room guarda como 0 o 1.
 - Para cambiar el esquema:
@@ -144,7 +151,7 @@ licenses/Manrope-OFL.txt           Licencia de la fuente incluida
 | Tipo | Comando | Qué cubre |
 |---|---|---|
 | Unitarios (JVM) | `./gradlew testDebugUnitTest` | Celdas del mes, fechas en español, iniciales, contraste de colores y todos los ViewModels |
-| Instrumentados | `./gradlew connectedDebugAndroidTest` | DAOs sobre SQLite real, migración 1 a 2, PDF generado y las historias de Calendario, Checklist y Plantillas en la app |
+| Instrumentados | `./gradlew connectedDebugAndroidTest` | DAOs sobre SQLite real, migraciones 1→2 y 2→3, PDF generado y las historias de Calendario, Turnos, Checklist y Plantillas en la app |
 
 Los instrumentados necesitan un emulador o un móvil conectado. La prueba de interfaz
 borra las tablas de la app antes de cada test.

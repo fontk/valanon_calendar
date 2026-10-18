@@ -20,10 +20,11 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -50,15 +52,17 @@ import com.valanon.calendar.ui.icons.MisTurnosIcons
 import com.valanon.calendar.ui.plantillas.PlantillaTrabajadoresRoute
 import com.valanon.calendar.ui.plantillas.PlantillaTrabajadoresViewModel
 import com.valanon.calendar.ui.plantillas.PlantillasRoute
+import com.valanon.calendar.ui.turnos.TurnosRoute
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
 
 /**
- * The three bottom-bar destinations, in bar order. [ruta] is the Navigation Compose route of
+ * The four bottom-bar destinations, in bar order (spec 2). [ruta] is the Navigation Compose route of
  * the tab: a screen for Calendario/Checklist, a nested graph for Plantillas (list + detail).
  */
 enum class Destino(val ruta: String, @param:StringRes val etiqueta: Int, val icono: ImageVector) {
     CALENDARIO("calendario", R.string.tab_calendario, MisTurnosIcons.Calendario),
+    TURNOS("turnos", R.string.tab_turnos, MisTurnosIcons.Turnos),
     CHECKLIST("checklist", R.string.tab_checklist, MisTurnosIcons.Checklist),
     PLANTILLAS("plantillas_tab", R.string.tab_plantillas, MisTurnosIcons.Plantillas),
 }
@@ -80,23 +84,21 @@ fun MisTurnosApp(navController: NavHostController = rememberNavController()) {
         entradaActual?.destination?.hierarchy?.any { it.route == destino.ruta } == true
     }
 
+    val irAPestana: (Destino) -> Unit = { destino ->
+        // Re-selecting the current tab does nothing (keeps an open template).
+        if (destino != destinoActual) {
+            navController.navigate(destino.ruta) {
+                // Keep one entry per tab and restore each tab's state (visible month, draft…).
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     Scaffold(
         containerColor = MisTurnosColors.Background,
-        bottomBar = {
-            BarraInferior(
-                destinoActual = destinoActual,
-                onSeleccionar = { destino ->
-                    // Re-selecting the current tab does nothing (keeps an open template).
-                    if (destino == destinoActual) return@BarraInferior
-                    navController.navigate(destino.ruta) {
-                        // Keep one entry per tab and restore each tab's state (visible month, draft…).
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
-        },
+        bottomBar = { BarraInferior(destinoActual = destinoActual, onSeleccionar = irAPestana) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -108,6 +110,7 @@ fun MisTurnosApp(navController: NavHostController = rememberNavController()) {
                 .consumeWindowInsets(padding),
         ) {
             composable(Destino.CALENDARIO.ruta) { CalendarioRoute() }
+            composable(Destino.TURNOS.ruta) { TurnosRoute(onIrAPlantillas = { irAPestana(Destino.PLANTILLAS) }) }
             composable(Destino.CHECKLIST.ruta) { ChecklistRoute() }
             navigation(startDestination = RutasPlantillas.LISTA, route = Destino.PLANTILLAS.ruta) {
                 composable(RutasPlantillas.LISTA) {
@@ -178,10 +181,14 @@ private fun ItemBarra(destino: Destino, activo: Boolean, onClick: () -> Unit, mo
         ) {
             Icon(destino.icono, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
         }
-        Text(
+        // Four equal tabs: the label shrinks (down to 9 sp) instead of clipping at large font sizes.
+        val estilo = if (activo) MisTurnosText.tabLabelActive else MisTurnosText.tabLabel
+        BasicText(
             text = stringResource(destino.etiqueta),
-            style = if (activo) MisTurnosText.tabLabelActive else MisTurnosText.tabLabel,
-            color = color,
+            style = estilo.copy(color = color),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = estilo.fontSize),
+            modifier = Modifier.padding(horizontal = 2.dp),
         )
     }
 }

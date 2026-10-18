@@ -24,6 +24,15 @@ val TipoTurno.colores: ColoresTurno
         if (LocalPaleta.current.oscuro && this == TipoTurno.NOCHE) base.copy(borde = Color(0xFF6E68C9)) else base
     }
 
+/**
+ * Colour of the shift dot in the Turnos grid cells. The `dot` token of "noche" (#B9B4FF) is
+ * meant for the dark legend chip and nearly vanishes on a white cell, so in light mode the
+ * cells use the deep navy of the Turnos mockup (#2E2A6B); in dark mode the token is used.
+ */
+val TipoTurno.colorPuntoCelda: Color
+    @Composable @ReadOnlyComposable
+    get() = if (this == TipoTurno.NOCHE && !LocalPaleta.current.oscuro) Color(0xFF2E2A6B) else colores.punto
+
 /** Shift colours of the light design. Used outside composition, e.g. by the PDF, which is always light. */
 fun TipoTurno.coloresClaros(): ColoresTurno =
     when (this) {

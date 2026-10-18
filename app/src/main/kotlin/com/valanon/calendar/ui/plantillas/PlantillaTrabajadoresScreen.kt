@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -57,7 +56,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -72,6 +70,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.model.TipoPlantilla
+import com.valanon.calendar.ui.componentes.Avatar
 import com.valanon.calendar.ui.componentes.CampoAlta
 import com.valanon.calendar.ui.componentes.EstadoVacio
 import com.valanon.calendar.ui.componentes.Sobretitulo
@@ -80,7 +79,6 @@ import com.valanon.calendar.ui.preview.DatosMuestra
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
 import com.valanon.calendar.ui.theme.MisTurnosTheme
-import com.valanon.calendar.util.iniciales
 import kotlinx.coroutines.launch
 
 /** Stateful entry point of a template's detail. [onVolver] pops back to the list. */
@@ -413,20 +411,6 @@ fun FilaTrabajador(
                 )
             }
         }
-    }
-}
-
-/** 36 dp circle with the initials (spec 4b.3); decorative for accessibility (the name is read). */
-@Composable
-private fun Avatar(nombre: String) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .background(MisTurnosColors.Surface, CircleShape)
-            .clearAndSetSemantics { },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(iniciales(nombre), style = MisTurnosText.avatar, color = MisTurnosColors.Text)
     }
 }
 

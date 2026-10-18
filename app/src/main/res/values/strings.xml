@@ -55,6 +55,42 @@
     <string name="sin_tareas">Sin tareas todavía</string>
     <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
 
+    <!-- Turnos del equipo (spec 3b) -->
+    <string name="tab_turnos">Turnos</string>
+    <string name="turnos_sobretitulo">Turnos del equipo</string>
+    <string name="elegir_plantilla_trabajadores">Elegir plantilla de trabajadores</string>
+    <string name="equipo_del_dia">Equipo del día</string>
+    <!-- "Equipo de planta · 3 de 4 asignados" -->
+    <string name="subtitulo_equipo">%1$s · %2$s</string>
+    <!-- Cell description: "17 de octubre, 3 de 4 asignados" -->
+    <string name="descripcion_celda_equipo">%1$s, %2$s</string>
+    <string name="editar">Editar</string>
+    <string name="listo">Listo</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="sin_asignar">Sin asignar</string>
+    <string name="sin_asignar_descripcion">sin asignar</string>
+    <string name="turno_de">Turno de %1$s</string>
+    <string name="cambiar_turno_de">Cambiar turno de %1$s, %2$s</string>
+    <string name="volver_al_equipo">Volver al equipo del día</string>
+    <string name="quitar_turno">Quitar turno</string>
+    <string name="plantilla_de_trabajadores">Plantilla de trabajadores</string>
+    <string name="que_equipo">¿Qué equipo quieres ver?</string>
+    <string name="turnos_vacio_titulo">Aún no hay ninguna plantilla de trabajadores</string>
+    <string name="turnos_vacio_ayuda">Crea una en la pestaña Plantillas para ver aquí los turnos de tu equipo.</string>
+    <string name="ir_a_plantillas">Ir a Plantillas</string>
+    <!-- "12 de 31 días con turnos". Quantity is the number of days of the month. -->
+    <plurals name="dias_con_turnos">
+        <item quantity="one">%1$d de %2$d día con turnos</item>
+        <item quantity="many">%1$d de %2$d días con turnos</item>
+        <item quantity="other">%1$d de %2$d días con turnos</item>
+    </plurals>
+    <!-- "3 de 4 asignados". Quantity is the number of workers. -->
+    <plurals name="asignados">
+        <item quantity="one">%1$d de %2$d asignado</item>
+        <item quantity="many">%1$d de %2$d asignados</item>
+        <item quantity="other">%1$d de %2$d asignados</item>
+    </plurals>
+
     <!-- Plantillas (spec 4b) -->
     <string name="tab_plantillas">Plantillas</string>
     <string name="plantillas_titulo">Plantillas</string>
