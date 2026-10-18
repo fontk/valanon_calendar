@@ -3,9 +3,11 @@
 Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/SelectorMes.dc.html`,
 `mockups/Checklist.dc.html`, `mockups/Plantillas.dc.html`, `mockups/PlantillasTipo.dc.html`,
 `mockups/PlantillaDetalle.dc.html`, `mockups/Turnos.dc.html`, `mockups/TurnosDia.dc.html`,
-`mockups/TurnosEditar.dc.html`, `mockups/TurnosSelector.dc.html` (390×844). Los tres de Plantillas y los
-cuatro de Turnos son, en cada caso, el mismo componente con la pantalla inicial distinta (prop
-`pantallaInicial`).
+`mockups/TurnosEditar.dc.html`, `mockups/TurnosSelector.dc.html`, más los estados adicionales
+`PlantillasVacio`, `PlantillaEditar`, `PlantillaBorrar`, `TurnosVacio`, `TurnosPlantilla` y `TurnosGrande`
+(390×844). Los seis de Plantillas y los siete de Turnos son, en cada caso, el mismo componente con la
+pantalla inicial distinta (prop `pantallaInicial`: Plantillas → lista / vacio / tipos / detalle / editar /
+borrar; Turnos → calendario / vacio / plantilla / grande / dia / editar / selector).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -104,6 +106,9 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
    13/800, nombre 16/600, lápiz 44 dp `textMuted`, papelera 44 dp `danger`. Fila en edición: borde 2 dp
    `accent`, campo 40 dp fondo `surfaceInput` sin borde, "Guardar" y X (40 dp, fondo `surface`).
    Botón "Eliminar plantilla": 48 dp, radio 14, borde #E6C9C3, texto e icono `danger`, 12 dp bajo la lista.
+   Diálogo de confirmación (`AlertDialog`, mockup `PlantillaBorrar`): tarjeta radio 24, padding 24, título
+   20/800, cuerpo 15/500 `textMuted`, acciones alineadas a la derecha: "Cancelar" texto en `accent` y
+   "Eliminar" relleno `danger` con texto blanco, 44 dp.
 4. La barra inferior pasa a tres pestañas de igual ancho; la activa sigue siendo la única con píldora.
 
 ## Iconos (trazo 2 dp, esquinas y remates redondeados, 24×24 viewBox)

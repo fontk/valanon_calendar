@@ -143,6 +143,19 @@ button{cursor:pointer}
     </div>
   </div>
 
+  <sc-if value="{{confirmandoBorrado}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; align-items: center; justify-content: center; padding: 28px">
+      <div role="alertdialog" aria-labelledby="dlg-titulo" style="width: 100%; background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 12px 32px rgba(20, 20, 19, 0.25)">
+        <div id="dlg-titulo" style="font-size: 20px; font-weight: 800; line-height: 1.25">{{dialogoTitulo}}</div>
+        <div style="font-size: 15px; font-weight: 500; color: #5F5F5A; line-height: 1.4">{{dialogoCuerpo}}</div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px">
+          <button onClick="{{cancelarBorrado}}" style="height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: transparent; color: {{accent}}; font-size: 15px; font-weight: 700">Cancelar</button>
+          <button onClick="{{confirmarBorrado}}" style="height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #8A2E1F; color: #FFFFFF; font-size: 15px; font-weight: 800">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{tiposAbierto}}" hint-placeholder-val="{{false}}">
     <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
       <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px">
@@ -167,22 +180,24 @@ button{cursor:pointer}
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6E64","options":["#0F6E64","#2E2A6B","#B4421E"]},"pantallaInicial":{"editor":"enum","default":"lista","options":["lista","tipos","detalle"]},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6E64","options":["#0F6E64","#2E2A6B","#B4421E"]},"pantallaInicial":{"editor":"enum","default":"detalle","options":["lista","tipos","detalle","editar","borrar","vacio"]},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    var inicial = props.pantallaInicial || 'detalle';
+    var inicial = 'detalle';
+    var enDetalle = inicial === 'detalle' || inicial === 'editar' || inicial === 'borrar';
     this.state = {
-      pantalla: inicial === 'detalle' ? 'detalle' : 'lista',
+      pantalla: enDetalle ? 'detalle' : 'lista',
       tiposAbierto: inicial === 'tipos',
-      detalleId: inicial === 'detalle' ? 1 : null,
-      editandoId: null,
+      detalleId: enDetalle ? 1 : null,
+      editandoId: inicial === 'editar' ? 2 : null,
+      confirmandoBorrado: inicial === 'borrar',
       renombrando: false,
       borrador: '',
-      borradorEdicion: '',
+      borradorEdicion: inicial === 'editar' ? 'Javier Ortega' : '',
       borradorNombre: '',
       siguienteId: 10,
-      plantillas: [
+      plantillas: inicial === 'vacio' ? [] : [
         { id: 1, tipo: 'trabajadores', nombre: 'Equipo de planta', trabajadores: [
           { id: 1, nombre: 'Lucía Martínez' },
           { id: 2, nombre: 'Javier Ortega' },
@@ -290,8 +305,13 @@ class Component extends DCLogic {
       onKeyEdicion: function (e) { if (e.key === 'Enter') self.guardarEdicion(); if (e.key === 'Escape') self.setState({ editandoId: null }); },
       guardarEdicion: function () { self.guardarEdicion(); },
       cancelarEdicion: function () { self.setState({ editandoId: null, borradorEdicion: '' }); },
-      borrarPlantilla: function () {
-        self.setState({ plantillas: s.plantillas.filter(function (pl) { return pl.id !== s.detalleId; }), pantalla: 'lista', detalleId: null });
+      borrarPlantilla: function () { self.setState({ confirmandoBorrado: true }); },
+      confirmandoBorrado: s.confirmandoBorrado,
+      dialogoTitulo: p ? '¿Eliminar la plantilla «' + p.nombre + '»?' : '',
+      dialogoCuerpo: p ? (p.trabajadores.length === 1 ? 'Se borrará también su único trabajador.' : 'Se borrarán también sus ' + p.trabajadores.length + ' trabajadores.') : '',
+      cancelarBorrado: function () { self.setState({ confirmandoBorrado: false }); },
+      confirmarBorrado: function () {
+        self.setState({ plantillas: s.plantillas.filter(function (pl) { return pl.id !== s.detalleId; }), pantalla: 'lista', detalleId: null, confirmandoBorrado: false });
       }
     };
   }

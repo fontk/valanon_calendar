@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mis turnos – Turnos · elegir plantilla activa</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif;color:#1C1C1A;background:#FFFFFF}
+a{color:#0F6E64}a:hover{color:#0B544C}
+button,select{font-family:inherit}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; display: flex; flex-direction: column; position: relative; overflow: hidden; font-family: Manrope, system-ui, sans-serif">
+
+  <div style="padding: 22px 20px 10px; display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Turnos del equipo</div>
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button aria-label="Mes anterior" onClick="{{prevMonth}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E6E1; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </button>
+      <button onClick="{{openMes}}" aria-label="Elegir mes y año" style="height: 44px; padding: 0 14px; border-radius: 22px; border: none; background: #F2F2EF; color: #1C1C1A; display: flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 800; letter-spacing: -0.01em">
+        {{monthLabel}}
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5F5F5A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+      </button>
+      <button aria-label="Mes siguiente" onClick="{{nextMonth}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E6E1; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <sc-if value="{{hayPlantilla}}" hint-placeholder-val="{{true}}">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 20px 12px">
+    <button onClick="{{openPlantillas}}" aria-label="Elegir plantilla de trabajadores" style="height: 36px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #E6E6E1; background: #FFFFFF; color: #1C1C1A; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; max-width: 240px">
+      <span style="width: 24px; height: 24px; border-radius: 7px; background: #DDF0EC; color: #0F6E64; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16 14.5c3 0 5.5 2 5.5 5"></path></svg>
+      </span>
+      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{nombrePlantilla}}</span>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F5F5A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; white-space: nowrap">{{resumenMes}}</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 0 16px 6px">
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">L</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">M</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">X</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">J</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">V</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">S</div>
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #7A7A75">D</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 0 16px; flex-grow: 1; align-content: start">
+    <sc-for list="{{cells}}" as="d" hint-placeholder-count="35">
+      <button onClick="{{d.pick}}" aria-label="{{d.aria}}" style="height: 60px; border-radius: 12px; padding: 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: {{d.border}}; background: {{d.bg}}; color: #1C1C1A; visibility: {{d.vis}}">
+        <span style="font-size: 15px; font-weight: 800">{{d.num}}</span>
+        <span style="display: flex; align-items: center; gap: 3px; height: 8px">
+          <span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.p1}}"></span>
+          <span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.p2}}"></span>
+          <span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.p3}}"></span>
+          <span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.p4}}"></span>
+          <span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.p5}}"></span>
+          <span style="font-size: 9px; font-weight: 800; color: #5F5F5A; line-height: 1">{{d.extra}}</span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 20px 12px">
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #F2F2EF; color: #5B5B57; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #9A9A95"></span>Libre</div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FFE9A8; color: #6B4A00; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #D99E00"></span>Mañana</div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #CFE4FF; color: #12407A; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #2F7BD8"></span>Tarde</div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #2E2A6B; color: #FFFFFF; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #B9B4FF"></span>Noche</div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #CDEFD5; color: #145229; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #2E9E55"></span>Vacaciones</div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{sinPlantilla}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 40px 40px; text-align: center; color: #7A7A75">
+      <span style="width: 64px; height: 64px; border-radius: 20px; background: #F2F2EF; color: #9A9A95; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16 14.5c3 0 5.5 2 5.5 5"></path></svg>
+      </span>
+      <div style="font-size: 17px; font-weight: 800; color: #1C1C1A">Aún no hay ninguna plantilla de trabajadores</div>
+      <div style="font-size: 14px; font-weight: 500; line-height: 1.4">Crea una en la pestaña Plantillas para ver aquí los turnos de tu equipo.</div>
+      <a href="Plantillas.dc.html" style="margin-top: 8px; height: 48px; padding: 0 20px; border-radius: 14px; border: 1px solid {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; text-decoration: none">
+        Ir a Plantillas
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+    </div>
+  </sc-if>
+
+  <div style="height: 72px; border-top: 1px solid #ECECE8; background: #FFFFFF; display: flex">
+    <a href="Main.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 18px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Calendario</span>
+    </a>
+    <div aria-current="page" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{accent}}">
+      <span style="padding: 4px 18px; border-radius: 999px; background: #DDF0EC; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 800">Turnos</span>
+    </div>
+    <a href="Checklist.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 18px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"></path><rect x="3" y="4" width="18" height="16" rx="2"></rect></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Checklist</span>
+    </a>
+    <a href="Plantillas.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 18px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path><path d="M3 17l9 5 9-5"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Plantillas</span>
+    </a>
+  </div>
+
+  <sc-if value="{{diaAbierto}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px; max-height: 720px">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: #D8D8D3; align-self: center"></div>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Equipo del día</div>
+            <div style="font-size: 20px; font-weight: 800">{{tituloDia}}</div>
+            <div style="font-size: 13px; font-weight: 600; color: #5F5F5A">{{subtituloDia}}</div>
+          </div>
+          <sc-if value="{{viendo}}" hint-placeholder-val="{{true}}">
+            <button onClick="{{empezarEditar}}" style="height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px; flex-shrink: 0">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+              Editar
+            </button>
+          </sc-if>
+          <sc-if value="{{editando}}" hint-placeholder-val="{{false}}">
+            <button onClick="{{terminarEditar}}" style="height: 40px; padding: 0 14px; border-radius: 12px; border: none; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 800; flex-shrink: 0">Listo</button>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto">
+          <sc-for list="{{equipo}}" as="t" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 8px 6px 10px; border-radius: 14px; border: 1px solid #E8E8E4; background: #FFFFFF">
+              <span style="width: 36px; height: 36px; border-radius: 18px; background: #F2F2EF; color: #1C1C1A; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0">{{t.iniciales}}</span>
+              <span style="flex-grow: 1; font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.nombre}}</span>
+              <sc-if value="{{viendo}}" hint-placeholder-val="{{true}}">
+                <span style="padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{t.chipBg}}; color: {{t.chipFg}}; border: {{t.chipBorder}}; white-space: nowrap">{{t.chip}}</span>
+              </sc-if>
+              <sc-if value="{{editando}}" hint-placeholder-val="{{false}}">
+                <button onClick="{{t.abrirSelector}}" aria-label="{{t.ariaSelect}}" style="height: 40px; padding: 0 10px 0 12px; border-radius: 12px; border: 2px solid {{t.selBorder}}; background: {{t.selBg}}; color: {{t.selFg}}; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; white-space: nowrap">
+                  {{t.chip}}
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <button onClick="{{cerrarDia}}" style="height: 48px; border-radius: 14px; border: none; background: #F2F2EF; color: #1C1C1A; font-size: 15px; font-weight: 700; flex-shrink: 0">Cerrar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{selectorAbierto}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: #D8D8D3; align-self: center"></div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button aria-label="Volver al equipo del día" onClick="{{cerrarSelector}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #F2F2EF; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg>
+          </button>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">{{selectorSobretitulo}}</div>
+            <div style="font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{selectorTitulo}}</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{opcionesTurno}}" as="o" hint-placeholder-count="5">
+            <button onClick="{{o.choose}}" style="height: 52px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: {{o.border}}; background: #FFFFFF; color: #1C1C1A; font-size: 16px; font-weight: 700; text-align: left">
+              <span style="width: 28px; height: 28px; border-radius: 8px; background: {{o.swatch}}; flex-shrink: 0"></span>
+              <span style="flex-grow: 1">{{o.label}}</span>
+              <span style="font-size: 13px; font-weight: 700; color: {{accent}}">{{o.check}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <sc-if value="{{selectorTieneTurno}}" hint-placeholder-val="{{true}}">
+            <button onClick="{{quitarTurno}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: 1px solid #E6C9C3; background: #FFFFFF; color: #8A2E1F; font-size: 15px; font-weight: 700">Quitar turno</button>
+          </sc-if>
+          <button onClick="{{cerrarSelector}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: none; background: #F2F2EF; color: #1C1C1A; font-size: 15px; font-weight: 700">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{plantillasAbierto}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: #D8D8D3; align-self: center"></div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Plantilla de trabajadores</div>
+          <div style="font-size: 20px; font-weight: 800">¿Qué equipo quieres ver?</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{plantillas}}" as="p" hint-placeholder-count="2">
+            <button onClick="{{p.elegir}}" style="min-height: 56px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: {{p.border}}; background: #FFFFFF; color: #1C1C1A; font-size: 16px; font-weight: 700; text-align: left">
+              <span style="flex-grow: 1">{{p.nombre}}</span>
+              <span style="font-size: 13px; font-weight: 600; color: #5F5F5A">{{p.detalle}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <button onClick="{{cerrarPlantillas}}" style="height: 48px; border-radius: 14px; border: none; background: #F2F2EF; color: #1C1C1A; font-size: 15px; font-weight: 700">Cancelar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{mesOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: #D8D8D3; align-self: center"></div>
+        <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Ir a mes</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <button aria-label="Año anterior" onClick="{{prevAnio}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E6E1; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.01em">{{anioLabel}}</div>
+          <button aria-label="Año siguiente" onClick="{{nextAnio}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E6E1; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{meses}}" as="m" hint-placeholder-count="12">
+            <button onClick="{{m.pick}}" aria-label="{{m.aria}}" style="height: 52px; border-radius: 14px; border: {{m.border}}; background: {{m.bg}}; color: {{m.fg}}; font-size: 15px; font-weight: 700; padding: 0">{{m.label}}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{irHoy}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: 1px solid {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 15px; font-weight: 700">Hoy</button>
+          <button onClick="{{closeMes}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: none; background: #F2F2EF; color: #1C1C1A; font-size: 15px; font-weight: 700">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6E64","options":["#0F6E64","#2E2A6B","#B4421E"]},"pantallaInicial":{"editor":"enum","default":"plantilla","options":["calendario","dia","editar","selector","plantilla","grande","vacio"]},"$preview":{"width":390,"height":844}}'>
+var TURNOS = {
+  libre:      { label: 'Libre',      bg: '#F2F2EF', fg: '#5B5B57', border: '1px solid #E4E4E0', dot: '#9A9A95', swatch: '#D9D9D4' },
+  manana:     { label: 'Mañana',     bg: '#FFE9A8', fg: '#6B4A00', border: '1px solid #F3D77A', dot: '#D99E00', swatch: '#FFD766' },
+  tarde:      { label: 'Tarde',      bg: '#CFE4FF', fg: '#12407A', border: '1px solid #A9CBF5', dot: '#2F7BD8', swatch: '#8FBDF5' },
+  noche:      { label: 'Noche',      bg: '#2E2A6B', fg: '#FFFFFF', border: '1px solid #2E2A6B', dot: '#2E2A6B', swatch: '#2E2A6B' },
+  vacaciones: { label: 'Vacaciones', bg: '#CDEFD5', fg: '#145229', border: '1px solid #A6DDB4', dot: '#2E9E55', swatch: '#8EDBA4' }
+};
+var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var inicial = 'plantilla';
+    var plantillas = [
+      { id: 1, nombre: 'Equipo de planta', trabajadores: [
+        { id: 1, nombre: 'Lucía Martínez' }, { id: 2, nombre: 'Javier Ortega' }, { id: 3, nombre: 'Ana Belén Ruiz' }, { id: 4, nombre: 'Marcos Pérez' }
+      ] },
+      { id: 2, nombre: 'Refuerzos fin de semana', trabajadores: [ { id: 5, nombre: 'Sara López' }, { id: 6, nombre: 'Diego Ferrer' } ] },
+      { id: 3, nombre: 'Planta completa', trabajadores: [
+        { id: 7, nombre: 'Lucía Martínez' }, { id: 8, nombre: 'Javier Ortega' }, { id: 9, nombre: 'Ana Belén Ruiz' }, { id: 10, nombre: 'Marcos Pérez' },
+        { id: 11, nombre: 'Sara López' }, { id: 12, nombre: 'Diego Ferrer' }, { id: 13, nombre: 'Carla Navarro' }
+      ] }
+    ];
+    if (inicial === 'vacio') plantillas = [];
+    var asignaciones = {};
+    var patron = ['manana','manana','tarde','tarde','noche','noche','libre','libre'];
+    for (var d = 1; d <= 31; d++) {
+      var k = '2026-10-' + (d < 10 ? '0' + d : d);
+      asignaciones[k] = {};
+      for (var i = 0; i < 4; i++) {
+        var id = i + 1;
+        if (id === 3 && d >= 26) { asignaciones[k][id] = 'vacaciones'; continue; }
+        if (d > 14 && id === 4) continue;
+        asignaciones[k][id] = patron[(d - 1 + i * 2) % patron.length];
+      }
+      for (var j = 0; j < 7; j++) {
+        var gid = j + 7;
+        if (gid === 13 && d % 7 === 0) continue;
+        if (gid === 9 && d >= 26) { asignaciones[k][gid] = 'vacaciones'; continue; }
+        asignaciones[k][gid] = patron[(d - 1 + j) % patron.length];
+      }
+    }
+    this.state = {
+      y: 2026, m: 9, dia: inicial === 'calendario' ? null : 17, editando: inicial === 'editar' || inicial === 'selector',
+      trabajadorSel: inicial === 'selector' ? 2 : null,
+      plantillaId: inicial === 'grande' ? 3 : 1, plantillas: plantillas, asignaciones: asignaciones,
+      plantillasAbierto: inicial === 'plantilla', mesOpen: false, anio: 2026
+    };
+  }
+  key(y, m, d) { return y + '-' + (m + 1 < 10 ? '0' + (m + 1) : (m + 1)) + '-' + (d < 10 ? '0' + d : d); }
+  iniciales(nombre) {
+    var p = nombre.trim().split(/\s+/);
+    return ((p[0] ? p[0].charAt(0) : '') + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase();
+  }
+  plantilla() {
+    var self = this;
+    return this.state.plantillas.filter(function (p) { return p.id === self.state.plantillaId; })[0] || this.state.plantillas[0];
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent || '#0F6E64';
+    var pl = this.plantilla();
+    var equipo = pl ? pl.trabajadores : [];
+    var first = (new Date(s.y, s.m, 1).getDay() + 6) % 7;
+    var total = new Date(s.y, s.m + 1, 0).getDate();
+    var today = new Date(2026, 9, 17);
+    var cells = [];
+    var diasConDatos = 0;
+    for (var b = 0; b < first; b++) {
+      cells.push({ num: '', aria: '', vis: 'hidden', bg: 'transparent', border: 'none', p1: 'transparent', p2: 'transparent', p3: 'transparent', p4: 'transparent', p5: 'transparent', extra: '', pick: function () {} });
+    }
+    for (var d = 1; d <= total; d++) {
+      (function (day) {
+        var k = self.key(s.y, s.m, day);
+        var asig = s.asignaciones[k] || {};
+        var puntos = equipo.map(function (t) { return asig[t.id]; }).filter(function (x) { return x; }).map(function (x) { return TURNOS[x].dot; });
+        if (puntos.length) diasConDatos++;
+        var isToday = s.y === today.getFullYear() && s.m === today.getMonth() && day === today.getDate();
+        var mostrar = puntos.slice(0, 5);
+        var extra = puntos.length > 5 ? '+' + (puntos.length - 5) : '';
+        cells.push({
+          num: String(day),
+          aria: day + ' de ' + MESES[s.m] + ', ' + puntos.length + ' de ' + equipo.length + ' asignados',
+          vis: 'visible',
+          bg: puntos.length ? '#FAFAF8' : '#FFFFFF',
+          border: isToday ? '2px solid ' + accent : '1px solid #E8E8E4',
+          p1: mostrar[0] || 'transparent', p2: mostrar[1] || 'transparent', p3: mostrar[2] || 'transparent', p4: mostrar[3] || 'transparent', p5: mostrar[4] || 'transparent',
+          extra: extra,
+          pick: function () { self.setState({ dia: day, editando: false }); }
+        });
+      })(d);
+    }
+    var kDia = s.dia != null ? self.key(s.y, s.m, s.dia) : null;
+    var asigDia = kDia ? (s.asignaciones[kDia] || {}) : {};
+    var asignados = equipo.filter(function (t) { return asigDia[t.id]; }).length;
+    var tituloDia = '';
+    if (s.dia != null) {
+      var dn = DIAS[new Date(s.y, s.m, s.dia).getDay()];
+      tituloDia = dn.charAt(0).toUpperCase() + dn.slice(1) + ', ' + s.dia + ' de ' + MESES[s.m];
+    }
+    var equipoVals = equipo.map(function (t) {
+      var tipo = asigDia[t.id] || '';
+      var tt = tipo ? TURNOS[tipo] : null;
+      return {
+        nombre: t.nombre,
+        iniciales: self.iniciales(t.nombre),
+        tipo: tipo,
+        chip: tt ? tt.label : 'Sin asignar',
+        chipBg: tt ? tt.bg : '#FFFFFF',
+        chipFg: tt ? tt.fg : '#7A7A75',
+        chipBorder: tt ? tt.border : '1px dashed #C9C9C4',
+        selBorder: tt ? tt.dot : '#E6E6E1',
+        selBg: tt ? tt.bg : '#FFFFFF',
+        selFg: tt ? tt.fg : '#5F5F5A',
+        ariaSelect: 'Cambiar turno de ' + t.nombre + ', ' + (tt ? tt.label : 'sin asignar'),
+        abrirSelector: function () { self.setState({ trabajadorSel: t.id }); }
+      };
+    });
+    var asignar = function (trabajadorId, v) {
+      var next = Object.assign({}, s.asignaciones);
+      var dia = Object.assign({}, next[kDia] || {});
+      if (v) dia[trabajadorId] = v; else delete dia[trabajadorId];
+      next[kDia] = dia;
+      self.setState({ asignaciones: next, trabajadorSel: null });
+    };
+    var trabSel = equipo.filter(function (t) { return t.id === s.trabajadorSel; })[0] || null;
+    var tipoSel = trabSel ? (asigDia[trabSel.id] || '') : '';
+    var opcionesTurno = Object.keys(TURNOS).map(function (id) {
+      var t = TURNOS[id];
+      var cur = tipoSel === id;
+      return {
+        label: t.label,
+        swatch: t.swatch,
+        border: cur ? '2px solid ' + accent : '1px solid #E6E6E1',
+        check: cur ? 'Actual' : '',
+        choose: function () { if (trabSel) asignar(trabSel.id, id); }
+      };
+    });
+    var meses = MESES.map(function (nombre, idx) {
+      var esActivo = s.anio === s.y && idx === s.m;
+      var esHoy = s.anio === today.getFullYear() && idx === today.getMonth();
+      return {
+        label: nombre.slice(0, 3).toUpperCase(), aria: nombre + ' de ' + s.anio,
+        bg: esActivo ? accent : '#FFFFFF', fg: esActivo ? '#FFFFFF' : '#1C1C1A',
+        border: esActivo ? '2px solid ' + accent : (esHoy ? '2px solid #B9CFCB' : '1px solid #E6E6E1'),
+        pick: function () { self.setState({ y: s.anio, m: idx, mesOpen: false }); }
+      };
+    });
+    var ml = MESES[s.m];
+    return {
+      accent: accent,
+      monthLabel: ml.charAt(0).toUpperCase() + ml.slice(1) + ' ' + s.y,
+      nombrePlantilla: pl ? pl.nombre : 'Sin plantilla',
+      hayPlantilla: pl != null,
+      sinPlantilla: pl == null,
+      resumenMes: diasConDatos + ' de ' + total + ' días con turnos',
+      cells: cells,
+      diaAbierto: s.dia != null && trabSel == null,
+      selectorAbierto: s.dia != null && trabSel != null,
+      selectorSobretitulo: tituloDia,
+      selectorTitulo: trabSel ? 'Turno de ' + trabSel.nombre : '',
+      selectorTieneTurno: tipoSel !== '',
+      opcionesTurno: opcionesTurno,
+      cerrarSelector: function () { self.setState({ trabajadorSel: null }); },
+      quitarTurno: function () { if (trabSel) asignar(trabSel.id, ''); },
+      tituloDia: tituloDia,
+      subtituloDia: pl ? pl.nombre + ' · ' + asignados + ' de ' + equipo.length + ' asignados' : '',
+      viendo: !s.editando,
+      editando: s.editando,
+      equipo: equipoVals,
+      empezarEditar: function () { self.setState({ editando: true }); },
+      terminarEditar: function () { self.setState({ editando: false }); },
+      cerrarDia: function () { self.setState({ dia: null, editando: false, trabajadorSel: null }); },
+      plantillasAbierto: s.plantillasAbierto,
+      openPlantillas: function () { self.setState({ plantillasAbierto: true }); },
+      cerrarPlantillas: function () { self.setState({ plantillasAbierto: false }); },
+      plantillas: s.plantillas.map(function (p) {
+        var n = p.trabajadores.length;
+        return {
+          nombre: p.nombre,
+          detalle: n === 1 ? '1 trabajador' : n + ' trabajadores',
+          border: p.id === s.plantillaId ? '2px solid ' + accent : '1px solid #E6E6E1',
+          elegir: function () { self.setState({ plantillaId: p.id, plantillasAbierto: false }); }
+        };
+      }),
+      mesOpen: s.mesOpen,
+      anioLabel: String(s.anio),
+      meses: meses,
+      openMes: function () { self.setState({ mesOpen: true, anio: s.y }); },
+      closeMes: function () { self.setState({ mesOpen: false }); },
+      prevAnio: function () { self.setState({ anio: s.anio - 1 }); },
+      nextAnio: function () { self.setState({ anio: s.anio + 1 }); },
+      irHoy: function () { self.setState({ y: today.getFullYear(), m: today.getMonth(), mesOpen: false }); },
+      prevMonth: function () { self.setState(s.m === 0 ? { y: s.y - 1, m: 11 } : { m: s.m - 1 }); },
+      nextMonth: function () { self.setState(s.m === 11 ? { y: s.y + 1, m: 0 } : { m: s.m + 1 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

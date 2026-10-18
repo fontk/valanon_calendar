@@ -44,10 +44,13 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
   Plantillas en sus tres estados (lista, hoja de tipo, detalle de trabajadores). Es un único componente
   con la prop `pantallaInicial`; el script del final contiene el flujo completo (crear, renombrar, añadir,
   editar en línea, eliminar) como pseudocódigo.
-- `design/mockups/Turnos.dc.html`, `TurnosDia.dc.html`, `TurnosEditar.dc.html`, `TurnosSelector.dc.html`:
-  pestaña Turnos (calendario del equipo, hoja "Equipo del día" en lectura, en edición, y el selector de
-  turno de un trabajador, que es el mismo selector de Calendario reutilizado). Mismo patrón de un
-  componente con `pantallaInicial`.
+- `design/mockups/Turnos.dc.html`, `TurnosVacio`, `TurnosPlantilla`, `TurnosGrande`, `TurnosDia`,
+  `TurnosEditar`, `TurnosSelector` (`.dc.html`): pestaña Turnos en todos sus estados (calendario del
+  equipo, sin plantillas, hoja de elección de plantilla, equipo de 7 con "+N", hoja "Equipo del día" en
+  lectura y en edición, y el selector de turno de un trabajador, que es el mismo selector de Calendario
+  reutilizado). Mismo patrón de un componente con `pantallaInicial`.
+- `PlantillasVacio`, `PlantillaEditar` y `PlantillaBorrar` (`.dc.html`) completan Plantillas: lista vacía,
+  edición en línea de un trabajador y diálogo de confirmación al eliminar la plantilla.
 - El bloque `<script type="text/x-dc">` del final de cada fichero contiene la lógica de la maqueta en
   JavaScript (cálculo de celdas del mes, mapa de turnos, alta/borrado de tareas). Úsalo como pseudocódigo
   del comportamiento esperado, no lo portes literalmente.

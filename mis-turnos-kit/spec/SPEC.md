@@ -109,9 +109,12 @@ mismos cinco valores de turno, colores y abreviaturas de la pestaña Calendario.
 - La plantilla activa se guarda en la tabla `ajustes` (clave `turnos.plantilla_id`). Al abrir la pestaña
   por primera vez se usa la primera plantilla de tipo Trabajadores por `orden`. Si la plantilla activa se
   borra, se vuelve a la primera disponible.
-- Sin ninguna plantilla de trabajadores: en lugar de la rejilla se muestra el estado vacío "Aún no hay
-  ninguna plantilla de trabajadores" con la ayuda "Crea una en la pestaña Plantillas para ver aquí los
-  turnos de tu equipo." y un botón "Ir a Plantillas" (48 dp, contorno `accent`) que navega a esa pestaña.
+- Sin ninguna plantilla de trabajadores: la fila del chip, la rejilla y la leyenda se sustituyen por el
+  estado vacío centrado: insignia de 64 dp (radio 20, fondo `surface`, icono de dos personas 32 dp en
+  #9A9A95), "Aún no hay ninguna plantilla de trabajadores" (17 sp, 800), la ayuda "Crea una en la pestaña
+  Plantillas para ver aquí los turnos de tu equipo." (14 sp, 500, `textFaint`) y un botón "Ir a Plantillas"
+  (48 dp, radio 14, contorno `accent`, chevron derecho) que navega a esa pestaña. La cabecera de mes sigue
+  visible.
 
 ### 3b.2 Rejilla del mes
 - Misma estructura que 3.3 (semana en lunes, cabecera L–D, celdas de 60 dp, radio 12, gap 6, hoy con
