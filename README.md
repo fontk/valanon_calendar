@@ -93,6 +93,40 @@ Secuencia completa de verificación (es la que debe pasar antes de un commit):
 
 Si Gradle falla con `Unable to locate a Java Runtime`, falta el `export JAVA_HOME`.
 
+## Conservar los datos al actualizar
+
+Los datos viven en la base de datos SQLite de la app. Se conservan al instalar una versión nueva
+encima de la anterior gracias a tres cosas:
+
+1. **Migraciones de Room.** Cada cambio de esquema sube `AppDatabase.VERSION` y añade una
+   migración que no borra nada (ver "Base de datos"). No se usa la migración destructiva.
+2. **Siempre la misma firma.** Android solo deja actualizar una app firmada con la misma clave.
+   - Las builds de **release** se firman con la clave propia de la app, guardada fuera del
+     repositorio en `~/.mis-turnos/` (`mis-turnos-release.jks` y `keystore.properties`). Gradle
+     la lee de ahí, o del archivo que indique `MIS_TURNOS_KEYSTORE_PROPERTIES`. Sin ese archivo,
+     la APK de release sale sin firmar.
+   - **Haz una copia de la carpeta `~/.mis-turnos/`** en un sitio seguro (gestor de contraseñas,
+     disco externo). Si se pierde la clave, ninguna versión futura podrá actualizar la app
+     instalada y habría que desinstalarla.
+   - Las builds de **debug** se firman con la clave de depuración de cada ordenador. Sirven para
+     desarrollar, pero no para el móvil de uso diario: entre ordenadores la firma cambia.
+3. **Copias de seguridad.**
+   - Copia automática de Android: incluye toda la base de datos (`res/xml/data_extraction_rules.xml`
+     y `backup_rules.xml`) y se restaura al reinstalar o al estrenar móvil.
+   - Copia manual desde la app: botón de archivo junto a "MIS TURNOS" en Calendario →
+     "Exportar datos" guarda un `.json` con todo; "Importar datos" lo recupera (reemplaza lo actual).
+
+Compilar e instalar la versión de release:
+
+```bash
+./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+**Pasar de una APK de debug a la de release (una sola vez).** Como la firma cambia, Android exige
+desinstalar: exporta los datos con la versión de debug, desinstala, instala la de release e
+importa el archivo. A partir de ahí, cada release nueva se instala encima sin perder nada.
+
 ## Estructura
 
 ```
@@ -104,6 +138,7 @@ app/src/main/kotlin/com/valanon/calendar/
 │   ├── local/                     Room: AppDatabase, migraciones, Conversores, DAOs y entidades
 │   └── repository/                TurnosRepositorio y TareasRepositorio
 ├── pdf/                           ExportadorPdf (PdfDocument) y compartir con FileProvider
+├── data/backup/                   Copia de seguridad: formato JSON y exportar/importar
 ├── ui/
 │   ├── MainActivity.kt            Única Activity
 │   ├── MisTurnosApp.kt            Barra inferior y NavHost (calendario, checklist)

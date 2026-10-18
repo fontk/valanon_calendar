@@ -1,8 +1,27 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+}
+
+/**
+ * Release signing key, kept OUTSIDE the repository so it is never committed:
+ * ~/.mis-turnos/keystore.properties (storeFile, storePassword, keyAlias, keyPassword), or the
+ * file named by the MIS_TURNOS_KEYSTORE_PROPERTIES environment variable.
+ * Every release must be signed with this same key, otherwise Android refuses the update and the
+ * app has to be uninstalled, losing its data. Without the file, release builds come out unsigned.
+ */
+val firmaRelease: Properties? = run {
+    val ruta = System.getenv("MIS_TURNOS_KEYSTORE_PROPERTIES")
+        ?: "${System.getProperty("user.home")}/.mis-turnos/keystore.properties"
+    val archivo = file(ruta)
+    if (archivo.isFile) Properties().apply { archivo.inputStream().use { load(it) } } else null
+}
+if (firmaRelease == null) {
+    logger.warn("Mis turnos: no hay clave de release (~/.mis-turnos/keystore.properties); la APK de release saldrá sin firmar.")
 }
 
 android {
@@ -14,14 +33,26 @@ android {
         applicationId = "com.valanon.calendar"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.5.1"
+        versionCode = 7
+        versionName = "0.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        firmaRelease?.let { p ->
+            create("release") {
+                storeFile = file(p.getProperty("storeFile"))
+                storePassword = p.getProperty("storePassword")
+                keyAlias = p.getProperty("keyAlias")
+                keyPassword = p.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

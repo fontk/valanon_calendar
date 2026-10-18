@@ -55,6 +55,21 @@
     <string name="sin_tareas">Sin tareas todavía</string>
     <string name="sin_tareas_ayuda">Escribe una tarea arriba y pulsa Agregar.</string>
 
+    <!-- Copia de seguridad (exportar / importar todos los datos) -->
+    <string name="copia_seguridad">Copia de seguridad</string>
+    <string name="copia_titulo">Tus datos en un archivo</string>
+    <string name="copia_explicacion">Guarda todos tus turnos, tareas y plantillas en un archivo para no perderlos al cambiar de móvil o reinstalar la app. Importar una copia reemplaza los datos actuales.</string>
+    <string name="exportar_datos">Exportar datos</string>
+    <string name="importar_datos">Importar datos</string>
+    <string name="importar">Importar</string>
+    <string name="importar_confirmar_titulo">¿Reemplazar todos los datos?</string>
+    <string name="importar_confirmar_cuerpo">Se borrarán tus turnos, tareas y plantillas actuales y se cargarán los del archivo. Si no tienes una copia de lo actual, expórtala antes.</string>
+    <string name="copia_exportada">Copia exportada</string>
+    <string name="copia_importada">Datos importados</string>
+    <string name="copia_error">No se pudo completar la copia</string>
+    <!-- File name suggested when exporting: mis-turnos-copia-2026-10-18.json -->
+    <string name="copia_nombre_archivo">mis-turnos-copia-%1$s.json</string>
+
     <!-- Turnos del equipo (spec 3b) -->
     <string name="tab_turnos">Turnos</string>
     <string name="turnos_sobretitulo">Turnos del equipo</string>

@@ -1,6 +1,7 @@
 package com.valanon.calendar.di
 
 import android.content.Context
+import com.valanon.calendar.data.backup.CopiaSeguridadRepositorio
 import com.valanon.calendar.data.local.AppDatabase
 import com.valanon.calendar.data.local.TransaccionesRoom
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
@@ -37,4 +38,8 @@ class AppContainer(context: Context) {
     }
 
     val exportadorPdf: ExportadorPdf by lazy { ExportadorPdf(appContext) }
+
+    val copiaSeguridadRepositorio: CopiaSeguridadRepositorio by lazy {
+        CopiaSeguridadRepositorio(database.copiaSeguridadDao(), appContext.contentResolver)
+    }
 }

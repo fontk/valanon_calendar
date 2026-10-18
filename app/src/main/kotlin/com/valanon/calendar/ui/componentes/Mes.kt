@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -67,7 +68,10 @@ data class AccionesSelectorMes(
     }
 }
 
-/** Overline + "‹ [Octubre 2026 ⌄] ›" (spec 3.1). [sobretitulo] is shown uppercase. */
+/**
+ * Overline + "‹ [Octubre 2026 ⌄] ›" (spec 3.1). [sobretitulo] is shown uppercase.
+ * [accion] is an optional small button at the end of the overline row (Calendario: backup).
+ */
 @Composable
 fun CabeceraMes(
     sobretitulo: String,
@@ -75,12 +79,21 @@ fun CabeceraMes(
     onMesAnterior: () -> Unit,
     onMesSiguiente: () -> Unit,
     onAbrirSelectorMes: () -> Unit,
+    accion: (@Composable () -> Unit)? = null,
 ) {
     Column(
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (accion == null) 22.dp else 8.dp, bottom = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(if (accion == null) 6.dp else 0.dp),
     ) {
-        Sobretitulo(sobretitulo)
+        if (accion == null) {
+            Sobretitulo(sobretitulo)
+        } else {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Sobretitulo(sobretitulo, Modifier.weight(1f))
+                // Pulled 12 dp right so the 20 dp icon lines up with the "next month" button.
+                Box(Modifier.offset(x = 12.dp)) { accion() }
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

@@ -188,6 +188,24 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - JVM tests use `testing/Fakes.kt` (in-memory DAOs, including the cascade, +
   `MainDispatcherRule`); real SQLite is covered by the `androidTest/.../data/local` tests.
 
+## Data preservation, signing and backups
+
+- Upgrades keep data only if (1) every schema change has a non-destructive `Migration` (never
+  add `fallbackToDestructiveMigration`), (2) the APK is signed with the same key, and
+  (3) `versionCode` always increases.
+- Release signing: `app/build.gradle.kts` reads `~/.mis-turnos/keystore.properties` (or
+  `MIS_TURNOS_KEYSTORE_PROPERTIES`). The key never goes into the repo (`*.jks`,
+  `keystore.properties` are git-ignored). Debug builds use the per-machine debug key, so the
+  emulator cannot run `connectedDebugAndroidTest` while a release build is installed
+  (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`): uninstall it first.
+- Android Auto Backup includes the whole `database` domain (db + -wal/-shm). Keep the rules in
+  `res/xml/` in sync if new data stores appear (e.g. files).
+- Manual backup: `data/backup/` (`FormatoCopia` JSON, versioned independently from the Room
+  schema; `CopiaSeguridadRepositorio` with SAF URIs) + `CopiaSeguridadDao` (`leerTodo` /
+  `reemplazarTodo`, both `@Transaction`). When a table or column is added, extend the JSON
+  (missing arrays must keep reading as empty, so older backups stay valid) and
+  `CopiaSeguridadTest`. Bump `FormatoCopia.VERSION` only for incompatible changes.
+
 ## Conventions
 
 - Kotlin official code style, trailing commas on (see `.editorconfig`).

@@ -53,6 +53,9 @@ import com.valanon.calendar.R
 import com.valanon.calendar.data.model.TipoTurno
 import com.valanon.calendar.pdf.compartirPdf
 import com.valanon.calendar.ui.componentes.AccionesSelectorMes
+import com.valanon.calendar.ui.copia.BotonCopiaSeguridad
+import com.valanon.calendar.ui.copia.CopiaSeguridadHost
+import com.valanon.calendar.ui.copia.CopiaSeguridadViewModel
 import com.valanon.calendar.ui.componentes.SelectorMes
 import com.valanon.calendar.ui.componentes.CabeceraDiasSemana
 import com.valanon.calendar.ui.componentes.CabeceraMes
@@ -83,6 +86,8 @@ fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = Calenda
     val recursos = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
+    val copia: CopiaSeguridadViewModel = viewModel(factory = CopiaSeguridadViewModel.Factory)
+    CopiaSeguridadHost(snackbarHostState = snackbar, viewModel = copia)
     var exportando by remember { mutableStateOf(false) }
 
     CalendarioScreen(
@@ -94,6 +99,7 @@ fun CalendarioRoute(viewModel: CalendarioViewModel = viewModel(factory = Calenda
         onDiaPulsado = viewModel::seleccionarDia,
         onElegirTurno = viewModel::asignarTurno,
         onCerrarSelector = viewModel::cerrarSelector,
+        accionCabecera = { BotonCopiaSeguridad(onClick = copia::abrirHoja) },
         selectorMes = AccionesSelectorMes(
             abrir = viewModel::abrirSelectorMes,
             cerrar = viewModel::cerrarSelectorMes,
@@ -137,6 +143,7 @@ fun CalendarioScreen(
     onCerrarSelector: () -> Unit,
     onExportar: () -> Unit,
     selectorMes: AccionesSelectorMes,
+    accionCabecera: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier.fillMaxSize().background(MisTurnosColors.Background)) {
@@ -154,7 +161,14 @@ fun CalendarioScreen(
         Column(Modifier.fillMaxSize().then(if (compacta) Modifier.verticalScroll(scroll) else Modifier)) {
             // Scrolls only when it does not fit (130 % font size, small phones).
             Column(if (compacta) Modifier else Modifier.weight(1f).verticalScroll(scroll)) {
-                CabeceraMes(stringResource(R.string.sobretitulo), estado.mes, onMesAnterior, onMesSiguiente, selectorMes.abrir)
+                CabeceraMes(
+                    sobretitulo = stringResource(R.string.sobretitulo),
+                    mes = estado.mes,
+                    onMesAnterior = onMesAnterior,
+                    onMesSiguiente = onMesSiguiente,
+                    onAbrirSelectorMes = selectorMes.abrir,
+                    accion = accionCabecera,
+                )
                 LeyendaTurnos(Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp))
                 CabeceraDiasSemana(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp))
                 RejillaMes(mes = estado.mes, modifier = Modifier.padding(horizontal = 16.dp)) { fecha, celda ->

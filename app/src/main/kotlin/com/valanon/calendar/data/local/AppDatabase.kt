@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.valanon.calendar.data.local.dao.AjusteDao
 import com.valanon.calendar.data.local.dao.AsignacionDao
+import com.valanon.calendar.data.local.dao.CopiaSeguridadDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TareaDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
@@ -50,6 +51,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun asignacionDao(): AsignacionDao
 
     abstract fun ajusteDao(): AjusteDao
+
+    abstract fun copiaSeguridadDao(): CopiaSeguridadDao
 
     companion object {
         const val VERSION = 3

@@ -21,3 +21,6 @@ build/
 
 # Claude Code worktrees (each is its own checkout, never commit them)
 .claude/worktrees/
+
+# Release signing properties if ever placed in the project (they live in ~/.mis-turnos)
+keystore.properties

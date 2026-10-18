@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
    Backup and device-transfer rules for Android 12 and higher.
-   See https://developer.android.com/about/versions/12/backup-restore
+   See https://developer.android.com/identity/data/autobackup
+
+   All the user's data lives in the Room database (mis_turnos.db, AppDatabase.NAME) inside the
+   "database" domain. The whole domain is included so the -wal/-shm companion files travel with
+   it and no recent change is lost. After a restore, Room runs the usual migrations if the backup
+   came from an older version of the app.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- <exclude domain="database" path="valanon_calendar.db" /> -->
+        <include domain="database" path="." />
     </cloud-backup>
     <device-transfer>
-        <!-- <exclude domain="database" path="valanon_calendar.db" /> -->
+        <include domain="database" path="." />
     </device-transfer>
 </data-extraction-rules>

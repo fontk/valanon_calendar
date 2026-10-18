@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Backup rules for Android 11 and lower.
-   See https://developer.android.com/guide/topics/data/autobackup
+   Auto Backup rules for Android 11 and lower (Android 12+ uses data_extraction_rules.xml).
+   See https://developer.android.com/identity/data/autobackup
+
+   Includes the whole "database" domain: mis_turnos.db (AppDatabase.NAME) plus its -wal/-shm
+   files, which hold all the user's data.
 -->
 <full-backup-content>
-    <!-- Example: exclude the database from backups
-    <exclude domain="database" path="valanon_calendar.db" />
-    -->
+    <include domain="database" path="." />
 </full-backup-content>
