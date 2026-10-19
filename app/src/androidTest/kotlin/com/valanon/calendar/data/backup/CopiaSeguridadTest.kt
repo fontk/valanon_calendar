@@ -1,11 +1,14 @@
 package com.valanon.calendar.data.backup
 
+import com.valanon.calendar.data.local.TIPOS_TURNO_POR_DEFECTO
+import com.valanon.calendar.testing.Tipos
 import android.content.Context
 import android.net.Uri
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.local.AppDatabase
+import com.valanon.calendar.data.local.SEMBRAR_TIPOS_TURNO
 import com.valanon.calendar.data.local.CLAVE_LISTA_CHECKLIST
 import com.valanon.calendar.data.local.NOMBRE_LISTA_MIGRADA
 import com.valanon.calendar.data.local.entity.Ajuste
@@ -13,7 +16,6 @@ import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Turno
 import com.valanon.calendar.data.model.DatosApp
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.local.entity.TipoTurno
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -40,7 +42,7 @@ class CopiaSeguridadTest {
 
     @Before
     fun setUp() {
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).addCallback(SEMBRAR_TIPOS_TURNO).build()
         copia = CopiaSeguridadRepositorio(
             db.copiaSeguridadDao(),
             context.contentResolver,
@@ -59,8 +61,8 @@ class CopiaSeguridadTest {
 
     /** Some data in every table. */
     private suspend fun rellenar() {
-        db.turnoDao().upsert(Turno("2026-10-17", TipoTurno.NOCHE))
-        db.turnoDao().upsert(Turno("2026-10-18", TipoTurno.LIBRE))
+        db.turnoDao().upsert(Turno("2026-10-17", Tipos.NOCHE.id))
+        db.turnoDao().upsert(Turno("2026-10-18", Tipos.LIBRE.id))
         lista = db.listaDao().insertarAlFinal("Mi checklist", null)
         db.tareaDao().agregarAlFinal(lista, "Preparar el uniforme")
         val tarea = db.tareaDao().agregarAlFinal(lista, "Comprar comida")
@@ -68,7 +70,7 @@ class CopiaSeguridadTest {
         val p = db.plantillaDao().insertarAlFinal(TipoPlantilla.TRABAJADORES, "Equipo de planta")
         val lucia = db.trabajadorDao().agregarAlFinal(p, "Lucía Martínez")
         db.trabajadorDao().agregarAlFinal(p, "Javier Ortega")
-        db.asignacionDao().upsert(Asignacion(fecha = "2026-10-17", trabajadorId = lucia, tipo = TipoTurno.MANANA))
+        db.asignacionDao().upsert(Asignacion(fecha = "2026-10-17", trabajadorId = lucia, tipoId = Tipos.MANANA.id))
         db.ajusteDao().guardar(Ajuste("turnos.plantilla_id", "$p"))
         val preset = db.plantillaDao().insertarAlFinal(TipoPlantilla.TAREAS, "Cierre de turno")
         db.tareaPlantillaDao().agregarAlFinal(preset, "Cuadrar la caja")
@@ -93,14 +95,38 @@ class CopiaSeguridadTest {
         val despues = db.copiaSeguridadDao().leerTodo()
         assertEquals(antes.copy(asignaciones = emptyList()), despues.copy(asignaciones = emptyList()))
         assertEquals(
-            antes.asignaciones.map { Triple(it.fecha, it.trabajadorId, it.tipo) },
-            despues.asignaciones.map { Triple(it.fecha, it.trabajadorId, it.tipo) },
+            antes.asignaciones.map { Triple(it.fecha, it.trabajadorId, it.tipoId) },
+            despues.asignaciones.map { Triple(it.fecha, it.trabajadorId, it.tipoId) },
         )
         // The app keeps working after an import: new rows go after the imported ones.
         val nueva = db.tareaDao().agregarAlFinal(lista, "Nueva")
         assertTrue(nueva > antes.tareas.maxOf { it.id })
         assertEquals(3, db.tareaDao().observarDeLista(lista).first().last().orden)
         assertTrue(db.listaDao().insertarAlFinal("Otra", null) > antes.listas.maxOf { it.id })
+    }
+
+    /**
+     * A7: a backup made by 0.7.0 (format 2, the five fixed shifts stored as text) still imports: it
+     * gets the five default types and each day points to the matching one.
+     */
+    @Test
+    fun importarUnaCopiaVersion2MapeaLosTurnosALosTiposPorDefecto() = runTest {
+        archivo.writeText(
+            """
+            {"formato":"mis-turnos-copia","version":2,
+             "turnos":[{"fecha":"2026-10-17","tipo":"noche"},{"fecha":"2026-10-18","tipo":"vacaciones"}],
+             "plantillas":[{"id":1,"tipo":"trabajadores","nombre":"Equipo","orden":1}],
+             "trabajadores":[{"id":1,"plantillaId":1,"nombre":"Lucía","orden":1}],
+             "asignaciones":[{"fecha":"2026-10-17","trabajadorId":1,"tipo":"manana"}]}
+            """.trimIndent(),
+        )
+
+        copia.importar(uri)
+
+        val datos = db.copiaSeguridadDao().leerTodo()
+        assertEquals(TIPOS_TURNO_POR_DEFECTO, datos.tiposTurno)
+        assertEquals(listOf(Tipos.NOCHE.id, Tipos.VACACIONES.id), datos.turnos.map { it.tipoId })
+        assertEquals(listOf(Tipos.MANANA.id), datos.asignaciones.map { it.tipoId })
     }
 
     /** A backup made by 0.6.0 (format 1, single checklist) still imports: its tasks land in "Mi checklist". */
@@ -135,7 +161,7 @@ class CopiaSeguridadTest {
     fun importarReemplazaLoQueHabia() = runTest {
         rellenar()
         copia.exportar(uri)
-        db.turnoDao().upsert(Turno("2026-12-25", TipoTurno.VACACIONES)) // not in the backup
+        db.turnoDao().upsert(Turno("2026-12-25", Tipos.VACACIONES.id)) // not in the backup
 
         copia.importar(uri)
 
@@ -151,6 +177,7 @@ class CopiaSeguridadTest {
             """{"formato":"otra-app","version":1}""",
             """{"formato":"mis-turnos-copia","version":99}""",
             """{"formato":"mis-turnos-copia","version":1,"turnos":[{"fecha":"2026-10-17","tipo":"siesta"}]}""",
+            """{"formato":"mis-turnos-copia","version":3,"tiposTurno":[{"id":1,"clave":null,"nombre":"A","abreviatura":"A","color":"gris","orden":1}],"turnos":[{"fecha":"2026-10-17","tipoId":9}]}""",
             """{"formato":"mis-turnos-copia","version":1,"trabajadores":[{"id":1,"plantillaId":7,"nombre":"X","orden":1}]}""",
             """{"formato":"mis-turnos-copia","version":2,"tareas":[{"id":1,"listaId":9,"texto":"X","hecha":false,"orden":1}]}""",
             """{"formato":"mis-turnos-copia","version":2,"tareas":[{"id":1,"texto":"Sin listaId","hecha":false,"orden":1}]}""",
@@ -169,9 +196,10 @@ class CopiaSeguridadTest {
 
     @Test
     fun formatoToleraTablasAusentes() {
-        // A minimal file (e.g. from a future version that dropped a table) reads as empty lists.
+        // A minimal file (e.g. from a future version that dropped a table) reads as empty lists;
+        // an old file (no shift types) gets the five defaults so its days can still be resolved.
         val datos = FormatoCopia.desdeJson("""{"formato":"mis-turnos-copia","version":1}""")
-        assertEquals(DatosApp(), datos)
+        assertEquals(DatosApp(tiposTurno = TIPOS_TURNO_POR_DEFECTO), datos)
     }
 
     @Test
@@ -180,7 +208,8 @@ class CopiaSeguridadTest {
         copia.exportar(uri)
         val texto = archivo.readText()
         assertTrue(texto.contains("\"formato\": \"mis-turnos-copia\""))
-        assertTrue(texto.contains("\"version\": 2"))
+        assertTrue(texto.contains("\"version\": 3"))
+        assertTrue(texto.contains("\"tiposTurno\""))
         assertTrue(texto.contains("\"tareasPlantilla\""))
         assertTrue(texto.contains("\"creado\": \"2026-10-18T10:00:00Z\""))
         assertTrue(texto.contains("Lucía Martínez"))

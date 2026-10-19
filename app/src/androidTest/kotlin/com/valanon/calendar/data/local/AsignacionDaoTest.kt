@@ -1,5 +1,6 @@
 package com.valanon.calendar.data.local
 
+import com.valanon.calendar.testing.Tipos
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -34,7 +35,7 @@ class AsignacionDaoTest {
     @Before
     fun setUp() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).addCallback(SEMBRAR_TIPOS_TURNO).build()
         dao = db.asignacionDao()
         equipo = db.plantillaDao().insertarAlFinal(TipoPlantilla.TRABAJADORES, "Equipo de planta")
         otra = db.plantillaDao().insertarAlFinal(TipoPlantilla.TRABAJADORES, "Refuerzos")
@@ -47,24 +48,24 @@ class AsignacionDaoTest {
     fun tearDown() = db.close()
 
     private fun asignacion(fecha: String, trabajador: Long, tipo: TipoTurno) =
-        Asignacion(fecha = fecha, trabajadorId = trabajador, tipo = tipo)
+        Asignacion(fecha = fecha, trabajadorId = trabajador, tipoId = tipo.id)
 
     private suspend fun mes(plantilla: Long) = dao.observarMes(plantilla, "2026-10-01", "2026-10-31").first()
 
     @Test
     fun upsertEsUnicoPorDiaYTrabajador() = runTest {
-        dao.upsert(asignacion("2026-10-17", lucia, TipoTurno.MANANA))
-        dao.upsert(asignacion("2026-10-17", lucia, TipoTurno.NOCHE))
+        dao.upsert(asignacion("2026-10-17", lucia, Tipos.MANANA))
+        dao.upsert(asignacion("2026-10-17", lucia, Tipos.NOCHE))
 
-        assertEquals(listOf(TipoTurno.NOCHE), mes(equipo).map { it.tipo })
+        assertEquals(listOf(Tipos.NOCHE.id), mes(equipo).map { it.tipoId })
     }
 
     @Test
     fun observarMesFiltraPorPlantillaYRango() = runTest {
-        dao.upsert(asignacion("2026-10-01", lucia, TipoTurno.LIBRE))
-        dao.upsert(asignacion("2026-10-31", javier, TipoTurno.TARDE))
-        dao.upsert(asignacion("2026-11-01", javier, TipoTurno.TARDE)) // other month
-        dao.upsert(asignacion("2026-10-15", sara, TipoTurno.NOCHE)) // other template
+        dao.upsert(asignacion("2026-10-01", lucia, Tipos.LIBRE))
+        dao.upsert(asignacion("2026-10-31", javier, Tipos.TARDE))
+        dao.upsert(asignacion("2026-11-01", javier, Tipos.TARDE)) // other month
+        dao.upsert(asignacion("2026-10-15", sara, Tipos.NOCHE)) // other template
 
         assertEquals(setOf("2026-10-01", "2026-10-31"), mes(equipo).map { it.fecha }.toSet())
         assertEquals(listOf(sara), mes(otra).map { it.trabajadorId })
@@ -72,8 +73,8 @@ class AsignacionDaoTest {
 
     @Test
     fun borrarQuitaSoloEseDiaYTrabajador() = runTest {
-        dao.upsert(asignacion("2026-10-17", lucia, TipoTurno.MANANA))
-        dao.upsert(asignacion("2026-10-17", javier, TipoTurno.MANANA))
+        dao.upsert(asignacion("2026-10-17", lucia, Tipos.MANANA))
+        dao.upsert(asignacion("2026-10-17", javier, Tipos.MANANA))
 
         dao.borrar("2026-10-17", lucia)
 
@@ -82,9 +83,9 @@ class AsignacionDaoTest {
 
     @Test
     fun borrarTrabajadorBorraSusAsignacionesYSePuedenReinsertar() = runTest {
-        dao.upsert(asignacion("2026-10-17", lucia, TipoTurno.NOCHE))
-        dao.upsert(asignacion("2026-10-18", lucia, TipoTurno.NOCHE))
-        dao.upsert(asignacion("2026-10-17", javier, TipoTurno.LIBRE))
+        dao.upsert(asignacion("2026-10-17", lucia, Tipos.NOCHE))
+        dao.upsert(asignacion("2026-10-18", lucia, Tipos.NOCHE))
+        dao.upsert(asignacion("2026-10-17", javier, Tipos.LIBRE))
         val deLucia = dao.obtenerDeTrabajador(lucia)
         val trabajadorLucia = db.trabajadorDao().observarDePlantilla(equipo).first().first { it.id == lucia }
 
@@ -99,8 +100,8 @@ class AsignacionDaoTest {
 
     @Test
     fun borrarPlantillaBorraTrabajadoresYAsignaciones() = runTest {
-        dao.upsert(asignacion("2026-10-17", lucia, TipoTurno.NOCHE))
-        dao.upsert(asignacion("2026-10-17", sara, TipoTurno.NOCHE))
+        dao.upsert(asignacion("2026-10-17", lucia, Tipos.NOCHE))
+        dao.upsert(asignacion("2026-10-17", sara, Tipos.NOCHE))
 
         db.plantillaDao().borrar(equipo)
 

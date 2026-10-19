@@ -7,8 +7,9 @@ package `com.valanon.calendar`. UI strings are in Spanish.
 The product spec and design live in `mis-turnos-kit/` and are the source of truth for
 behaviour, texts and visuals: `AGENTS.md`, `spec/SPEC.md`, `spec/USER_STORIES.md`,
 `spec/TASKS.md`, `design/DESIGN.md`, `design/tokens/tokens.json`, `db/schema.sql`.
-Do not change the five shift types or their colours, and do not replace Room with
-DataStore/SharedPreferences/files (AGENTS.md → "Qué no hacer").
+Shift types are data (`tipos_turno`); never hardcode one — no shift name, abbreviation or colour
+outside `TIPOS_TURNO_POR_DEFECTO` and `PaletaTurnos` — and do not change those defaults or the palette
+without asking. Do not replace Room with DataStore/SharedPreferences/files (AGENTS.md → "Qué no hacer").
 
 ## Build and test
 
@@ -51,13 +52,13 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 ```
 
 - `CalendarApp` (Application) owns `di/AppContainer`, a manual DI container with lazy
-  singletons (`database`, `turnosRepositorio`, `tareasRepositorio`, `listasRepositorio`, `plantillasRepositorio`,
+  singletons (`database`, `tiposTurnoRepositorio`, `turnosRepositorio`, `tareasRepositorio`, `listasRepositorio`, `plantillasRepositorio`,
   `asignacionesRepositorio`,
   `exportadorPdf`).
   ViewModels get dependencies through `viewModelFactory { initializer { ... } }` reading
   `APPLICATION_KEY` plus `createSavedStateHandle()` (see `CalendarioViewModel.Factory`).
 - `ui/MisTurnosApp.kt`: Scaffold with a custom bottom bar and a `NavHost` with string routes
-  `calendario` (start), `turnos`, `checklist` and the `plantillas_tab` graph (bar order). Tab switches use `saveState`/`restoreState`, so each
+  `calendario` (start), `turnos`, `checklist`, the `plantillas_tab` and `ajustes_tab` graphs (bar order). Tab switches use `saveState`/`restoreState`, so each
   tab keeps its ViewModel (visible month, typed draft).
 - Screens follow the Route/Screen split: `XRoute` is stateful (ViewModel, snackbar, share
   intent), `XScreen` is stateless and previewable. Previews use `ui/preview/DatosMuestra.kt`;
@@ -78,29 +79,32 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
-## Ajustes tab + configurable shift types (spec 2, 3.2–3.4, 3c, stories A1–A7, TASKS Fase 10) — PENDING
+## Ajustes tab + configurable shift types (spec 2, 3.2–3.4, 3c, stories A1–A7, TASKS Fase 10) — implemented
 
-- Fifth bottom-bar destination `ajustes` (gear icon; five equal tabs, active pill padding 14 dp).
-  `AjustesScreen` lists settings by section; the only one is "Tipos de turno", with inner navigation to
-  `TiposTurnoScreen` (Back returns to Ajustes). Footer shows `BuildConfig.VERSION_NAME`.
-- **`TipoTurno` stops being an enum and becomes a Room entity** `tipos_turno(id, clave?, nombre,
-  abreviatura, color, orden)`; `turnos.tipo` and `asignaciones.tipo` (text) become `tipo_id` FKs with
-  ON DELETE CASCADE. Colours come from `PaletaTurnos` (16 entries keyed by `color`, light + dark
-  variants, in `ColoresTurno.kt`); nothing else in the app may hardcode a shift name, abbreviation or
-  colour. The five defaults (ids 1–5, `clave` libre/manana/tarde/noche/vacaciones, colours gris/
-  amarillo/azul/indigo/verde) are inserted by the migration, not by `strings.xml`.
-- Schema **version 5**, `MIGRATION_4_5`: create `tipos_turno` + defaults, recreate `turnos` and
-  `asignaciones` mapping old text to ids via `JOIN tipos_turno ON clave = tipo`, recreate indexes.
-  Test with data (every day keeps its shift) and cascade on type deletion.
-- Editor sheet (create/edit share it): name (≤20, unique case-insensitive), abbreviation (≤5, upper,
-  auto-derived from the first 3 letters until edited by hand), 8-column palette grid, live cell
-  preview. Delete dialog shows usage counts (days in `turnos`, rows in `asignaciones`) — no undo.
-  "Restablecer" updates/recreates the five defaults and leaves custom types alone. Max 16, min 1.
-- Calendario, Turnos, legends, selectors and the PDF must observe `TiposTurnoDao.observarTodos()`.
-- References: `mis-turnos-kit/design/mockups/Ajustes*.dc.html` (its script holds the exact palette and
-  defaults), `design/DESIGN.md` ("Pestaña Ajustes"), `db/schema.sql`. When done, retitle this section
-  "— implemented", update Database rules to version 5 and replace the "do not change the five shift
-  types" rule with "shift types are data; never hardcode one".
+- Fifth bottom-bar destination `Destino.AJUSTES` (`ajustes_tab` graph: `RutasAjustes.INICIO`
+  `ajustes` → `RutasAjustes.TIPOS` `ajustes/tipos`; Back returns to Ajustes). Five equal tabs, active
+  pill padding 14 dp; labels keep the 9 sp autoSize floor (at 1.3× "Calendario" does not fit 78 dp at
+  11 sp). `ui/ajustes/`: `AjustesScreen` (+ tiny `AjustesViewModel`; footer `BuildConfig.VERSION_NAME`,
+  so `buildConfig = true`), `TiposTurnoScreen` + `TiposTurnoViewModel`, `EditorTipoTurnoSheet`.
+- **`TipoTurno` is a Room entity** (`data/local/entity/TipoTurno.kt`, `TipoTurnoId = Long`):
+  `tipos_turno(id, clave?, nombre, abreviatura, color, orden)`; `Turno.tipoId` and
+  `Asignacion.tipoId` are FKs with ON DELETE CASCADE. The five defaults are
+  `TIPOS_TURNO_POR_DEFECTO` (ids 1–5, `clave` = the v4 text value), inserted by `MIGRATION_4_5` and,
+  on fresh installs, by the `SEMBRAR_TIPOS_TURNO` callback in `AppDatabase.build` (Room creates the
+  schema without migrating). Tests that build a database add that callback; UI tests reset with
+  `limpiarYSembrar()` because `clearAllTables()` also empties `tipos_turno`.
+- `TurnosRepositorio.observarMes` and `AsignacionesRepositorio.asignacionesMes` combine their rows
+  with `TiposTurnoDao.observarTodos()` and still return `Map<LocalDate, TipoTurno>` (a row whose
+  type is missing is skipped), so a renamed/recoloured type repaints at once. Calendario/Turnos UI
+  state carries `tipos` for the legend and the picker; the PDF gets the list too (legend wraps).
+- Colours: `PaletaTurnos` in `ColoresTurno.kt` (16 entries, light values = mockup; dark values derived
+  from the dot, "indigo" overridden with the #6E68C9 border). `TipoTurno.colores` / `coloresClaros()`
+  read it; `puntoChip` keeps the legend dot visible on the indigo chip. Five dots measure < 3:1 on
+  white although spec 3c.3 claims ≥ 3:1 (see `PaletaTurnosTest`); not changed without confirmation.
+- `TiposTurnoRepositorio` validates (name ≤ 20, unique ignoring case; abbreviation via
+  `util/abreviaturaFinal`; max 16, min 1) and returns `ErrorTipoTurno`. "Restablecer" updates the
+  defaults by `clave` and recreates missing ones at the end; custom types stay. The editor derives
+  the abbreviation (`abreviaturaDe`) until it is typed by hand (editing counts as typed).
 
 ## Task-preset templates + multi-list Checklist (spec 4 & 4b, stories P2, P10, L0–L8, TASKS Fase 9) — implemented
 
@@ -195,7 +199,9 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 
 ## Database rules
 
-- Schema **version 4**, mirroring `mis-turnos-kit/db/schema.sql` name by name:
+- Schema **version 5**, mirroring `mis-turnos-kit/db/schema.sql` name by name (v5 adds `tipos_turno`
+  with the unique index `idx_tipos_turno_clave`, and `tipo_id` FKs + `idx_turnos_tipo` /
+  `idx_asignaciones_tipo`):
   v1 `turnos`, `tareas`; v2 adds `plantillas` and `trabajadores` (FK `plantilla_id` →
   `plantillas.id` ON DELETE CASCADE, index `idx_trabajadores_plantilla`); v3 adds
   `asignaciones` (FK `trabajador_id` ON DELETE CASCADE; the SQL `UNIQUE(fecha, trabajador_id)`
@@ -206,14 +212,15 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Migrations are kept separate, one per shipped version. 1→2 and 2→3 only create tables;
   `MIGRATION_3_4` also rebuilds `tareas` (temp table + copy + rename, keeping ids, `hecha` and
   `orden`), puts existing tasks in "Mi checklist" (`NOMBRE_LISTA_MIGRADA`) only if there were
-  any, and makes it active (`CLAVE_LISTA_CHECKLIST`).
+  any, and makes it active (`CLAVE_LISTA_CHECKLIST`). `MIGRATION_4_5` rebuilds `turnos` and
+  `asignaciones` the same way, mapping the old text to ids with `JOIN tipos_turno ON clave = tipo`.
 - `turnos.fecha` is ISO `yyyy-MM-dd` text (`LocalDate.toString()`), so `BETWEEN` and ordering
-  work on strings. Enum columns (`turnos.tipo`, `plantillas.tipo`) store `.valor` through
+  work on strings. The only enum column left (`plantillas.tipo`) stores `.valor` through
   `Conversores`. Room cannot express the SQL `CHECK` constraints; the enum conversion
   enforces them.
 - New rows go to the end in one statement (`MAX(orden) + 1`: lists, tasks per list, templates, and items
   per template). Undo re-inserts the deleted row with its id and `orden`.
-- Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2` … `MIGRATION_3_4`, `TODAS_LAS_MIGRACIONES`).
+- Migrations live in `data/local/Migraciones.kt` (`MIGRATION_1_2` … `MIGRATION_4_5`, `TODAS_LAS_MIGRACIONES`).
   Their SQL must equal the `createSql` Room exports in `app/schemas/.../<n>.json`.
 - Settings go in `ajustes` (`AjusteDao`), never DataStore/SharedPreferences.
 - Any entity change: bump `AppDatabase.VERSION`, add the `Migration` and append it to
@@ -241,7 +248,9 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
   (missing arrays must keep reading as empty, so older backups stay valid) and
   `CopiaSeguridadTest`. Bump `FormatoCopia.VERSION` only for incompatible changes. Version 2
   added `listas`, `tareasPlantilla` and `tareas[].listaId`; version-1 files (0.6.0) still
-  import, their tasks going to "Mi checklist" like the database migration.
+  import, their tasks going to "Mi checklist" like the database migration. Version 3 added
+  `tiposTurno` and stores `tipoId` in turnos/asignaciones; versions 1–2 get the five defaults and their
+  `"tipo": "noche"` text is mapped by `clave`, like `MIGRATION_4_5`.
 
 ## Conventions
 

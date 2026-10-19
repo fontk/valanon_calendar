@@ -21,6 +21,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.CalendarApp
+import com.valanon.calendar.testing.limpiarYSembrar
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -33,7 +34,7 @@ class PlantillasAppTest {
     @get:Rule(order = 0)
     val limpiarBaseDeDatos = object : ExternalResource() {
         override fun before() {
-            ApplicationProvider.getApplicationContext<CalendarApp>().container.database.clearAllTables()
+            ApplicationProvider.getApplicationContext<CalendarApp>().container.database.limpiarYSembrar()
         }
     }
 

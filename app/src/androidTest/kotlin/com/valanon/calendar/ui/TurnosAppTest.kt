@@ -17,6 +17,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.CalendarApp
+import com.valanon.calendar.testing.limpiarYSembrar
 import com.valanon.calendar.data.model.TipoPlantilla
 import com.valanon.calendar.util.FormatoFechas
 import kotlinx.coroutines.runBlocking
@@ -34,7 +35,7 @@ class TurnosAppTest {
 
     @get:Rule(order = 0)
     val limpiarBaseDeDatos = object : ExternalResource() {
-        override fun before() = app.container.database.clearAllTables()
+        override fun before() = app.container.database.limpiarYSembrar()
     }
 
     @get:Rule(order = 1)

@@ -27,7 +27,7 @@ class TareaDaoTest {
     @Before
     fun setUp() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).addCallback(SEMBRAR_TIPOS_TURNO).build()
         dao = db.tareaDao()
         lista = db.listaDao().insertarAlFinal("Mi checklist", null)
         otra = db.listaDao().insertarAlFinal("Otra", null)

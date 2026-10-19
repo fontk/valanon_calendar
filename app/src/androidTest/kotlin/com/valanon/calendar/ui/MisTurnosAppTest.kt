@@ -19,6 +19,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.CalendarApp
+import com.valanon.calendar.testing.limpiarYSembrar
 import com.valanon.calendar.util.FormatoFechas
 import org.junit.Before
 import org.junit.Rule
@@ -37,7 +38,7 @@ class MisTurnosAppTest {
     @get:Rule(order = 0)
     val limpiarBaseDeDatos = object : org.junit.rules.ExternalResource() {
         override fun before() {
-            ApplicationProvider.getApplicationContext<CalendarApp>().container.database.clearAllTables()
+            ApplicationProvider.getApplicationContext<CalendarApp>().container.database.limpiarYSembrar()
         }
     }
 

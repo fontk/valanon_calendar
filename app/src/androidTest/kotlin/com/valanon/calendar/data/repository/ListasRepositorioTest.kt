@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.local.AppDatabase
+import com.valanon.calendar.data.local.SEMBRAR_TIPOS_TURNO
 import com.valanon.calendar.data.local.TransaccionesRoom
 import com.valanon.calendar.data.model.TipoPlantilla
 import kotlinx.coroutines.flow.first
@@ -28,7 +29,7 @@ class ListasRepositorioTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).addCallback(SEMBRAR_TIPOS_TURNO).build()
         val transacciones = TransaccionesRoom(db)
         repo = ListasRepositorio(db.listaDao(), db.tareaDao(), db.plantillaDao(), db.ajusteDao(), transacciones)
         plantillas = PlantillasRepositorio(

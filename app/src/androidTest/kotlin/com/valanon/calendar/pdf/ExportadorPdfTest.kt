@@ -1,5 +1,7 @@
 package com.valanon.calendar.pdf
 
+import com.valanon.calendar.testing.Tipos
+import com.valanon.calendar.data.local.TIPOS_TURNO_POR_DEFECTO
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -8,7 +10,6 @@ import android.os.ParcelFileDescriptor
 import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.theme.coloresClaros
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -27,7 +28,7 @@ class ExportadorPdfTest {
 
     @Test
     fun generaUnA4DeUnaPaginaConElNombreEsperado() = runTest {
-        val archivo = ExportadorPdf(context).exportar(mes, emptyMap())
+        val archivo = ExportadorPdf(context).exportar(mes, emptyMap(), TIPOS_TURNO_POR_DEFECTO)
 
         assertEquals(File(File(context.cacheDir, "pdf"), "turnos-2026-10.pdf"), archivo)
         assertEquals("%PDF", archivo.inputStream().use { String(it.readNBytes(4)) })
@@ -44,10 +45,10 @@ class ExportadorPdfTest {
     fun lasCeldasUsanLosColoresDeTurno() = runTest {
         // 1 Oct 2026 is a Thursday → column 3 of the first row; 5 Oct is Monday → column 0 of row 1.
         val turnos = mapOf(
-            LocalDate.of(2026, 10, 1) to TipoTurno.NOCHE,
-            LocalDate.of(2026, 10, 5) to TipoTurno.MANANA,
+            LocalDate.of(2026, 10, 1) to Tipos.NOCHE,
+            LocalDate.of(2026, 10, 5) to Tipos.MANANA,
         )
-        val archivo = ExportadorPdf(context).exportar(mes, turnos)
+        val archivo = ExportadorPdf(context).exportar(mes, turnos, TIPOS_TURNO_POR_DEFECTO)
 
         renderizar(archivo) { renderer ->
             renderer.openPage(0).use { pagina ->
@@ -61,8 +62,8 @@ class ExportadorPdfTest {
                     (40 + columna * (anchoCelda + 6) + 8).toInt(),
                     (142 + fila * (86 + 6) + 8),
                 )
-                assertEquals(TipoTurno.NOCHE.coloresClaros().fondo.toArgb(), muestra(3, 0))
-                assertEquals(TipoTurno.MANANA.coloresClaros().fondo.toArgb(), muestra(0, 1))
+                assertEquals(Tipos.NOCHE.coloresClaros().fondo.toArgb(), muestra(3, 0))
+                assertEquals(Tipos.MANANA.coloresClaros().fondo.toArgb(), muestra(0, 1))
                 assertEquals(Color.WHITE, muestra(1, 1)) // 6 Oct, no shift
             }
         }
