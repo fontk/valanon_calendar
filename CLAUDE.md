@@ -99,8 +99,9 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
   state carries `tipos` for the legend and the picker; the PDF gets the list too (legend wraps).
 - Colours: `PaletaTurnos` in `ColoresTurno.kt` (16 entries, light values = mockup; dark values derived
   from the dot, "indigo" overridden with the #6E68C9 border). `TipoTurno.colores` / `coloresClaros()`
-  read it; `puntoChip` keeps the legend dot visible on the indigo chip. Five dots measure < 3:1 on
-  white although spec 3c.3 claims ≥ 3:1 (see `PaletaTurnosTest`); not changed without confirmation.
+  read it; `puntoChip` keeps the legend dot visible on the indigo chip. Every dot keeps ≥ 3:1 on
+  white (`PaletaTurnosTest`): the mockup's gris, amarillo, ámbar, celeste and lima dots were darkened
+  to reach it (user-approved; SPEC 3c.3 and tokens.json updated, mockups not).
 - `TiposTurnoRepositorio` validates (name ≤ 20, unique ignoring case; abbreviation via
   `util/abreviaturaFinal`; max 16, min 1) and returns `ErrorTipoTurno`. "Restablecer" updates the
   defaults by `clave` and recreates missing ones at the end; custom types stay. The editor derives

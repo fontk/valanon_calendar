@@ -56,18 +56,14 @@ class PaletaTurnosTest {
     }
 
     /**
-     * Dots are graphics, so 3:1. Five mockup dots measure below it on white (gris 2.83, amarillo
-     * 2.38, ámbar 2.997, celeste 2.95, lima 2.18) although spec 3c.3 says ≥ 3:1; the palette must not
-     * change without confirmation (AGENTS.md), so they are listed here and every other entry must
-     * keep 3:1.
+     * Dots are graphics, so 3:1 (spec 3c.3). The mockup's gris, amarillo, ámbar, celeste and lima
+     * dots measured 2.18–2.997 on white; they were darkened (same hue) with the user's approval.
      */
     @Test
     fun `los puntos se ven sobre blanco y sobre el fondo oscuro`() {
-        val excepcionesClaro = setOf("gris", "amarillo", "ambar", "celeste", "lima")
         PaletaTurnos.entradas.forEach { e ->
             val claro = contraste(e.claro.punto, Color.White)
-            val minimo = if (e.clave in excepcionesClaro) 2.0 else 3.0
-            assertTrue("${e.clave} punto/blanco: %.2f".format(claro), claro >= minimo)
+            assertTrue("${e.clave} punto/blanco: %.2f".format(claro), claro >= 3.0)
             val oscuro = contraste(e.oscuro.punto, PaletaOscura.background)
             assertTrue("${e.clave} punto/fondo oscuro: %.2f".format(oscuro), oscuro >= 3.0)
         }

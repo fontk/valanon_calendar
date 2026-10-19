@@ -148,9 +148,9 @@ Quinta pestaña. Pantalla de lista de ajustes agrupados por sección; en esta ve
   en `tipos_turno` y cierra; Calendario, Turnos, leyendas y PDF reflejan el cambio al instante (Flow).
 - Paleta (clave → nombre → fondo / texto / borde / punto). Cada entrada tiene contraste texto/fondo
   ≥ 4.5:1 y punto ≥ 3:1 sobre blanco:
-  - `gris` Gris #F2F2EF / #5B5B57 / #E4E4E0 / #9A9A95
-  - `amarillo` Amarillo #FFE9A8 / #6B4A00 / #F3D77A / #D99E00
-  - `ambar` Ámbar #FFDDB0 / #7A3E00 / #F5C98A / #E07B00
+  - `gris` Gris #F2F2EF / #5B5B57 / #E4E4E0 / #92928E
+  - `amarillo` Amarillo #FFE9A8 / #6B4A00 / #F3D77A / #BD8900
+  - `ambar` Ámbar #FFDDB0 / #7A3E00 / #F5C98A / #DA7800
   - `naranja` Naranja #FFD3C2 / #8A2E1F / #F5B9A3 / #E05A2B
   - `rojo` Rojo #FFC9CF / #8B1A2B / #F3A9B3 / #D63A4F
   - `rosa` Rosa #FFD1E8 / #8A1E57 / #F3B0D4 / #D63A8F
@@ -158,10 +158,10 @@ Quinta pestaña. Pantalla de lista de ajustes agrupados por sección; en esta ve
   - `violeta` Violeta #EDE9FF / #4B43B8 / #D4CCFA / #7B6CF0
   - `indigo` Índigo oscuro #2E2A6B / #FFFFFF / #2E2A6B / #2E2A6B
   - `azul` Azul #CFE4FF / #12407A / #A9CBF5 / #2F7BD8
-  - `celeste` Celeste #CFF3FF / #0B4F63 / #A4E3F5 / #1AA3C9
+  - `celeste` Celeste #CFF3FF / #0B4F63 / #A4E3F5 / #199EC3
   - `turquesa` Turquesa #CFF5EC / #0C5A4A / #A6E6D8 / #17A48A
   - `verde` Verde #CDEFD5 / #145229 / #A6DDB4 / #2E9E55
-  - `lima` Lima #E6F5B8 / #3F5A00 / #CFE88F / #8FBF1A
+  - `lima` Lima #E6F5B8 / #3F5A00 / #CFE88F / #779F16
   - `marron` Marrón #EBDCCB / #5A3A1E / #D9C3A8 / #9C6B3F
   - `pizarra` Pizarra #D9DEE5 / #2F3B4D / #BFC7D2 / #6B7A90
   La paleta vive en código (`PaletaTurnos`), no en la base de datos; `tipos_turno.color` guarda la clave.

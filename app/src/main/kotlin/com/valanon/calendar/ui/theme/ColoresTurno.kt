@@ -34,7 +34,8 @@ data class EntradaPaleta(
 
 /**
  * The shift palette. It lives in code, not in the database: `tipos_turno.color` keeps the key.
- * Light values are exactly the mockup's (`Ajustes.dc.html`). Dark values follow one rule —
+ * Light values are the mockup's (`Ajustes.dc.html`) except five dots darkened to reach 3:1 on
+ * white (gris, amarillo, ámbar, celeste, lima; approved by the user, tokens.json updated). Dark values follow one rule —
  * background = the dot over the dark background, text = the light pastel, border = a stronger
  * mix — except "indigo", which is already dark and only gets the lighter border DESIGN.md asks
  * for (#6E68C9) and a visible dot.
@@ -43,9 +44,9 @@ object PaletaTurnos {
 
     val entradas: List<EntradaPaleta> = listOf(
         // The five defaults keep the swatch of tokens.json → shift (selector squares).
-        entrada("gris", R.string.color_gris, 0xFFF2F2EF, 0xFF5B5B57, 0xFFE4E4E0, 0xFF9A9A95, muestra = 0xFFD9D9D4),
-        entrada("amarillo", R.string.color_amarillo, 0xFFFFE9A8, 0xFF6B4A00, 0xFFF3D77A, 0xFFD99E00, muestra = 0xFFFFD766),
-        entrada("ambar", R.string.color_ambar, 0xFFFFDDB0, 0xFF7A3E00, 0xFFF5C98A, 0xFFE07B00),
+        entrada("gris", R.string.color_gris, 0xFFF2F2EF, 0xFF5B5B57, 0xFFE4E4E0, 0xFF92928E, muestra = 0xFFD9D9D4),
+        entrada("amarillo", R.string.color_amarillo, 0xFFFFE9A8, 0xFF6B4A00, 0xFFF3D77A, 0xFFBD8900, muestra = 0xFFFFD766),
+        entrada("ambar", R.string.color_ambar, 0xFFFFDDB0, 0xFF7A3E00, 0xFFF5C98A, 0xFFDA7800),
         entrada("naranja", R.string.color_naranja, 0xFFFFD3C2, 0xFF8A2E1F, 0xFFF5B9A3, 0xFFE05A2B),
         entrada("rojo", R.string.color_rojo, 0xFFFFC9CF, 0xFF8B1A2B, 0xFFF3A9B3, 0xFFD63A4F),
         entrada("rosa", R.string.color_rosa, 0xFFFFD1E8, 0xFF8A1E57, 0xFFF3B0D4, 0xFFD63A8F),
@@ -62,10 +63,10 @@ object PaletaTurnos {
             oscuro = ColoresTurno(Color(0xFF2E2A6B), Color.White, Color(0xFF6E68C9), Color(0xFF6E68C9), Color(0xFFB9B4FF)),
         ),
         entrada("azul", R.string.color_azul, 0xFFCFE4FF, 0xFF12407A, 0xFFA9CBF5, 0xFF2F7BD8, muestra = 0xFF8FBDF5),
-        entrada("celeste", R.string.color_celeste, 0xFFCFF3FF, 0xFF0B4F63, 0xFFA4E3F5, 0xFF1AA3C9),
+        entrada("celeste", R.string.color_celeste, 0xFFCFF3FF, 0xFF0B4F63, 0xFFA4E3F5, 0xFF199EC3),
         entrada("turquesa", R.string.color_turquesa, 0xFFCFF5EC, 0xFF0C5A4A, 0xFFA6E6D8, 0xFF17A48A),
         entrada("verde", R.string.color_verde, 0xFFCDEFD5, 0xFF145229, 0xFFA6DDB4, 0xFF2E9E55, muestra = 0xFF8EDBA4),
-        entrada("lima", R.string.color_lima, 0xFFE6F5B8, 0xFF3F5A00, 0xFFCFE88F, 0xFF8FBF1A),
+        entrada("lima", R.string.color_lima, 0xFFE6F5B8, 0xFF3F5A00, 0xFFCFE88F, 0xFF779F16),
         entrada("marron", R.string.color_marron, 0xFFEBDCCB, 0xFF5A3A1E, 0xFFD9C3A8, 0xFF9C6B3F),
         entrada("pizarra", R.string.color_pizarra, 0xFFD9DEE5, 0xFF2F3B4D, 0xFFBFC7D2, 0xFF6B7A90),
     )
