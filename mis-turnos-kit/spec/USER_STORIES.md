@@ -231,3 +231,51 @@ Como usuario quiero definir una plantilla con las tareas habituales para crear l
 - Dado una instalación con la base de datos en versión 1, cuando actualizo a la versión con Plantillas,
   entonces mis turnos y tareas se conservan y la pestaña Plantillas aparece vacía (migración 1 → 2).
 
+## Ajustes
+
+### A1 — Ver los ajustes
+Como usuario quiero una pestaña Ajustes donde configurar la app.
+- Cuando abro Ajustes, entonces veo la sección "CALENDARIO" con la fila "Tipos de turno", que muestra en
+  miniatura los nombres y colores de mis tipos, y el pie con la versión de la app.
+
+### A2 — Ver los tipos de turno
+- Cuando toco "Tipos de turno", entonces veo una fila por tipo con su muestra de color y abreviatura,
+  nombre, si es por defecto o personalizado, su color y en cuántos días y turnos del equipo se usa; el
+  contador "N de 16"; y los botones "Añadir tipo de turno" y "Restablecer los cinco por defecto".
+- Dado que acabo de instalar la app, entonces los tipos son exactamente Libre, Mañana, Tarde, Noche y
+  Vacaciones con sus colores de siempre.
+
+### A3 — Añadir un tipo de turno
+- Cuando pulso "Añadir tipo de turno", entonces se abre el editor con nombre vacío, un color libre
+  preseleccionado y la vista previa de la celda.
+- Cuando escribo "Guardia", entonces la abreviatura pasa sola a "GUA" y la vista previa muestra "17 /
+  GUA"; cuando toco el color Naranja, la vista previa cambia de color.
+- Cuando pulso "Añadir", entonces el tipo aparece al final de la lista, en el selector de turno de
+  Calendario, en el de Turnos, en las leyendas y en el PDF.
+- Dado 16 tipos, entonces "Añadir tipo de turno" está deshabilitado.
+- Dado el nombre vacío o uno ya existente (sin distinguir mayúsculas), cuando pulso "Añadir", entonces
+  veo el error correspondiente y no se crea nada.
+
+### A4 — Editar un tipo de turno
+- Cuando pulso el lápiz de "Noche", cambio el nombre a "Nocturno", la abreviatura a "NOC" y el color a
+  Pizarra y pulso "Guardar", entonces todos los días ya marcados como Noche en Calendario y Turnos pasan
+  a verse como "NOC" en Pizarra (no se pierde ninguna asignación).
+- Cuando edito la abreviatura a mano y luego cambio el nombre, entonces la abreviatura no se sobrescribe.
+
+### A5 — Eliminar un tipo de turno
+- Cuando pulso la papelera de un tipo, entonces veo el diálogo con cuántos días de mi calendario y
+  cuántos turnos del equipo lo usan; "Cancelar" no hace nada; "Eliminar" borra el tipo y esos días quedan
+  sin turno.
+- Dado un único tipo, entonces su papelera está deshabilitada.
+
+### A6 — Restablecer los cinco por defecto
+- Dado que renombré "Noche" y eliminé "Vacaciones" y añadí "Guardia", cuando pulso "Restablecer los cinco
+  por defecto" y confirmo, entonces "Noche" recupera su nombre, abreviatura y color, "Vacaciones" vuelve
+  a existir (vacía) y "Guardia" sigue igual.
+
+### A7 — Persistencia y migración
+- Dado tipos personalizados, cuando cierro y reabro la app, entonces siguen iguales y en el mismo orden.
+- Dado una instalación en la versión 4 con días marcados, cuando actualizo, entonces cada día conserva su
+  turno (ahora apuntando al tipo por defecto correspondiente) y la pestaña Ajustes muestra los cinco tipos
+  por defecto (migración 4 → 5).
+

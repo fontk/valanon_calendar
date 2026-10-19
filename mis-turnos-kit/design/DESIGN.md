@@ -5,11 +5,13 @@ Referencia: `mockups/Main.dc.html`, `mockups/Selector.dc.html`, `mockups/Selecto
 `mockups/PlantillaDetalle.dc.html`, `mockups/Turnos.dc.html`, `mockups/TurnosDia.dc.html`,
 `mockups/TurnosEditar.dc.html`, `mockups/TurnosSelector.dc.html`, más los estados adicionales
 `PlantillasVacio`, `PlantillaEditar`, `PlantillaBorrar`, `TurnosVacio`, `TurnosPlantilla` y `TurnosGrande`
-y `PlantillaTareas`, `Checklist`, `ChecklistNueva`, `ChecklistBorrar`, `ChecklistVacio` (390×844). Los
-siete de Plantillas, los siete de Turnos y los cuatro de Checklist son, en cada caso, el mismo componente
-con la pantalla inicial distinta (prop `pantallaInicial`: Plantillas → lista / vacio / tipos / detalle /
-editar / borrar / tareas; Turnos → calendario / vacio / plantilla / grande / dia / editar / selector;
-Checklist → lista / nueva / borrar / vacio).
+y `PlantillaTareas`, `Checklist`, `ChecklistNueva`, `ChecklistBorrar`, `ChecklistVacio`, `Ajustes`,
+`AjustesTipos`, `AjustesTipoEditar`, `AjustesTipoNuevo`, `AjustesTipoBorrar` (390×844). Los siete de
+Plantillas, los siete de Turnos, los cuatro de Checklist y los cinco de Ajustes son, en cada caso, el
+mismo componente con la pantalla inicial distinta (prop `pantallaInicial`: Plantillas → lista / vacio /
+tipos / detalle / editar / borrar / tareas; Turnos → calendario / vacio / plantilla / grande / dia /
+editar / selector; Checklist → lista / nueva / borrar / vacio; Ajustes → ajustes / tipos / editar / nuevo /
+borrar).
 Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se usan.
 
 ## Principios
@@ -129,6 +131,30 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
    "Eliminar" relleno `danger` con texto blanco, 44 dp.
 4. La barra inferior pasa a tres pestañas de igual ancho; la activa sigue siendo la única con píldora.
 
+## Pestaña Ajustes (Ajustes, AjustesTipos, AjustesTipoEditar, AjustesTipoNuevo, AjustesTipoBorrar)
+1. Ajustes: cabecera como las demás ("Ajustes" 22/800); etiqueta de sección en estilo sobretítulo
+   ("CALENDARIO"); fila-tarjeta 72 dp mínimo, radio 16, borde `lineSoft`, insignia 44 dp `surfaceAccent`
+   con icono de etiqueta en `accent`, título 16/800 y fila de chips en miniatura (11/700, padding 2×8,
+   radio 999, colores del tipo); chevron. Pie "Mis turnos · versión X" 12/600 `textFaint` centrado.
+2. Tipos de turno: barra 14/12/10/8 con volver 44 dp, sobretítulo, título 20/800 y contador 13/700
+   `textMuted`; ayuda 13/500 `textMuted`; filas 64 dp mínimo, radio 14, padding 8/8/8/10, gap 12: muestra
+   44 dp radio 12 (bg/fg/border del color, abreviatura 11/800 tracking 0.04em), nombre 16/700, detalle
+   12/600 `textMuted`, lápiz y papelera 44 dp. "Añadir tipo de turno" 52 dp con borde discontinuo `accent`
+   (deshabilitado: opacidad 0.4). "Restablecer los cinco por defecto" como botón de texto 48 dp 14/700
+   `textMuted` con icono.
+3. Editor (hoja base): cabecera en fila con sobretítulo + título 20/800 y la vista previa de celda 56×60
+   (radio 12, "17" 15/800 + abreviatura 10/700); campos de 48 dp radio 14 fondo `surfaceInput` (Nombre
+   flexible, Abreviatura 96 dp con texto 15/800 en mayúsculas); etiquetas 12/700 `textMuted`; error 13/600
+   `danger` y borde del campo en #D63A4F; rejilla de color 8 columnas gap 8, botones 38 dp radio 12 con el
+   `bg` de cada entrada, seleccionada con borde 3 dp `accent` y ✓ 14/800 en el `fg`; fila final Cancelar
+   (`surface`) / Añadir·Guardar (`accent`), 48 dp.
+4. Diálogos de eliminar y restablecer: como los demás diálogos (radio 24, padding 24, acciones a la
+   derecha, destructiva rellena en `danger`).
+5. Paleta de 16 colores (clave, nombre, bg, fg, border, dot): ver spec 3c.3 y `tokens.json →
+   shiftPalette`. Las cinco entradas de `shift` son alias de `gris`, `amarillo`, `azul`, `indigo` y `verde`.
+6. La barra inferior pasa a cinco pestañas (78 dp cada una); la píldora del icono activo usa padding
+   horizontal 14 en lugar de 18.
+
 ## Iconos (trazo 2 dp, esquinas y remates redondeados, 24×24 viewBox)
 - Calendario: `rect 3,5 18×16 r2` + línea y=10 + dos anillas x=8 y x=16 de y=3 a 7.
 - Checklist: `rect 3,4 18×16 r2` + marca `M9 11l2 2 4-4`.
@@ -143,6 +169,9 @@ Los valores numéricos están en `tokens/tokens.json`; aquí se explica cómo se
 - Lápiz: `M12 20h9`, `M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z`.
 - Flecha atrás: `M19 12H5`, `M11 6l-6 6 6 6`. Cerrar (X): `M6 6l12 12M18 6L6 18` (trazo 2.2).
 - Turnos (reloj): `circle 12,12 r9`, `M12 7v5l3 2`.
+- Ajustes (engranaje): `circle 12,12 r3` + el contorno dentado estándar (ver `mockups/Ajustes.dc.html`).
+- Etiqueta (ajuste "Tipos de turno"): `M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z`,
+  `circle 7.5,7.5 r1.5`.
 Los paths exactos están en los mockups; conviértelos a `ImageVector` con `path { moveTo… }` o impórtalos
 como Vector Drawable.
 

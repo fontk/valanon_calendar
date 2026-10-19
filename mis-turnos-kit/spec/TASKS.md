@@ -245,3 +245,67 @@ Marca cada tarea al completarla. Cada fase debe terminar con la app compilando y
       "Rutina de apertura" y "Cierre de turno").
 - [ ] Verificar P2, P10 y L0–L8 en emulador; actualizar `CLAUDE.md` (Architecture, Database rules: versión 4).
 
+## Fase 10 — Pestaña Ajustes y tipos de turno configurables (spec 2, 3.2–3.4, 3c, historias A1–A7). Requiere Fase 9.
+
+### 10.1 Modelo: de enum a entidad
+- [ ] `PaletaTurnos` en `ui/theme/ColoresTurno.kt`: 16 entradas (clave, nombre, bg, fg, border, dot) con
+      su variante oscura; `PaletaTurnos[clave]` con fallback a `gris` si la clave no existe.
+- [ ] Entidad Room `TipoTurno(id, clave: String?, nombre, abreviatura, color: String, orden)` con índice
+      único en `clave`. `TiposTurnoDao`: `observarTodos()`, `obtenerTodos()`, `insertarAlFinal`,
+      `actualizar`, `borrar(id)`, `contar()`, `usos(id): Pair<Int, Int>` (COUNT en `turnos` y en
+      `asignaciones`), `restablecerPorDefecto()` (transacción: UPDATE por `clave` o INSERT si falta).
+- [ ] Sustituir el `enum class TipoTurno` en todo el código por la entidad: `Turno.tipoId: Long`,
+      `Asignacion.tipoId: Long`; `TipoTurno.colores` pasa a `PaletaTurnos[tipo.color]`; eliminar
+      `Conversores` del enum. Buscar y eliminar cualquier `when (tipo)` exhaustivo.
+- [ ] `AppDatabase.VERSION = 5`, `MIGRATION_4_5`: crear `tipos_turno`, insertar las 5 filas por defecto
+      (ids 1–5, `clave`, nombre, abreviatura, color, orden), recrear `turnos` (fecha, tipo_id) y
+      `asignaciones` (…, tipo_id) copiando con `JOIN tipos_turno ON clave = tipo`, recrear
+      `idx_asignaciones_fecha_trabajador` e `idx_asignaciones_trabajador`. Exportar `5.json`.
+- [ ] `TiposTurnoRepositorio` en `AppContainer`; los repositorios de turnos y asignaciones exponen
+      `Flow` combinados con los tipos (`Map<LocalDate, TipoTurno>`).
+- [ ] Tests: `MigrationTest` 4 → 5 (cada fila de `turnos`/`asignaciones` conserva su día y apunta al id
+      correcto; cascade al borrar un tipo), `TiposTurnoDaoTest` (unicidad de clave, usos, restablecer),
+      `PaletaTurnosTest` (contraste ≥ 4.5:1 de fg sobre bg y ≥ 3:1 de dot sobre blanco en ambas paletas).
+
+### 10.2 Calendario, Turnos y PDF sobre tipos dinámicos
+- [ ] `LeyendaTurnos`, `SelectorTurno`/`ContenidoSelectorTurno`, `CeldaDia`, `CeldaDiaPuntos`, chips de
+      Turnos y `ExportadorPdf` reciben `List<TipoTurno>` y pintan con la paleta; el selector hace scroll
+      con más de 8 opciones. Ninguna cadena ni color de turno queda en código fuera de los valores por
+      defecto de la migración.
+- [ ] Un día cuyo `tipo_id` ya no existe no puede darse (cascade), pero el código tolera `null` al
+      resolver el mapa.
+
+### 10.3 Pestaña Ajustes
+- [ ] `Destino.AJUSTES("ajustes", R.string.tab_ajustes, MisTurnosIcons.Ajustes)` en quinta posición;
+      barra con cinco ítems de igual ancho, píldora con padding horizontal 14 dp; comprobar etiquetas a
+      1.3× (bajar a 11 sp solo en la barra si hace falta). Icono engranaje.
+- [ ] `ui/ajustes/AjustesScreen` (lista de secciones; fila "Tipos de turno" con chips en miniatura; pie
+      con `BuildConfig.VERSION_NAME`) y navegación interna a `TiposTurnoScreen` (ruta `ajustes/tipos`,
+      Atrás vuelve a Ajustes).
+- [ ] `TiposTurnoViewModel`: `tipos` con usos, `editor` (abierto, id en edición, nombre, abreviatura,
+      abreviaturaManual, color, error), `confirmandoBorradoId`, `confirmandoRestablecer`
+      (SavedStateHandle); acciones `nuevo`, `editar(id)`, `cambiarNombre` (deriva abreviatura si no es
+      manual), `cambiarAbreviatura`, `elegirColor`, `guardar` (validaciones), `pedirBorrar`, `borrar`,
+      `pedirRestablecer`, `restablecer`.
+- [ ] `TiposTurnoScreen`: lista, botón "Añadir tipo de turno" (deshabilitado a 16), botón "Restablecer".
+- [ ] `EditorTipoTurnoSheet` (`ModalBottomSheet`): vista previa de celda, campos Nombre/Abreviatura,
+      rejilla de 8 columnas con la paleta (`radiogroup`), error, Cancelar / Añadir·Guardar.
+- [ ] Diálogos de eliminar (con usos) y de restablecer.
+- [ ] Tests JVM: derivación de abreviatura, validaciones, añadir/editar/borrar, límite 16 y mínimo 1,
+      restablecer conserva personalizados.
+
+### 10.4 Cierre
+- [ ] `strings.xml`: "Ajustes", "Calendario" (sección), "Tipos de turno", "Mis turnos · versión %1$s",
+      "Volver a ajustes", "%1$d de %2$d", texto de ayuda, "Por defecto", "Personalizado", "sin usar",
+      plural "%1$d días, %2$d turnos del equipo", "Editar %1$s", "Eliminar %1$s", "Añadir tipo de turno",
+      "Restablecer los cinco por defecto", "Nuevo tipo de turno", "Editar tipo de turno", "Nombre,
+      abreviatura y color", "Nombre", "Abreviatura", "Ej. Guardia", "Color", nombres de los 16 colores,
+      "Escribe un nombre para el turno.", "Ya existe un turno con ese nombre.", "Añadir", "Guardar",
+      "¿Eliminar el turno «%1$s»?", cuerpos del diálogo (con y sin usos), "¿Restablecer los tipos por
+      defecto?" y su cuerpo, "Restablecer". Los cinco nombres por defecto siguen siendo datos (migración),
+      no recursos.
+- [ ] Previews con `DatosMuestra` (los cinco por defecto + "Guardia" en naranja).
+- [ ] Modo oscuro: variantes oscuras de la paleta; la muestra de la fila y la vista previa las usan.
+- [ ] Verificar A1–A7 en emulador; actualizar `CLAUDE.md` (Architecture, Database rules: versión 5, y la
+      regla "no cambiar los cinco tipos" pasa a "los tipos son datos; no hardcodear ninguno").
+

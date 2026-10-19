@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mis turnos – Ajustes · tipos de turno</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif;color:#1C1C1A;background:#FFFFFF}
+a{color:#0F6E64}a:hover{color:#0B544C}
+button,input{font-family:inherit}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; display: flex; flex-direction: column; position: relative; overflow: hidden; font-family: Manrope, system-ui, sans-serif">
+
+  <sc-if value="{{enAjustes}}" hint-placeholder-val="{{true}}">
+    <div style="padding: 22px 20px 14px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Mis turnos</div>
+      <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Ajustes</div>
+    </div>
+    <div style="flex-grow: 1; overflow-y: auto; padding: 0 20px 24px; display: flex; flex-direction: column; gap: 10px">
+      <div style="padding: 0 0 4px; font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Calendario</div>
+      <button onClick="{{abrirTipos}}" style="display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 10px 12px 14px; border-radius: 16px; border: 1px solid #E8E8E4; background: #FFFFFF; text-align: left; color: #1C1C1A">
+        <span style="width: 44px; height: 44px; border-radius: 12px; background: #DDF0EC; color: #0F6E64; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg>
+        </span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+          <span style="font-size: 16px; font-weight: 800">Tipos de turno</span>
+          <span style="display: flex; gap: 4px; flex-wrap: wrap">
+            <sc-for list="{{tiposMini}}" as="m" hint-placeholder-count="5">
+              <span style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: {{m.bg}}; color: {{m.fg}}">{{m.nombre}}</span>
+            </sc-for>
+          </span>
+        </span>
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div style="margin-top: 16px; font-size: 12px; font-weight: 600; color: #7A7A75; text-align: center">Mis turnos · versión [VERSIÓN]</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{enTipos}}" hint-placeholder-val="{{false}}">
+    <div style="padding: 14px 12px 10px 8px; display: flex; align-items: center; gap: 6px">
+      <button aria-label="Volver a ajustes" onClick="{{volver}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1C1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg>
+      </button>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">Ajustes · Calendario</div>
+        <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.01em">Tipos de turno</div>
+      </div>
+      <div style="font-size: 13px; font-weight: 700; color: #5F5F5A; padding-right: 8px">{{contadorTipos}}</div>
+    </div>
+    <div style="padding: 0 20px 12px; font-size: 13px; font-weight: 500; color: #5F5F5A; line-height: 1.4">Se usan en Calendario, Turnos y el PDF. Los cinco iniciales se pueden editar o quitar.</div>
+
+    <div style="flex-grow: 1; overflow-y: auto; padding: 0 20px 24px; display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{tipos}}" as="t" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 8px 8px 10px; border-radius: 14px; border: 1px solid #E8E8E4; background: #FFFFFF">
+          <span style="width: 44px; height: 44px; border-radius: 12px; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.border}}; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: center; flex-shrink: 0">{{t.abrev}}</span>
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.nombre}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: #5F5F5A">{{t.detalle}}</span>
+          </span>
+          <button onClick="{{t.editar}}" aria-label="{{t.ariaEditar}}" style="width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; color: #5F5F5A">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+          </button>
+          <button onClick="{{t.borrar}}" aria-label="{{t.ariaBorrar}}" style="width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; color: #8A2E1F">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
+          </button>
+        </div>
+      </sc-for>
+      <button onClick="{{nuevoTipo}}" style="margin-top: 4px; height: 52px; border-radius: 14px; border: 1px dashed {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Añadir tipo de turno
+      </button>
+      <button onClick="{{restablecer}}" style="height: 48px; border-radius: 14px; border: none; background: transparent; color: #5F5F5A; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"></path><path d="M21 3v5h-5"></path></svg>
+        Restablecer los cinco por defecto
+      </button>
+    </div>
+  </sc-if>
+
+  <div style="height: 72px; border-top: 1px solid #ECECE8; background: #FFFFFF; display: flex">
+    <a href="Main.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 14px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Calendario</span>
+    </a>
+    <a href="Turnos.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 14px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Turnos</span>
+    </a>
+    <a href="Checklist.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 14px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"></path><rect x="3" y="4" width="18" height="16" rx="2"></rect></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Checklist</span>
+    </a>
+    <a href="Plantillas.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5F5F5A; text-decoration: none">
+      <span style="padding: 4px 14px; border-radius: 999px; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path><path d="M3 17l9 5 9-5"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 700">Plantillas</span>
+    </a>
+    <div aria-current="page" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{accent}}">
+      <span style="padding: 4px 14px; border-radius: 999px; background: #DDF0EC; display: flex"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></span>
+      <span style="font-size: 12px; font-weight: 800">Ajustes</span>
+    </div>
+  </div>
+
+  <sc-if value="{{editorAbierto}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <div style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 14px">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: #D8D8D3; align-self: center"></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 12px; font-weight: 700; color: #5F5F5A; letter-spacing: 0.08em; text-transform: uppercase">{{editorSobretitulo}}</div>
+            <div style="font-size: 20px; font-weight: 800">{{editorTitulo}}</div>
+          </div>
+          <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 56px; height: 60px; border-radius: 12px; background: {{previewBg}}; color: {{previewFg}}; border: 1px solid {{previewBorder}}; flex-shrink: 0" aria-hidden="true">
+            <span style="font-size: 15px; font-weight: 800">17</span>
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.04em">{{previewAbrev}}</span>
+          </span>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0">
+            <label for="tipo-nombre" style="font-size: 12px; font-weight: 700; color: #5F5F5A">Nombre</label>
+            <input id="tipo-nombre" type="text" placeholder="Ej. Guardia" value="{{editNombre}}" onChange="{{onEditNombre}}" maxlength="20" style="height: 48px; box-sizing: border-box; border-radius: 14px; border: 1px solid {{nombreBorde}}; background: #F7F7F4; padding: 0 14px; font-size: 16px; font-weight: 600; color: #1C1C1A; outline: none; width: 100%">
+          </div>
+          <div style="width: 96px; display: flex; flex-direction: column; gap: 6px">
+            <label for="tipo-abrev" style="font-size: 12px; font-weight: 700; color: #5F5F5A">Abreviatura</label>
+            <input id="tipo-abrev" type="text" placeholder="GUA" value="{{editAbrev}}" onChange="{{onEditAbrev}}" maxlength="5" style="height: 48px; box-sizing: border-box; border-radius: 14px; border: 1px solid #E6E6E1; background: #F7F7F4; padding: 0 12px; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #1C1C1A; outline: none; width: 100%">
+          </div>
+        </div>
+        <sc-if value="{{hayError}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 13px; font-weight: 600; color: #8A2E1F">{{errorTexto}}</div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 12px; font-weight: 700; color: #5F5F5A">Color</div>
+          <div role="radiogroup" aria-label="Color del turno" style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{paleta}}" as="c" hint-placeholder-count="16">
+              <button onClick="{{c.elegir}}" role="radio" aria-checked="{{c.activo}}" aria-label="{{c.nombre}}" style="aspect-ratio: 1; height: 38px; border-radius: 12px; padding: 0; background: {{c.bg}}; border: {{c.borde}}; display: flex; align-items: center; justify-content: center; color: {{c.fg}}">
+                <span style="font-size: 14px; font-weight: 800; line-height: 1">{{c.marca}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{cerrarEditor}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: none; background: #F2F2EF; color: #1C1C1A; font-size: 15px; font-weight: 700">Cancelar</button>
+          <button onClick="{{guardarTipo}}" style="flex: 1 1 0; height: 48px; border-radius: 14px; border: none; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 800">{{editorAccion}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{confirmandoBorrado}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(20, 20, 19, 0.45); display: flex; align-items: center; justify-content: center; padding: 28px">
+      <div role="alertdialog" aria-labelledby="dlg-tipo" style="width: 100%; background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 12px 32px rgba(20, 20, 19, 0.25)">
+        <div id="dlg-tipo" style="font-size: 20px; font-weight: 800; line-height: 1.25">{{dialogoTitulo}}</div>
+        <div style="font-size: 15px; font-weight: 500; color: #5F5F5A; line-height: 1.4">{{dialogoCuerpo}}</div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px">
+          <button onClick="{{cancelarBorrado}}" style="height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: transparent; color: {{accent}}; font-size: 15px; font-weight: 700">Cancelar</button>
+          <button onClick="{{confirmarBorrado}}" style="height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #8A2E1F; color: #FFFFFF; font-size: 15px; font-weight: 800">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6E64","options":["#0F6E64","#2E2A6B","#B4421E"]},"pantallaInicial":{"editor":"enum","default":"tipos","options":["ajustes","tipos","editar","nuevo","borrar"]},"$preview":{"width":390,"height":844}}'>
+var PALETA = [
+  { clave: 'gris',     nombre: 'Gris',          bg: '#F2F2EF', fg: '#5B5B57', border: '#E4E4E0', dot: '#9A9A95' },
+  { clave: 'amarillo', nombre: 'Amarillo',      bg: '#FFE9A8', fg: '#6B4A00', border: '#F3D77A', dot: '#D99E00' },
+  { clave: 'ambar',    nombre: 'Ámbar',         bg: '#FFDDB0', fg: '#7A3E00', border: '#F5C98A', dot: '#E07B00' },
+  { clave: 'naranja',  nombre: 'Naranja',       bg: '#FFD3C2', fg: '#8A2E1F', border: '#F5B9A3', dot: '#E05A2B' },
+  { clave: 'rojo',     nombre: 'Rojo',          bg: '#FFC9CF', fg: '#8B1A2B', border: '#F3A9B3', dot: '#D63A4F' },
+  { clave: 'rosa',     nombre: 'Rosa',          bg: '#FFD1E8', fg: '#8A1E57', border: '#F3B0D4', dot: '#D63A8F' },
+  { clave: 'fucsia',   nombre: 'Fucsia',        bg: '#F3CCFF', fg: '#6B1A8A', border: '#E2AEF5', dot: '#B23AD6' },
+  { clave: 'violeta',  nombre: 'Violeta',       bg: '#EDE9FF', fg: '#4B43B8', border: '#D4CCFA', dot: '#7B6CF0' },
+  { clave: 'indigo',   nombre: 'Índigo oscuro', bg: '#2E2A6B', fg: '#FFFFFF', border: '#2E2A6B', dot: '#2E2A6B' },
+  { clave: 'azul',     nombre: 'Azul',          bg: '#CFE4FF', fg: '#12407A', border: '#A9CBF5', dot: '#2F7BD8' },
+  { clave: 'celeste',  nombre: 'Celeste',       bg: '#CFF3FF', fg: '#0B4F63', border: '#A4E3F5', dot: '#1AA3C9' },
+  { clave: 'turquesa', nombre: 'Turquesa',      bg: '#CFF5EC', fg: '#0C5A4A', border: '#A6E6D8', dot: '#17A48A' },
+  { clave: 'verde',    nombre: 'Verde',         bg: '#CDEFD5', fg: '#145229', border: '#A6DDB4', dot: '#2E9E55' },
+  { clave: 'lima',     nombre: 'Lima',          bg: '#E6F5B8', fg: '#3F5A00', border: '#CFE88F', dot: '#8FBF1A' },
+  { clave: 'marron',   nombre: 'Marrón',        bg: '#EBDCCB', fg: '#5A3A1E', border: '#D9C3A8', dot: '#9C6B3F' },
+  { clave: 'pizarra',  nombre: 'Pizarra',       bg: '#D9DEE5', fg: '#2F3B4D', border: '#BFC7D2', dot: '#6B7A90' }
+];
+var POR_DEFECTO = [
+  { id: 1, clave: 'libre',      nombre: 'Libre',      abrev: 'LIBRE', color: 'gris' },
+  { id: 2, clave: 'manana',     nombre: 'Mañana',     abrev: 'MAÑ',   color: 'amarillo' },
+  { id: 3, clave: 'tarde',      nombre: 'Tarde',      abrev: 'TARDE', color: 'azul' },
+  { id: 4, clave: 'noche',      nombre: 'Noche',      abrev: 'NOCHE', color: 'indigo' },
+  { id: 5, clave: 'vacaciones', nombre: 'Vacaciones', abrev: 'VAC',   color: 'verde' }
+];
+var USOS = { 1: [8, 6], 2: [9, 22], 3: [8, 20], 4: [6, 18], 5: [0, 6] };
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var inicial = 'tipos';
+    var tipos = POR_DEFECTO.map(function (t) { return Object.assign({}, t); });
+    tipos.push({ id: 6, clave: null, nombre: 'Guardia', abrev: 'GUA', color: 'naranja' });
+    var editando = inicial === 'editar' ? 4 : null;
+    var nuevo = inicial === 'nuevo';
+    var base = editando ? tipos[3] : null;
+    this.state = {
+      pantalla: inicial === 'ajustes' ? 'ajustes' : 'tipos',
+      tipos: tipos,
+      siguienteId: 7,
+      editorAbierto: editando != null || nuevo,
+      editandoId: editando,
+      editNombre: base ? base.nombre : '',
+      editAbrev: base ? base.abrev : '',
+      editColor: base ? base.color : 'ambar',
+      abrevManual: !!base,
+      error: '',
+      confirmandoId: inicial === 'borrar' ? 4 : null
+    };
+  }
+  paleta(clave) { return PALETA.filter(function (c) { return c.clave === clave; })[0] || PALETA[0]; }
+  abrevDe(nombre) { return nombre.trim().slice(0, 3).toUpperCase(); }
+  cerrarEditor() { this.setState({ editorAbierto: false, editandoId: null, error: '' }); }
+  guardar() {
+    var s = this.state;
+    var nombre = s.editNombre.trim();
+    var abrev = (s.editAbrev.trim() || this.abrevDe(nombre)).toUpperCase().slice(0, 5);
+    if (!nombre) { this.setState({ error: 'Escribe un nombre para el turno.' }); return; }
+    var dup = s.tipos.some(function (t) { return t.id !== s.editandoId && t.nombre.toLowerCase() === nombre.toLowerCase(); });
+    if (dup) { this.setState({ error: 'Ya existe un turno con ese nombre.' }); return; }
+    if (s.editandoId != null) {
+      this.setState({ tipos: s.tipos.map(function (t) { return t.id === s.editandoId ? Object.assign({}, t, { nombre: nombre, abrev: abrev, color: s.editColor }) : t; }) });
+    } else {
+      this.setState({ tipos: s.tipos.concat([{ id: s.siguienteId, clave: null, nombre: nombre, abrev: abrev, color: s.editColor }]), siguienteId: s.siguienteId + 1 });
+    }
+    this.cerrarEditor();
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent || '#0F6E64';
+    var esNuevo = s.editandoId == null;
+    var prev = this.paleta(s.editColor);
+    var conf = s.tipos.filter(function (t) { return t.id === s.confirmandoId; })[0] || null;
+    var usosConf = conf ? (USOS[conf.id] || [0, 0]) : [0, 0];
+    return {
+      accent: accent,
+      enAjustes: s.pantalla === 'ajustes',
+      enTipos: s.pantalla === 'tipos',
+      abrirTipos: function () { self.setState({ pantalla: 'tipos' }); },
+      volver: function () { self.setState({ pantalla: 'ajustes' }); },
+      tiposMini: s.tipos.map(function (t) { var c = self.paleta(t.color); return { nombre: t.nombre, bg: c.bg, fg: c.fg }; }),
+      contadorTipos: s.tipos.length + ' de 16',
+      tipos: s.tipos.map(function (t) {
+        var c = self.paleta(t.color);
+        var u = USOS[t.id] || [0, 0];
+        return {
+          nombre: t.nombre, abrev: t.abrev, bg: c.bg, fg: c.fg, border: c.border,
+          detalle: (t.clave ? 'Por defecto · ' : 'Personalizado · ') + c.nombre + (u[0] || u[1] ? ' · ' + u[0] + ' días, ' + u[1] + ' turnos del equipo' : ' · sin usar'),
+          ariaEditar: 'Editar ' + t.nombre,
+          ariaBorrar: 'Eliminar ' + t.nombre,
+          editar: function () { self.setState({ editorAbierto: true, editandoId: t.id, editNombre: t.nombre, editAbrev: t.abrev, editColor: t.color, abrevManual: true, error: '' }); },
+          borrar: function () { self.setState({ confirmandoId: t.id }); }
+        };
+      }),
+      nuevoTipo: function () {
+        var usados = s.tipos.map(function (t) { return t.color; });
+        var libre = PALETA.filter(function (c) { return usados.indexOf(c.clave) < 0; })[0] || PALETA[2];
+        self.setState({ editorAbierto: true, editandoId: null, editNombre: '', editAbrev: '', editColor: libre.clave, abrevManual: false, error: '' });
+      },
+      restablecer: function () {
+        var custom = s.tipos.filter(function (t) { return !t.clave; });
+        self.setState({ tipos: POR_DEFECTO.map(function (t) { return Object.assign({}, t); }).concat(custom) });
+      },
+      editorAbierto: s.editorAbierto,
+      editorSobretitulo: esNuevo ? 'Nuevo tipo de turno' : 'Editar tipo de turno',
+      editorTitulo: esNuevo ? 'Nombre, abreviatura y color' : s.editNombre || 'Sin nombre',
+      editorAccion: esNuevo ? 'Añadir' : 'Guardar',
+      previewBg: prev.bg, previewFg: prev.fg, previewBorder: prev.border,
+      previewAbrev: (s.editAbrev || self.abrevDe(s.editNombre) || 'ABR').toUpperCase().slice(0, 5),
+      editNombre: s.editNombre,
+      editAbrev: s.editAbrev,
+      nombreBorde: s.error ? '#D63A4F' : '#E6E6E1',
+      hayError: !!s.error,
+      errorTexto: s.error,
+      onEditNombre: function (e) {
+        var v = e.target.value;
+        var next = { editNombre: v, error: '' };
+        if (!s.abrevManual) next.editAbrev = self.abrevDe(v);
+        self.setState(next);
+      },
+      onEditAbrev: function (e) { self.setState({ editAbrev: e.target.value.toUpperCase().slice(0, 5), abrevManual: true }); },
+      paleta: PALETA.map(function (c) {
+        var act = c.clave === s.editColor;
+        return {
+          nombre: c.nombre, bg: c.bg, fg: c.fg, activo: act,
+          borde: act ? '3px solid ' + accent : '1px solid ' + c.border,
+          marca: act ? '✓' : '',
+          elegir: function () { self.setState({ editColor: c.clave }); }
+        };
+      }),
+      cerrarEditor: function () { self.cerrarEditor(); },
+      guardarTipo: function () { self.guardar(); },
+      confirmandoBorrado: conf != null,
+      dialogoTitulo: conf ? '¿Eliminar el turno «' + conf.nombre + '»?' : '',
+      dialogoCuerpo: conf ? (usosConf[0] || usosConf[1]
+        ? 'Está marcado en ' + usosConf[0] + ' días de tu calendario y en ' + usosConf[1] + ' turnos del equipo. Esos días quedarán sin turno.'
+        : 'No se está usando en ningún día.') : '',
+      cancelarBorrado: function () { self.setState({ confirmandoId: null }); },
+      confirmarBorrado: function () {
+        if (s.tipos.length <= 1) { self.setState({ confirmandoId: null }); return; }
+        self.setState({ tipos: s.tipos.filter(function (t) { return t.id !== s.confirmandoId; }), confirmandoId: null });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

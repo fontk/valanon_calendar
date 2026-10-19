@@ -78,6 +78,30 @@ ui (Compose screens + ViewModels)  ->  data/repository  ->  data/local (Room: DA
 - Spanish date texts come from `util/FormatoFechas` (hard-coded names, not device locale);
   month cells from `util/CalendarioMes` (Monday first, leading `null` blanks).
 
+## Ajustes tab + configurable shift types (spec 2, 3.2–3.4, 3c, stories A1–A7, TASKS Fase 10) — PENDING
+
+- Fifth bottom-bar destination `ajustes` (gear icon; five equal tabs, active pill padding 14 dp).
+  `AjustesScreen` lists settings by section; the only one is "Tipos de turno", with inner navigation to
+  `TiposTurnoScreen` (Back returns to Ajustes). Footer shows `BuildConfig.VERSION_NAME`.
+- **`TipoTurno` stops being an enum and becomes a Room entity** `tipos_turno(id, clave?, nombre,
+  abreviatura, color, orden)`; `turnos.tipo` and `asignaciones.tipo` (text) become `tipo_id` FKs with
+  ON DELETE CASCADE. Colours come from `PaletaTurnos` (16 entries keyed by `color`, light + dark
+  variants, in `ColoresTurno.kt`); nothing else in the app may hardcode a shift name, abbreviation or
+  colour. The five defaults (ids 1–5, `clave` libre/manana/tarde/noche/vacaciones, colours gris/
+  amarillo/azul/indigo/verde) are inserted by the migration, not by `strings.xml`.
+- Schema **version 5**, `MIGRATION_4_5`: create `tipos_turno` + defaults, recreate `turnos` and
+  `asignaciones` mapping old text to ids via `JOIN tipos_turno ON clave = tipo`, recreate indexes.
+  Test with data (every day keeps its shift) and cascade on type deletion.
+- Editor sheet (create/edit share it): name (≤20, unique case-insensitive), abbreviation (≤5, upper,
+  auto-derived from the first 3 letters until edited by hand), 8-column palette grid, live cell
+  preview. Delete dialog shows usage counts (days in `turnos`, rows in `asignaciones`) — no undo.
+  "Restablecer" updates/recreates the five defaults and leaves custom types alone. Max 16, min 1.
+- Calendario, Turnos, legends, selectors and the PDF must observe `TiposTurnoDao.observarTodos()`.
+- References: `mis-turnos-kit/design/mockups/Ajustes*.dc.html` (its script holds the exact palette and
+  defaults), `design/DESIGN.md` ("Pestaña Ajustes"), `db/schema.sql`. When done, retitle this section
+  "— implemented", update Database rules to version 5 and replace the "do not change the five shift
+  types" rule with "shift types are data; never hardcode one".
+
 ## Task-preset templates + multi-list Checklist (spec 4 & 4b, stories P2, P10, L0–L8, TASKS Fase 9) — implemented
 
 - Second template type `TipoPlantilla.TAREAS`, items in `tareas_plantilla` (`TareaPlantillaDao`).

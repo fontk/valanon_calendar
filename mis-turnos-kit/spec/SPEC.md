@@ -3,20 +3,23 @@
 ## 1. Resumen
 
 App personal para registrar el turno de trabajo de cada día en un calendario y llevar una checklist de
-tareas reutilizable. Cuatro pestañas en una barra inferior, en este orden: **Calendario** (destino
+tareas reutilizable. Cinco pestañas en una barra inferior, en este orden: **Calendario** (destino
 inicial, los turnos del propio usuario), **Turnos** (los turnos de los compañeros de una plantilla de
 trabajadores, día a día), **Checklist** (varias listas de tareas, creadas desde plantillas de tareas o en
-blanco) y **Plantillas** (datos reutilizables por otras pestañas: trabajadores y presets de tareas). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
+blanco), **Plantillas** (datos reutilizables por otras pestañas: trabajadores y presets de tareas) y
+**Ajustes** (configuración de la app; el primer ajuste son los tipos de turno). Todos los datos se guardan en SQLite (Room) y persisten entre sesiones.
 
 ## 2. Navegación
 
-- Barra inferior de 72 dp con cuatro pestañas de igual ancho, en este orden: Calendario, Turnos,
-  Checklist, Plantillas. La pestaña activa muestra el icono dentro de una píldora
+- Barra inferior de 72 dp con cinco pestañas de igual ancho (78 dp a 390 dp de ancho), en este orden:
+  Calendario, Turnos, Checklist, Plantillas, Ajustes. La píldora del icono activo reduce su padding
+  horizontal a 14 dp; las etiquetas siguen en 12 sp y, si a 1.3× de fuente no caben, bajan a 11 sp solo en
+  la barra. La pestaña activa muestra el icono dentro de una píldora
   (fondo `surfaceAccent` #DDF0EC) y texto en `accent` con peso 800; la inactiva en `textMuted` #5F5F5A,
   peso 700. Etiquetas: "Calendario" y "Checklist".
 - Iconos de trazo (stroke 2 dp): calendario (rectángulo con dos anillas y línea de cabecera), turnos
-  (reloj: círculo con manecillas), checklist (rectángulo con marca de verificación) y plantillas (tres
-  capas apiladas: rombo arriba y dos arcos debajo). Nunca emoji.
+  (reloj: círculo con manecillas), checklist (rectángulo con marca de verificación), plantillas (tres
+  capas apiladas: rombo arriba y dos arcos debajo) y ajustes (engranaje). Nunca emoji.
 - Cambiar de pestaña conserva el estado de cada una (mes visible de Calendario y de Turnos, texto escrito
   en el campo de nueva tarea, plantilla abierta en Plantillas). Calendario y Turnos tienen cada uno su
   propio mes visible.
@@ -54,35 +57,38 @@ blanco) y **Plantillas** (datos reutilizables por otras pestañas: trabajadores 
 - El estado "hoja abierta" y el año mostrado sobreviven a la rotación (SavedStateHandle).
 
 ### 3.2 Leyenda
-Cinco chips en fila con salto de línea, cada uno con punto de color de 8 dp + etiqueta (12 sp, 700):
-Libre, Mañana, Tarde, Noche, Vacaciones. Colores en `design/tokens/tokens.json` → `shift`.
+Un chip por tipo de turno configurado (ver 3c), en su `orden`, en fila con salto de línea, cada uno con
+punto de color de 8 dp + etiqueta (12 sp, 700). Por defecto: Libre, Mañana, Tarde, Noche, Vacaciones, con
+los colores de `design/tokens/tokens.json` → `shift` (que coinciden con las entradas de la paleta 3c.3).
 
 ### 3.3 Rejilla del mes
 - Cabecera de días: L M X J V S D (12 sp, 700, `textFaint` #7A7A75). Semana empieza en lunes.
 - Celdas de 60 dp de alto, radio 12 dp, gap 6 dp, 7 columnas, margen lateral 16 dp. Las celdas vacías
   previas al día 1 se dibujan invisibles pero ocupan su hueco.
-- Cada celda muestra el número del día (15 sp, 800) y debajo la abreviatura del turno (10 sp, 700,
-  tracking 0.04em): LIBRE, MAÑ, TARDE, NOCHE, VAC. Sin turno: fondo blanco, borde `lineSoft` #E8E8E4,
-  sin abreviatura.
-- Colores por turno (fondo / texto / borde):
-  - libre: #F2F2EF / #5B5B57 / #E4E4E0
-  - manana: #FFE9A8 / #6B4A00 / #F3D77A
-  - tarde: #CFE4FF / #12407A / #A9CBF5
-  - noche: #2E2A6B / #FFFFFF / #2E2A6B
-  - vacaciones: #CDEFD5 / #145229 / #A6DDB4
+- Cada celda muestra el número del día (15 sp, 800) y debajo la abreviatura del tipo de turno (10 sp,
+  700, tracking 0.04em), tomada de `tipos_turno.abreviatura` (por defecto LIBRE, MAÑ, TARDE, NOCHE, VAC).
+  Sin turno: fondo blanco, borde `lineSoft` #E8E8E4, sin abreviatura.
+- Colores por turno: los de la entrada de la paleta (3c.3) asignada al tipo (`tipos_turno.color`). Los
+  cinco por defecto (fondo / texto / borde):
+  - libre → gris: #F2F2EF / #5B5B57 / #E4E4E0
+  - manana → amarillo: #FFE9A8 / #6B4A00 / #F3D77A
+  - tarde → azul: #CFE4FF / #12407A / #A9CBF5
+  - noche → índigo oscuro: #2E2A6B / #FFFFFF / #2E2A6B
+  - vacaciones → verde: #CDEFD5 / #145229 / #A6DDB4
 - El día de hoy lleva borde de 2 dp en `accent`, por encima del borde de su turno.
 - `contentDescription` de cada celda: "17 de octubre, Noche" o "17 de octubre, sin turno".
 
 ### 3.4 Selección de turno (hoja inferior)
 - Al tocar un día se abre un `ModalBottomSheet` con asa, sobretítulo "TURNO DEL DÍA" y título con la fecha
   en formato "Sábado, 17 de octubre" (día de la semana con inicial mayúscula).
-- Lista de cinco opciones (52 dp de alto, radio 14 dp): cuadrado de color de 28 dp (radio 8) + nombre del
-  turno. La opción actualmente asignada lleva borde de 2 dp en `accent` y la palabra "Actual" a la
-  derecha; el resto borde 1 dp `line`.
+- Lista con una opción por tipo de turno configurado, en su `orden` (52 dp de alto, radio 14 dp): cuadrado
+  de color de 28 dp (radio 8, color `swatch` de la paleta) + nombre del turno. La opción actualmente
+  asignada lleva borde de 2 dp en `accent` y la palabra "Actual" a la derecha; el resto borde 1 dp `line`.
+  Con más de 8 tipos la lista hace scroll dentro de la hoja.
 - Tocar una opción guarda el turno en la base de datos y cierra la hoja. Botón "Cancelar" (48 dp, fondo
   `surface` #F2F2EF) cierra sin cambios. También se puede quitar un turno asignado: añadir una sexta
   opción "Sin turno" solo si el usuario lo pide; por defecto no existe.
-- Guardado: `INSERT OR REPLACE INTO turnos(fecha, tipo)`. Fecha en ISO `yyyy-MM-dd`.
+- Guardado: `INSERT OR REPLACE INTO turnos(fecha, tipo_id)`. Fecha en ISO `yyyy-MM-dd`.
 
 ### 3.5 Exportar a PDF
 - Botón de ancho completo encima de la barra inferior (52 dp, radio 14, fondo `accent`, texto blanco
@@ -92,11 +98,104 @@ Libre, Mañana, Tarde, Noche, Vacaciones. Colores en `design/tokens/tokens.json`
 - Nombre de archivo: `turnos-2026-10.pdf`. Tras generarlo, abrir la hoja de compartir del sistema
   (`ACTION_SEND`, tipo `application/pdf`) o guardarlo en Descargas; mostrar un Snackbar "PDF exportado".
 
+## 3c. Pestaña Ajustes
+
+Quinta pestaña. Pantalla de lista de ajustes agrupados por sección; en esta versión hay una sección,
+"CALENDARIO", con un único ajuste: **Tipos de turno**. Debajo, un pie "Mis turnos · versión X.Y.Z"
+(12 sp, 600, `textFaint`, centrado) con el `versionName` real de la app.
+
+### 3c.1 Pantalla Ajustes
+- Cabecera: sobretítulo "MIS TURNOS", título "Ajustes" (22 sp, 800).
+- Fila de ajuste como tarjeta (72 dp mínimo, radio 16, borde `lineSoft`): insignia 44 dp
+  (`surfaceAccent`, icono de etiqueta en `accent`), título "Tipos de turno" (16 sp, 800) y, debajo, una
+  fila de chips en miniatura (11 sp, 700, padding 2×8, radio 999) con el nombre y los colores de cada tipo
+  configurado, en su orden; chevron derecho. Tocarla abre 3c.2 (navegación interna de la pestaña; el
+  botón Atrás vuelve a Ajustes).
+
+### 3c.2 Tipos de turno
+- Barra superior: botón "Volver a ajustes" (44 dp, flecha izquierda), sobretítulo "AJUSTES · CALENDARIO",
+  título "Tipos de turno" (20 sp, 800) y a la derecha el contador "6 de 16" (13 sp, 700, `textMuted`).
+- Texto de ayuda (13 sp, 500, `textMuted`): "Se usan en Calendario, Turnos y el PDF. Los cinco iniciales
+  se pueden editar o quitar."
+- Lista (gap 8) con una fila por tipo, en su `orden`: muestra de 44 dp (radio 12, fondo/texto/borde del
+  color, con la abreviatura en 11 sp/800), nombre (16 sp, 700), detalle "Por defecto · Amarillo · 9 días,
+  22 turnos del equipo" o "Personalizado · Naranja · sin usar" (12 sp, 600, `textMuted`), botón lápiz
+  "Editar <nombre>" (44 dp) y papelera "Eliminar <nombre>" (44 dp, `danger`).
+- Bajo la lista: botón "Añadir tipo de turno" (52 dp, radio 14, borde 1 dp discontinuo `accent`, texto e
+  icono + en `accent`); se deshabilita (opacidad 0.4, no tocable) al llegar a 16 tipos. Debajo, botón de
+  texto "Restablecer los cinco por defecto" (48 dp, `textMuted`, icono de flecha circular).
+- Los tipos no se pueden reordenar en v1 (los nuevos se añaden al final). Mínimo un tipo: con uno solo, la
+  papelera queda deshabilitada.
+
+### 3c.3 Editor de tipo (hoja inferior; crear y editar comparten el componente)
+- Sobretítulo "NUEVO TIPO DE TURNO" / "EDITAR TIPO DE TURNO" y título "Nombre, abreviatura y color" (al
+  crear) o el nombre actual (al editar). A la derecha, una **vista previa** de celda de calendario
+  (56×60 dp, radio 12) con el día "17" y la abreviatura, pintada con el color elegido; se actualiza en
+  vivo.
+- Campo **Nombre** (48 dp, radio 14, fondo `surfaceInput`, máx. 20 caracteres, placeholder "Ej. Guardia")
+  y campo **Abreviatura** (96 dp de ancho, máx. 5 caracteres, mayúsculas automáticas, placeholder "GUA").
+  La abreviatura se rellena sola con las tres primeras letras del nombre en mayúsculas mientras el
+  usuario no la haya tocado; una vez editada a mano deja de seguir al nombre.
+- **Color**: rejilla de 8 columnas (gap 8) con las 16 entradas de la paleta, botones cuadrados de 38 dp,
+  radio 12, pintados con el `bg` de la entrada; la elegida lleva borde 3 dp `accent` y una marca ✓ en el
+  `fg` de la entrada; el resto borde 1 dp con el `border` de la entrada. Semántica `radiogroup`/`radio`
+  con `contentDescription` = nombre del color. Al crear, se preselecciona el primer color de la paleta no
+  usado por otro tipo (los colores pueden repetirse; no es un error).
+- Validación al guardar: nombre obligatorio ("Escribe un nombre para el turno.") y único sin distinguir
+  mayúsculas ("Ya existe un turno con ese nombre."); el mensaje aparece bajo los campos en `danger` y el
+  campo Nombre toma borde rojo. Abreviatura vacía → se deriva del nombre.
+- Botones "Cancelar" (48 dp, `surface`) y "Añadir" / "Guardar" (48 dp, relleno `accent`). Guardar escribe
+  en `tipos_turno` y cierra; Calendario, Turnos, leyendas y PDF reflejan el cambio al instante (Flow).
+- Paleta (clave → nombre → fondo / texto / borde / punto). Cada entrada tiene contraste texto/fondo
+  ≥ 4.5:1 y punto ≥ 3:1 sobre blanco:
+  - `gris` Gris #F2F2EF / #5B5B57 / #E4E4E0 / #9A9A95
+  - `amarillo` Amarillo #FFE9A8 / #6B4A00 / #F3D77A / #D99E00
+  - `ambar` Ámbar #FFDDB0 / #7A3E00 / #F5C98A / #E07B00
+  - `naranja` Naranja #FFD3C2 / #8A2E1F / #F5B9A3 / #E05A2B
+  - `rojo` Rojo #FFC9CF / #8B1A2B / #F3A9B3 / #D63A4F
+  - `rosa` Rosa #FFD1E8 / #8A1E57 / #F3B0D4 / #D63A8F
+  - `fucsia` Fucsia #F3CCFF / #6B1A8A / #E2AEF5 / #B23AD6
+  - `violeta` Violeta #EDE9FF / #4B43B8 / #D4CCFA / #7B6CF0
+  - `indigo` Índigo oscuro #2E2A6B / #FFFFFF / #2E2A6B / #2E2A6B
+  - `azul` Azul #CFE4FF / #12407A / #A9CBF5 / #2F7BD8
+  - `celeste` Celeste #CFF3FF / #0B4F63 / #A4E3F5 / #1AA3C9
+  - `turquesa` Turquesa #CFF5EC / #0C5A4A / #A6E6D8 / #17A48A
+  - `verde` Verde #CDEFD5 / #145229 / #A6DDB4 / #2E9E55
+  - `lima` Lima #E6F5B8 / #3F5A00 / #CFE88F / #8FBF1A
+  - `marron` Marrón #EBDCCB / #5A3A1E / #D9C3A8 / #9C6B3F
+  - `pizarra` Pizarra #D9DEE5 / #2F3B4D / #BFC7D2 / #6B7A90
+  La paleta vive en código (`PaletaTurnos`), no en la base de datos; `tipos_turno.color` guarda la clave.
+  En tema oscuro cada entrada tiene su variante (fondo oscurecido, texto claro) en `ColoresTurno.kt`.
+
+### 3c.4 Eliminar un tipo
+- `AlertDialog` "¿Eliminar el turno «Noche»?" con cuerpo "Está marcado en 6 días de tu calendario y en
+  18 turnos del equipo. Esos días quedarán sin turno." (o "No se está usando en ningún día.") y botones
+  "Eliminar" (relleno `danger`) / "Cancelar". Confirmar borra el tipo y, en cascada, sus filas en `turnos`
+  y `asignaciones`. No hay Deshacer: por eso el diálogo muestra los recuentos.
+
+### 3c.5 Restablecer los cinco por defecto
+- `AlertDialog` "¿Restablecer los tipos por defecto?" con cuerpo "Libre, Mañana, Tarde, Noche y Vacaciones
+  volverán a su nombre, abreviatura y color originales. Los tipos que hayas añadido no cambian." y
+  botones "Restablecer" / "Cancelar". Para cada clave por defecto: si existe, se actualizan nombre,
+  abreviatura y color; si se había eliminado, se vuelve a crear (al final del orden). Los días que se
+  borraron al eliminarla no se recuperan.
+
+### 3c.6 Reglas de datos
+- Tabla `tipos_turno(id, clave NULL UNIQUE, nombre, abreviatura, color, orden)`. Las cinco filas por
+  defecto llevan `clave` (`libre`, `manana`, `tarde`, `noche`, `vacaciones`) e ids 1–5; las personalizadas
+  `clave NULL`. `TipoTurno` deja de ser un enum y pasa a ser una entidad; `TipoTurnoId = Long`.
+- `turnos.tipo` y `asignaciones.tipo` (texto) pasan a `tipo_id INTEGER REFERENCES tipos_turno(id) ON
+  DELETE CASCADE` en la versión 5 del esquema; la migración mapea cada valor de texto a su id por `clave`.
+- Todas las pantallas observan `TiposTurnoDao.observarTodos(): Flow<List<TipoTurno>>` y pintan con
+  `PaletaTurnos[tipo.color]`; ninguna pantalla tiene colores ni nombres de turno fijos. El PDF usa la
+  misma lista (leyenda incluida).
+- Límite de 16 tipos (tamaño de la paleta) y mínimo de 1.
+
 ## 3b. Pestaña Turnos (turnos del equipo)
 
 Calendario mensual que, en vez del turno del propio usuario, muestra qué turno tiene cada compañero de
 una **plantilla de trabajadores** (pestaña Plantillas, tipo Trabajadores) en cada día. Reutiliza los
-mismos cinco valores de turno, colores y abreviaturas de la pestaña Calendario.
+mismos tipos de turno configurables (3c), con sus colores y abreviaturas, que la pestaña Calendario.
 
 ### 3b.1 Cabecera y plantilla activa
 - Sobretítulo "TURNOS DEL EQUIPO". Fila de mes idéntica a Calendario: flechas "Mes anterior"/"Mes
@@ -338,15 +437,16 @@ Descripción detallada tomando como ejemplo el tipo Trabajadores:
 
 ## 5. Persistencia
 
-Ver `db/schema.sql`. Ocho tablas:
+Ver `db/schema.sql`. Nueve tablas:
 
-- `turnos(fecha TEXT PRIMARY KEY, tipo TEXT NOT NULL CHECK(tipo IN (...)))`
+- `tipos_turno(id INTEGER PRIMARY KEY AUTOINCREMENT, clave TEXT NULL UNIQUE, nombre TEXT NOT NULL, abreviatura TEXT NOT NULL, color TEXT NOT NULL, orden INTEGER NOT NULL)`
+- `turnos(fecha TEXT PRIMARY KEY, tipo_id INTEGER NOT NULL REFERENCES tipos_turno(id) ON DELETE CASCADE)`
 - `listas(id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, plantilla_id INTEGER NULL REFERENCES plantillas(id) ON DELETE SET NULL, orden INTEGER NOT NULL)`
 - `tareas(id INTEGER PRIMARY KEY AUTOINCREMENT, lista_id INTEGER NOT NULL REFERENCES listas(id) ON DELETE CASCADE, texto TEXT NOT NULL, hecha INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL)`
 - `tareas_plantilla(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, texto TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `plantillas(id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL CHECK(tipo IN ('trabajadores')), nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
 - `trabajadores(id INTEGER PRIMARY KEY AUTOINCREMENT, plantilla_id INTEGER NOT NULL REFERENCES plantillas(id) ON DELETE CASCADE, nombre TEXT NOT NULL, orden INTEGER NOT NULL)`
-- `asignaciones(id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, trabajador_id INTEGER NOT NULL REFERENCES trabajadores(id) ON DELETE CASCADE, tipo TEXT NOT NULL CHECK(tipo IN (...)), UNIQUE(fecha, trabajador_id))`
+- `asignaciones(id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, trabajador_id INTEGER NOT NULL REFERENCES trabajadores(id) ON DELETE CASCADE, tipo_id INTEGER NOT NULL REFERENCES tipos_turno(id) ON DELETE CASCADE, UNIQUE(fecha, trabajador_id))`
 - `ajustes(clave TEXT PRIMARY KEY, valor TEXT NOT NULL)` — pares clave/valor de la app
   (`turnos.plantilla_id`, `checklist.lista_id`). Sustituye a DataStore/SharedPreferences, que siguen
   prohibidos.
@@ -358,8 +458,10 @@ La app lee los turnos del mes visible con un rango `fecha BETWEEN ? AND ?` y obs
 existentes: crea la lista "Mi checklist" (`orden` 1, `plantilla_id` NULL), recrea `tareas` con la columna
 `lista_id` apuntando a esa lista (SQLite no permite añadir una columna NOT NULL con FK sin valor por
 defecto: se hace con tabla temporal + copia + renombrado) y guarda `checklist.lista_id` en `ajustes`. Si una
-instalación no tiene tareas, la lista "Mi checklist" no se crea. Si ninguna versión intermedia se ha
-publicado, las migraciones pueden fusionarse. Turnos lee las asignaciones del mes visible con `fecha BETWEEN ? AND ?` filtrando por los
+instalación no tiene tareas, la lista "Mi checklist" no se crea. La versión 5 (`Migration(4, 5)`) crea
+`tipos_turno` con las cinco filas por defecto (ids 1–5), recrea `turnos` y `asignaciones` con `tipo_id`
+mapeando el texto antiguo a su id por `clave` (tabla temporal + copia + renombrado, como en 3 → 4) y
+recrea sus índices. Si ninguna versión intermedia se ha publicado, las migraciones pueden fusionarse. Turnos lee las asignaciones del mes visible con `fecha BETWEEN ? AND ?` filtrando por los
 trabajadores de la plantilla activa (JOIN con `trabajadores`).
 
 ## 6. Accesibilidad y calidad
@@ -373,6 +475,7 @@ trabajadores de la plantilla activa (JOIN con `trabajadores`).
 
 Cuentas, sincronización, notificaciones, widgets, varios calendarios, turnos partidos, estadísticas.
 Otros tipos de plantilla, el uso de plantillas desde Calendario, exportar a PDF el calendario del equipo,
-copiar los turnos de un día a otro, ver varias plantillas a la vez, reordenar listas o tareas arrastrando y
-"volver a sincronizar" una lista con su plantilla quedan para versiones posteriores; el modelo de datos ya
-lo permite.
+copiar los turnos de un día a otro, ver varias plantillas a la vez, reordenar listas, tareas o tipos de
+turno arrastrando, "volver a sincronizar" una lista con su plantilla, otros ajustes (tema, primer día de la
+semana, idioma) y un color personalizado fuera de la paleta quedan para versiones posteriores; el modelo de
+datos ya lo permite.

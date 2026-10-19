@@ -22,7 +22,7 @@ dispositivo Android real.
 Sigue `spec/TASKS.md` fase a fase. Resumen:
 
 1. Proyecto vacío que compila, con tema (colores de `design/tokens/tokens.json`) y barra inferior con las
-   dos pestañas navegando.
+   cinco pestañas navegando (Calendario, Turnos, Checklist, Plantillas, Ajustes).
 2. Capa de datos Room: entidades `Turno` y `Tarea`, DAOs, base de datos, repositorio. Tests de DAO.
 3. Pestaña Calendario completa (grid, leyenda, navegación de mes, hoja de selección de turno, persistencia).
 4. Pestaña Checklist completa (alta, marcar/desmarcar, borrar, FAB reiniciar, estado vacío).
@@ -56,6 +56,10 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
   Checklist con varias listas (chips de lista, tarjeta de la lista activa con Reiniciar y Eliminar, hoja
   "Nueva lista" desde una plantilla de tareas, diálogo de eliminar lista, estado sin listas). Sustituye al
   diseño anterior de una sola lista con FAB.
+- `design/mockups/Ajustes.dc.html`, `AjustesTipos`, `AjustesTipoEditar`, `AjustesTipoNuevo`,
+  `AjustesTipoBorrar`: pestaña Ajustes y el ajuste "Tipos de turno" (lista, editor con paleta de 16
+  colores y vista previa, diálogo de eliminar con usos). El script del `Ajustes.dc.html` contiene la
+  paleta y las cinco filas por defecto exactamente como deben quedar en código y en la migración.
 - El bloque `<script type="text/x-dc">` del final de cada fichero contiene la lógica de la maqueta en
   JavaScript (cálculo de celdas del mes, mapa de turnos, alta/borrado de tareas). Úsalo como pseudocódigo
   del comportamiento esperado, no lo portes literalmente.
@@ -73,7 +77,9 @@ Haz commits pequeños por tarea. No pases a la siguiente fase sin que la actual 
 
 ## Qué no hacer
 
-- No cambiar los cinco tipos de turno ni sus colores sin pedir confirmación.
+- Los tipos de turno son datos (`tipos_turno`), no un enum: nunca hardcodear nombres, abreviaturas ni
+  colores de turno fuera de las cinco filas por defecto de la migración y de `PaletaTurnos`. No cambiar
+  esos valores por defecto ni la paleta sin pedir confirmación.
 - No sustituir SQLite/Room por DataStore, SharedPreferences ni archivos JSON.
 - No añadir inicio de sesión, sincronización en la nube ni notificaciones: fuera de alcance.
 - No añadir tipos de plantilla distintos de Trabajadores y Tareas. Turnos consume plantillas de
