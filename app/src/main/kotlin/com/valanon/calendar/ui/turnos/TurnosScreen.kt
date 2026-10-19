@@ -41,7 +41,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.componentes.AccionesSelectorMes
 import com.valanon.calendar.ui.componentes.CabeceraDiasSemana
 import com.valanon.calendar.ui.componentes.CabeceraMes
@@ -54,7 +54,7 @@ import com.valanon.calendar.ui.preview.DatosMuestra
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
 import com.valanon.calendar.ui.theme.MisTurnosTheme
-import com.valanon.calendar.ui.theme.colorPuntoCelda
+import com.valanon.calendar.ui.theme.colores
 import com.valanon.calendar.util.FormatoFechas
 import com.valanon.calendar.util.PuntosDia
 import java.time.LocalDate
@@ -176,6 +176,7 @@ fun TurnosScreen(estado: TurnosUiState, acciones: AccionesTurnos, modifier: Modi
                         )
                     }
                     LeyendaTurnos(
+                        tipos = estado.tipos,
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 12.dp),
                         paddingVertical = 4.dp,
                     )
@@ -307,7 +308,7 @@ private fun FilaPuntos(puntos: List<TipoTurno>, modifier: Modifier = Modifier) {
                 Box(
                     Modifier
                         .size(7.dp)
-                        .background(tipo.colorPuntoCelda, CircleShape),
+                        .background(tipo.colores.punto, CircleShape),
                 )
             }
             if (ocultos > 0) {

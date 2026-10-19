@@ -10,7 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.valanon.calendar.CalendarApp
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Trabajador
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.ui.componentes.NavegacionMes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,6 +40,8 @@ data class TurnosUiState(
     val trabajadores: List<Trabajador> = emptyList(),
     /** Shifts of the visible month, by day and worker id. */
     val asignaciones: Map<LocalDate, Map<Long, TipoTurno>> = emptyMap(),
+    /** Configured shift types, in order: legend and picker options (spec 3c). */
+    val tipos: List<TipoTurno> = emptyList(),
     val diaAbierto: LocalDate? = null,
     val editando: Boolean = false,
     /** Worker whose shift picker replaces the "Equipo del día" content. */
@@ -122,8 +124,8 @@ class TurnosViewModel(
             datos,
             hojas,
             navegacion.mesTexto,
-            combine(navegacion.selector, hoy) { selector, dia -> selector to dia },
-        ) { catalogo, d, h, mesTexto, (selector, hoyActual) ->
+            combine(navegacion.selector, hoy, repositorio.tipos) { selector, dia, tipos -> Triple(selector, dia, tipos) },
+        ) { catalogo, d, h, mesTexto, (selector, hoyActual, tipos) ->
             val (selectorAbierto, anio) = selector
             val activa = catalogo.activa
             val mes = YearMonth.parse(mesTexto)
@@ -136,6 +138,7 @@ class TurnosViewModel(
                 plantillas = catalogo.todas,
                 trabajadores = if (vigentes) d.trabajadores else emptyList(),
                 asignaciones = if (vigentes) d.asignaciones else emptyMap(),
+                tipos = tipos,
                 diaAbierto = h.dia?.let(LocalDate::parse),
                 editando = h.editando,
                 trabajadorSeleccionadoId = h.trabajador,

@@ -3,13 +3,14 @@ package com.valanon.calendar.data.repository
 import com.valanon.calendar.data.local.dao.AjusteDao
 import com.valanon.calendar.data.local.dao.AsignacionDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
+import com.valanon.calendar.data.local.dao.TiposTurnoDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.entity.Ajuste
 import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -32,6 +33,7 @@ class AsignacionesRepositorio(
     private val ajusteDao: AjusteDao,
     plantillaDao: PlantillaDao,
     private val trabajadorDao: TrabajadorDao,
+    private val tiposDao: TiposTurnoDao,
 ) {
     /** Templates the Turnos tab can show, in list order. */
     val plantillasDeTrabajadores: Flow<List<PlantillaConRecuento>> =
@@ -52,22 +54,32 @@ class AsignacionesRepositorio(
 
     val plantillaActiva: Flow<PlantillaConRecuento?> = catalogo.map { it.activa }
 
+    /** Configured shift types in order (legend and picker). */
+    val tipos: Flow<List<TipoTurno>> = tiposDao.observarTodos()
+
     fun trabajadores(plantillaId: Long): Flow<List<Trabajador>> = trabajadorDao.observarDePlantilla(plantillaId)
 
-    /** Shifts of the template's workers in [mes], by day and worker id. */
+    /**
+     * Shifts of the template's workers in [mes], by day and worker id. Resolved against
+     * `tipos_turno` (also observed), so editing a type repaints the grid at once.
+     */
     fun asignacionesMes(plantillaId: Long, mes: YearMonth): Flow<Map<LocalDate, Map<Long, TipoTurno>>> =
-        asignacionDao.observarMes(plantillaId, mes.atDay(1).toString(), mes.atEndOfMonth().toString())
-            .map { filas ->
-                filas.groupBy({ LocalDate.parse(it.fecha) }, { it.trabajadorId to it.tipo })
-                    .mapValues { (_, pares) -> pares.toMap() }
-            }
+        combine(
+            asignacionDao.observarMes(plantillaId, mes.atDay(1).toString(), mes.atEndOfMonth().toString()),
+            tiposDao.observarTodos(),
+        ) { filas, tipos ->
+            val porId = tipos.associateBy { it.id }
+            filas.mapNotNull { a -> porId[a.tipoId]?.let { tipo -> Triple(LocalDate.parse(a.fecha), a.trabajadorId, tipo) } }
+                .groupBy({ it.first }, { it.second to it.third })
+                .mapValues { (_, pares) -> pares.toMap() }
+        }
 
     suspend fun elegirPlantilla(plantillaId: Long) =
         ajusteDao.guardar(Ajuste(CLAVE_PLANTILLA_TURNOS, plantillaId.toString()))
 
     /** `INSERT OR REPLACE`: saved immediately when picking a shift (no "Guardar" button). */
     suspend fun asignar(fecha: LocalDate, trabajadorId: Long, tipo: TipoTurno) =
-        asignacionDao.upsert(Asignacion(fecha = fecha.toString(), trabajadorId = trabajadorId, tipo = tipo))
+        asignacionDao.upsert(Asignacion(fecha = fecha.toString(), trabajadorId = trabajadorId, tipoId = tipo.id))
 
     /** "Quitar turno": the worker is left unassigned that day. */
     suspend fun quitar(fecha: LocalDate, trabajadorId: Long) = asignacionDao.borrar(fecha.toString(), trabajadorId)

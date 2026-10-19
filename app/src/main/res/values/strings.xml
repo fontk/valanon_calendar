@@ -209,6 +209,78 @@
     <string name="frase">%1$s.</string>
     <string name="frase_y">%1$s y %2$s.</string>
 
+    <!-- Ajustes (spec 3c) -->
+    <string name="tab_ajustes">Ajustes</string>
+    <string name="ajustes_titulo">Ajustes</string>
+    <string name="seccion_calendario">Calendario</string>
+    <string name="tipos_de_turno">Tipos de turno</string>
+    <string name="version_app">Mis turnos · versión %1$s</string>
+    <string name="volver_a_ajustes">Volver a ajustes</string>
+    <string name="sobretitulo_tipos">Ajustes · Calendario</string>
+    <!-- "6 de 16" -->
+    <string name="contador_tipos">%1$d de %2$d</string>
+    <string name="tipos_ayuda">Se usan en Calendario, Turnos y el PDF. Los cinco iniciales se pueden editar o quitar.</string>
+    <string name="por_defecto">Por defecto</string>
+    <string name="personalizado">Personalizado</string>
+    <string name="sin_usar">sin usar</string>
+    <!-- "Por defecto · Amarillo · 9 días, 22 turnos del equipo" -->
+    <string name="detalle_tipo">%1$s · %2$s · %3$s</string>
+    <string name="usos_tipo">%1$s, %2$s</string>
+    <plurals name="dias_uso">
+        <item quantity="one">%d día</item>
+        <item quantity="many">%d días</item>
+        <item quantity="other">%d días</item>
+    </plurals>
+    <plurals name="turnos_equipo_uso">
+        <item quantity="one">%d turno del equipo</item>
+        <item quantity="many">%d turnos del equipo</item>
+        <item quantity="other">%d turnos del equipo</item>
+    </plurals>
+    <string name="editar_tipo">Editar %1$s</string>
+    <string name="eliminar_tipo">Eliminar %1$s</string>
+    <string name="anadir_tipo">Añadir tipo de turno</string>
+    <string name="restablecer_defecto">Restablecer los cinco por defecto</string>
+    <string name="nuevo_tipo">Nuevo tipo de turno</string>
+    <string name="editar_tipo_titulo">Editar tipo de turno</string>
+    <string name="editor_titulo_nuevo">Nombre, abreviatura y color</string>
+    <string name="sin_nombre">Sin nombre</string>
+    <string name="nombre">Nombre</string>
+    <string name="abreviatura">Abreviatura</string>
+    <string name="nombre_placeholder">Ej. Guardia</string>
+    <string name="abreviatura_placeholder">GUA</string>
+    <!-- Shown in the live preview cell until there is a name or an abbreviation -->
+    <string name="abreviatura_vacia">ABR</string>
+    <string name="color">Color</string>
+    <string name="error_nombre_vacio">Escribe un nombre para el turno.</string>
+    <string name="error_nombre_repetido">Ya existe un turno con ese nombre.</string>
+    <string name="anadir">Añadir</string>
+    <string name="eliminar_tipo_titulo">¿Eliminar el turno «%1$s»?</string>
+    <!-- "Está marcado en 6 días de tu calendario y en 18 turnos del equipo. Esos días quedarán sin turno." -->
+    <string name="eliminar_tipo_cuerpo_ambos">Está marcado en %1$s de tu calendario y en %2$s. Esos días quedarán sin turno.</string>
+    <string name="eliminar_tipo_cuerpo_dias">Está marcado en %1$s de tu calendario. Esos días quedarán sin turno.</string>
+    <string name="eliminar_tipo_cuerpo_equipo">Está marcado en %1$s. Esos días quedarán sin turno.</string>
+    <string name="eliminar_tipo_sin_uso">No se está usando en ningún día.</string>
+    <string name="restablecer_titulo">¿Restablecer los tipos por defecto?</string>
+    <string name="restablecer_cuerpo">Libre, Mañana, Tarde, Noche y Vacaciones volverán a su nombre, abreviatura y color originales. Los tipos que hayas añadido no cambian.</string>
+    <string name="restablecer">Restablecer</string>
+    <!-- Shift palette (spec 3c.3): names of the 16 colours -->
+    <string name="color_gris">Gris</string>
+    <string name="color_amarillo">Amarillo</string>
+    <string name="color_ambar">Ámbar</string>
+    <string name="color_naranja">Naranja</string>
+    <string name="color_rojo">Rojo</string>
+    <string name="color_rosa">Rosa</string>
+    <string name="color_fucsia">Fucsia</string>
+    <string name="color_violeta">Violeta</string>
+    <string name="color_indigo">Índigo oscuro</string>
+    <string name="color_azul">Azul</string>
+    <string name="color_celeste">Celeste</string>
+    <string name="color_turquesa">Turquesa</string>
+    <string name="color_verde">Verde</string>
+    <string name="color_lima">Lima</string>
+    <string name="color_marron">Marrón</string>
+    <string name="color_pizarra">Pizarra</string>
+
     <!-- "3 de 6 hechas". Quantity is the total number of tasks. -->
     <plurals name="progreso_tareas">
         <item quantity="one">%1$d de %2$d hecha</item>

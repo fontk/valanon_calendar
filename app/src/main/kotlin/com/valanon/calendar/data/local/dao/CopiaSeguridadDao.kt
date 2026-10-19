@@ -10,6 +10,7 @@ import com.valanon.calendar.data.local.entity.Lista
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.Tarea
 import com.valanon.calendar.data.local.entity.TareaPlantilla
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.local.entity.Turno
 import com.valanon.calendar.data.model.DatosApp
@@ -20,6 +21,9 @@ import com.valanon.calendar.data.model.DatosApp
  */
 @Dao
 abstract class CopiaSeguridadDao {
+
+    @Query("SELECT * FROM tipos_turno ORDER BY orden, id")
+    protected abstract suspend fun tiposTurno(): List<TipoTurno>
 
     @Query("SELECT * FROM turnos ORDER BY fecha")
     protected abstract suspend fun turnos(): List<Turno>
@@ -69,6 +73,12 @@ abstract class CopiaSeguridadDao {
     @Query("DELETE FROM ajustes")
     protected abstract suspend fun borrarAjustes()
 
+    @Query("DELETE FROM tipos_turno")
+    protected abstract suspend fun borrarTiposTurno()
+
+    @Insert
+    protected abstract suspend fun insertarTiposTurno(filas: List<TipoTurno>)
+
     @Insert
     protected abstract suspend fun insertarTurnos(filas: List<Turno>)
 
@@ -96,6 +106,7 @@ abstract class CopiaSeguridadDao {
     /** Consistent snapshot of every table. */
     @Transaction
     open suspend fun leerTodo(): DatosApp = DatosApp(
+        tiposTurno = tiposTurno(),
         turnos = turnos(),
         listas = listas(),
         tareas = tareas(),
@@ -120,6 +131,8 @@ abstract class CopiaSeguridadDao {
         borrarPlantillas()
         borrarTurnos()
         borrarAjustes()
+        borrarTiposTurno()
+        insertarTiposTurno(datos.tiposTurno)
         insertarPlantillas(datos.plantillas)
         insertarTrabajadores(datos.trabajadores)
         insertarTareasPlantilla(datos.tareasPlantilla)

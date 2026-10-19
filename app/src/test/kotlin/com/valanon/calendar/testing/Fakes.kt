@@ -19,8 +19,16 @@ import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Tarea
 import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
+import com.valanon.calendar.data.local.TIPOS_TURNO_POR_DEFECTO
+import com.valanon.calendar.data.local.dao.TipoTurnoConUsos
+import com.valanon.calendar.data.local.dao.TiposTurnoDao
+import com.valanon.calendar.data.local.dao.UsosTipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurnoId
+import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.data.repository.ListasRepositorio
 import com.valanon.calendar.data.repository.TareasRepositorio
+import com.valanon.calendar.data.repository.TiposTurnoRepositorio
 import com.valanon.calendar.data.local.entity.Turno
 import com.valanon.calendar.data.model.TipoPlantilla
 import kotlinx.coroutines.flow.combine
@@ -279,6 +287,70 @@ class FakeAsignacionDao(private val trabajadores: FakeTrabajadorDao) : Asignacio
     override suspend fun insertarTodas(asignaciones: List<Asignacion>) = asignaciones.forEach { upsert(it) }
 }
 
+/** The five default shift types (ids 1–5), as a fresh database has them. */
+object Tipos {
+    val LIBRE = TIPOS_TURNO_POR_DEFECTO[0]
+    val MANANA = TIPOS_TURNO_POR_DEFECTO[1]
+    val TARDE = TIPOS_TURNO_POR_DEFECTO[2]
+    val NOCHE = TIPOS_TURNO_POR_DEFECTO[3]
+    val VACACIONES = TIPOS_TURNO_POR_DEFECTO[4]
+}
+
+/**
+ * In-memory [TiposTurnoDao] seeded with the five defaults. Deleting a type cascades into the
+ * given turnos/asignaciones fakes like the real ON DELETE CASCADE; usage counts read them too.
+ */
+class FakeTiposTurnoDao(
+    private val turnos: FakeTurnoDao? = null,
+    private val asignaciones: FakeAsignacionDao? = null,
+) : TiposTurnoDao {
+    val filas = MutableStateFlow(TIPOS_TURNO_POR_DEFECTO)
+    private var siguienteId = TIPOS_TURNO_POR_DEFECTO.size + 1L
+
+    private fun ordenados(l: List<TipoTurno>) = l.sortedWith(compareBy({ it.orden }, { it.id }))
+
+    override fun observarTodos(): Flow<List<TipoTurno>> = filas.map(::ordenados)
+
+    override suspend fun obtenerTodos(): List<TipoTurno> = ordenados(filas.value)
+
+    override fun observarConUsos(): Flow<List<TipoTurnoConUsos>> =
+        combine(
+            filas,
+            turnos?.filas ?: MutableStateFlow(emptyMap()),
+            asignaciones?.filas ?: MutableStateFlow(emptyList()),
+        ) { tipos, ts, asig ->
+            ordenados(tipos).map { t ->
+                TipoTurnoConUsos(t, UsosTipoTurno(ts.values.count { it.tipoId == t.id }, asig.count { it.tipoId == t.id }))
+            }
+        }
+
+    override suspend fun insertarAlFinal(clave: String?, nombre: String, abreviatura: String, color: String): Long {
+        check(clave == null || filas.value.none { it.clave == clave }) { "UNIQUE rota en tipos_turno.clave: $clave" }
+        val id = siguienteId++
+        val orden = (filas.value.maxOfOrNull { it.orden } ?: 0) + 1
+        filas.update { it + TipoTurno(id, clave, nombre, abreviatura, color, orden) }
+        return id
+    }
+
+    override suspend fun actualizar(id: TipoTurnoId, nombre: String, abreviatura: String, color: String) =
+        filas.update { l -> l.map { if (it.id == id) it.copy(nombre = nombre, abreviatura = abreviatura, color = color) else it } }
+
+    override suspend fun borrar(id: TipoTurnoId) {
+        filas.update { l -> l.filterNot { it.id == id } }
+        turnos?.filas?.update { m -> m.filterValues { it.tipoId != id } }
+        asignaciones?.filas?.update { l -> l.filterNot { it.tipoId == id } }
+    }
+
+    override suspend fun contar(): Int = filas.value.size
+
+    override suspend fun usos(id: TipoTurnoId): UsosTipoTurno = UsosTipoTurno(
+        turnos?.filas?.value?.values?.count { it.tipoId == id } ?: 0,
+        asignaciones?.filas?.value?.count { it.tipoId == id } ?: 0,
+    )
+
+    override suspend fun obtenerPorClave(clave: String): TipoTurno? = filas.value.firstOrNull { it.clave == clave }
+}
+
 /** In-memory [AjusteDao]. */
 class FakeAjusteDao : AjusteDao {
     val filas = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -299,6 +371,8 @@ class FakesPlantillas {
     val ajustes = FakeAjusteDao()
     val tareas = FakeTareaDao(tareasPlantilla)
     val listas = FakeListaDao(tareas, plantillas)
+    val turnos = FakeTurnoDao()
+    val tipos = FakeTiposTurnoDao(turnos, asignaciones)
 
     init {
         tareas.existeLista = { id -> listas.filas.value.any { it.id == id } }
@@ -311,6 +385,10 @@ class FakesPlantillas {
     fun repositorioListas() = ListasRepositorio(listas, tareas, plantillas, ajustes, SinTransaccion)
 
     fun repositorioTareas() = TareasRepositorio(tareas)
+
+    fun repositorioAsignaciones() = AsignacionesRepositorio(asignaciones, ajustes, plantillas, trabajadores, tipos)
+
+    fun repositorioTipos() = TiposTurnoRepositorio(tipos, SinTransaccion)
 }
 
 /** Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. */

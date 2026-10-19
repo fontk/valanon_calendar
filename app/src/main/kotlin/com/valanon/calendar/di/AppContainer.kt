@@ -8,6 +8,7 @@ import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.data.repository.ListasRepositorio
 import com.valanon.calendar.data.repository.PlantillasRepositorio
 import com.valanon.calendar.data.repository.TareasRepositorio
+import com.valanon.calendar.data.repository.TiposTurnoRepositorio
 import com.valanon.calendar.data.repository.TurnosRepositorio
 import com.valanon.calendar.pdf.ExportadorPdf
 
@@ -21,7 +22,11 @@ class AppContainer(context: Context) {
 
     val database: AppDatabase by lazy { AppDatabase.build(appContext) }
 
-    val turnosRepositorio: TurnosRepositorio by lazy { TurnosRepositorio(database.turnoDao()) }
+    val tiposTurnoRepositorio: TiposTurnoRepositorio by lazy {
+        TiposTurnoRepositorio(database.tiposTurnoDao(), TransaccionesRoom(database))
+    }
+
+    val turnosRepositorio: TurnosRepositorio by lazy { TurnosRepositorio(database.turnoDao(), database.tiposTurnoDao()) }
 
     val tareasRepositorio: TareasRepositorio by lazy { TareasRepositorio(database.tareaDao()) }
 
@@ -46,7 +51,13 @@ class AppContainer(context: Context) {
     }
 
     val asignacionesRepositorio: AsignacionesRepositorio by lazy {
-        AsignacionesRepositorio(database.asignacionDao(), database.ajusteDao(), database.plantillaDao(), database.trabajadorDao())
+        AsignacionesRepositorio(
+            database.asignacionDao(),
+            database.ajusteDao(),
+            database.plantillaDao(),
+            database.trabajadorDao(),
+            database.tiposTurnoDao(),
+        )
     }
 
     val exportadorPdf: ExportadorPdf by lazy { ExportadorPdf(appContext) }

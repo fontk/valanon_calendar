@@ -53,18 +53,28 @@ import com.valanon.calendar.ui.plantillas.PlantillaDetalleRoute
 import com.valanon.calendar.ui.plantillas.PlantillaDetalleViewModel
 import com.valanon.calendar.ui.plantillas.PlantillasRoute
 import com.valanon.calendar.ui.turnos.TurnosRoute
+import com.valanon.calendar.ui.ajustes.AjustesRoute
+import com.valanon.calendar.ui.ajustes.TiposTurnoRoute
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
 
 /**
- * The four bottom-bar destinations, in bar order (spec 2). [ruta] is the Navigation Compose route of
- * the tab: a screen for Calendario/Checklist, a nested graph for Plantillas (list + detail).
+ * The five bottom-bar destinations, in bar order (spec 2). [ruta] is the Navigation Compose route of
+ * the tab: a screen for Calendario/Turnos/Checklist, a nested graph for Plantillas (list + detail)
+ * and Ajustes (home + "Tipos de turno").
  */
 enum class Destino(val ruta: String, @param:StringRes val etiqueta: Int, val icono: ImageVector) {
     CALENDARIO("calendario", R.string.tab_calendario, MisTurnosIcons.Calendario),
     TURNOS("turnos", R.string.tab_turnos, MisTurnosIcons.Turnos),
     CHECKLIST("checklist", R.string.tab_checklist, MisTurnosIcons.Checklist),
     PLANTILLAS("plantillas_tab", R.string.tab_plantillas, MisTurnosIcons.Plantillas),
+    AJUSTES("ajustes_tab", R.string.tab_ajustes, MisTurnosIcons.Ajustes),
+}
+
+/** Routes inside the Ajustes tab graph (spec 3c): Back from "Tipos de turno" returns to Ajustes. */
+object RutasAjustes {
+    const val INICIO = "ajustes"
+    const val TIPOS = "ajustes/tipos"
 }
 
 /** Routes inside the Plantillas tab graph. */
@@ -134,6 +144,14 @@ fun MisTurnosApp(navController: NavHostController = rememberNavController()) {
                     })
                 }
             }
+            navigation(startDestination = RutasAjustes.INICIO, route = Destino.AJUSTES.ruta) {
+                composable(RutasAjustes.INICIO) {
+                    AjustesRoute(onAbrirTipos = { navController.navigate(RutasAjustes.TIPOS) { launchSingleTop = true } })
+                }
+                composable(RutasAjustes.TIPOS) {
+                    TiposTurnoRoute(onVolver = { navController.popBackStack(RutasAjustes.INICIO, inclusive = false) })
+                }
+            }
         }
     }
 }
@@ -177,11 +195,12 @@ private fun ItemBarra(destino: Destino, activo: Boolean, onClick: () -> Unit, mo
         Box(
             Modifier
                 .background(if (activo) MisTurnosColors.SurfaceAccent else Color.Transparent, CircleShape)
-                .padding(horizontal = 18.dp, vertical = 4.dp),
+                // Five tabs (78 dp at 390 dp): the pill uses 14 dp instead of 18 (DESIGN.md).
+                .padding(horizontal = 14.dp, vertical = 4.dp),
         ) {
             Icon(destino.icono, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
         }
-        // Four equal tabs: the label shrinks (down to 9 sp) instead of clipping at large font sizes.
+        // Five equal tabs: the label shrinks (down to 9 sp) instead of clipping at large font sizes.
         val estilo = if (activo) MisTurnosText.tabLabelActive else MisTurnosText.tabLabel
         BasicText(
             text = stringResource(destino.etiqueta),

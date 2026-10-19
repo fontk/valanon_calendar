@@ -80,6 +80,34 @@ object MisTurnosIcons {
     /** Thinner variant used in the templates empty state. */
     val PlantillasVacio: ImageVector by lazy { icono("PlantillasVacio", 1.6f, *capas) }
 
+    /** Gear: Ajustes tab (Ajustes.dc.html). */
+    val Ajustes: ImageVector by lazy {
+        icono(
+            "Ajustes",
+            2f,
+            circulo(12f, 12f, 3f),
+            "M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21" +
+                "a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1" +
+                "a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8" +
+                "l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1" +
+                "a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9" +
+                "a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+        )
+    }
+
+    /** Tag: the "Tipos de turno" setting (DESIGN.md → icons). */
+    val Etiqueta: ImageVector by lazy {
+        icono(
+            "Etiqueta",
+            2f,
+            "M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z",
+            circulo(7.5f, 7.5f, 1.5f),
+        )
+    }
+
+    /** Check mark of the selected colour in the shift-type editor. */
+    val Marca: ImageVector by lazy { icono("Marca", 3f, "M5 12.5l4.5 4.5L19 7.5") }
+
     /** Two people: "Trabajadores" template type. */
     val Trabajadores: ImageVector by lazy {
         icono(

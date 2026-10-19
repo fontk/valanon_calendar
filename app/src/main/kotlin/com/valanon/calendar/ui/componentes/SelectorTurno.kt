@@ -29,7 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.icons.MisTurnosIcons
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
@@ -43,12 +43,14 @@ data class AccionSecundaria(val texto: String, val onClick: () -> Unit)
  * ("Turno de <nombre>", spec 3b.3.1). Hosts place it inside their own bottom sheet:
  * - [onVolver] adds the 44 dp back button of the Turnos variant before the titles.
  * - [accionSecundaria] adds a second 48 dp button ("Quitar turno") to the left of "Cancelar".
- * The options always show the five shifts in the same order, with "Actual" on [actual].
+ * There is one option per configured type ([tipos], in order), with "Actual" on [actual]; past
+ * eight options the list scrolls on its own (spec 3.4).
  */
 @Composable
 fun ContenidoSelectorTurno(
     sobretitulo: String,
     titulo: String,
+    tipos: List<TipoTurno>,
     actual: TipoTurno?,
     onElegir: (TipoTurno) -> Unit,
     onCancelar: () -> Unit,
@@ -85,9 +87,17 @@ fun ContenidoSelectorTurno(
                 Text(titulo, style = MisTurnosText.sheetTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TipoTurno.entries.forEach { tipo ->
-                OpcionTurno(tipo = tipo, esActual = tipo == actual, onClick = { onElegir(tipo) })
+        val desplazable = if (tipos.size > OPCIONES_VISIBLES) {
+            // Eight 52 dp rows + gaps; the rest scrolls inside the sheet.
+            Modifier
+                .heightIn(max = (52 * OPCIONES_VISIBLES + 8 * (OPCIONES_VISIBLES - 1)).dp)
+                .verticalScroll(rememberScrollState())
+        } else {
+            Modifier
+        }
+        Column(desplazable, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            tipos.forEach { tipo ->
+                OpcionTurno(tipo = tipo, esActual = tipo.id == actual?.id, onClick = { onElegir(tipo) })
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -125,6 +135,9 @@ fun ContenidoSelectorTurno(
     }
 }
 
+/** Options shown before the list starts scrolling inside the sheet. */
+private const val OPCIONES_VISIBLES = 8
+
 @Composable
 private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit) {
     Surface(
@@ -158,7 +171,7 @@ private fun OpcionTurno(tipo: TipoTurno, esActual: Boolean, onClick: () -> Unit)
                     // In dark mode the "noche" swatch would vanish against the sheet.
                     .then(if (MisTurnosColors.EsOscuro) Modifier.border(1.dp, tipo.colores.borde, formaMuestra) else Modifier),
             )
-            Text(tipo.etiqueta, style = MisTurnosText.button, modifier = Modifier.weight(1f))
+            Text(tipo.nombre, style = MisTurnosText.button, modifier = Modifier.weight(1f))
             if (esActual) {
                 Text(stringResource(R.string.turno_actual), style = MisTurnosText.caption, color = MisTurnosColors.AccentOnBackground)
             }

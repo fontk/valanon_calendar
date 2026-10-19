@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.valanon.calendar.data.local.dao.TurnoDao
 import com.valanon.calendar.data.local.entity.Turno
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After

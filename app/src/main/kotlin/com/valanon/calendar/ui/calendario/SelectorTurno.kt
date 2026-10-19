@@ -11,7 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.componentes.AsaHoja
 import com.valanon.calendar.ui.componentes.ContenidoSelectorTurno
 import com.valanon.calendar.ui.theme.MisTurnosColors
@@ -27,6 +27,7 @@ import java.time.LocalDate
 @Composable
 fun SelectorTurno(
     fecha: LocalDate,
+    tipos: List<TipoTurno>,
     actual: TipoTurno?,
     onElegir: (TipoTurno) -> Unit,
     onCerrar: () -> Unit,
@@ -49,6 +50,7 @@ fun SelectorTurno(
         ContenidoSelectorTurno(
             sobretitulo = stringResource(R.string.turno_del_dia),
             titulo = FormatoFechas.tituloDia(fecha),
+            tipos = tipos,
             actual = actual,
             onElegir = { tipo ->
                 onElegir(tipo)

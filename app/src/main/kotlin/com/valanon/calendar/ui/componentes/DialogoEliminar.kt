@@ -26,6 +26,27 @@ fun DialogoEliminar(
     cuerpo: String,
     onConfirmar: () -> Unit,
     onCancelar: () -> Unit,
+) = DialogoConfirmar(
+    titulo = titulo,
+    cuerpo = cuerpo,
+    confirmar = stringResource(R.string.eliminar),
+    onConfirmar = onConfirmar,
+    onCancelar = onCancelar,
+    destructivo = true,
+)
+
+/**
+ * Same dialog for a non-destructive confirmation ("Restablecer"): the action is filled with
+ * `accent` instead of `danger`.
+ */
+@Composable
+fun DialogoConfirmar(
+    titulo: String,
+    cuerpo: String,
+    confirmar: String,
+    onConfirmar: () -> Unit,
+    onCancelar: () -> Unit,
+    destructivo: Boolean = false,
 ) {
     AlertDialog(
         onDismissRequest = onCancelar,
@@ -35,15 +56,16 @@ fun DialogoEliminar(
             Button(
                 onClick = onConfirmar,
                 shape = RoundedCornerShape(12.dp),
-                // The dark `danger` is light, so its label uses the (dark) background colour.
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MisTurnosColors.Danger,
-                    contentColor = MisTurnosColors.Background,
-                ),
+                colors = if (destructivo) {
+                    // The dark `danger` is light, so its label uses the (dark) background colour.
+                    ButtonDefaults.buttonColors(containerColor = MisTurnosColors.Danger, contentColor = MisTurnosColors.Background)
+                } else {
+                    ButtonDefaults.buttonColors(containerColor = MisTurnosColors.Accent, contentColor = MisTurnosColors.OnAccent)
+                },
                 contentPadding = PaddingValues(horizontal = 18.dp),
                 modifier = Modifier.heightIn(min = 44.dp),
             ) {
-                Text(stringResource(R.string.eliminar), style = MisTurnosText.buttonSmall)
+                Text(confirmar, style = MisTurnosText.buttonSmall)
             }
         },
         dismissButton = {

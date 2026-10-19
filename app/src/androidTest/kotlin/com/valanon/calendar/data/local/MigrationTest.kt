@@ -7,7 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.valanon.calendar.data.local.entity.Ajuste
 import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

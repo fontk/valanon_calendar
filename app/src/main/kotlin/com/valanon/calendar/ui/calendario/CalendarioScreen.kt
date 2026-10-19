@@ -50,7 +50,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.pdf.compartirPdf
 import com.valanon.calendar.ui.componentes.AccionesSelectorMes
 import com.valanon.calendar.ui.copia.BotonCopiaSeguridad
@@ -169,7 +169,7 @@ fun CalendarioScreen(
                     onAbrirSelectorMes = selectorMes.abrir,
                     accion = accionCabecera,
                 )
-                LeyendaTurnos(Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp))
+                LeyendaTurnos(estado.tipos, Modifier.padding(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 14.dp))
                 CabeceraDiasSemana(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp))
                 RejillaMes(mes = estado.mes, modifier = Modifier.padding(horizontal = 16.dp)) { fecha, celda ->
                     CeldaDia(
@@ -196,6 +196,7 @@ fun CalendarioScreen(
     estado.diaSeleccionado?.let { dia ->
         SelectorTurno(
             fecha = dia,
+            tipos = estado.tipos,
             actual = estado.turnos[dia],
             onElegir = { tipo -> onElegirTurno(dia, tipo) },
             onCerrar = onCerrarSelector,
@@ -232,7 +233,7 @@ fun CeldaDia(
         else -> BorderStroke(1.dp, MisTurnosColors.LineSoft)
     }
     val colorTexto = colores?.texto ?: MisTurnosColors.Text
-    val descripcion = "${FormatoFechas.diaYMes(fecha)}, ${tipo?.etiqueta ?: stringResource(R.string.sin_turno)}"
+    val descripcion = "${FormatoFechas.diaYMes(fecha)}, ${tipo?.nombre ?: stringResource(R.string.sin_turno)}"
 
     Column(
         modifier = modifier
@@ -306,6 +307,7 @@ private fun CalendarioMuestra(oscuro: Boolean) {
                 mes = DatosMuestra.MES,
                 hoy = DatosMuestra.HOY,
                 turnos = DatosMuestra.turnosOctubre(),
+                tipos = DatosMuestra.tipos(),
             ),
             exportando = false,
             snackbarHostState = remember { SnackbarHostState() },

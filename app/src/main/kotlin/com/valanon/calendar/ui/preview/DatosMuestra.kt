@@ -1,5 +1,6 @@
 package com.valanon.calendar.ui.preview
 
+import com.valanon.calendar.data.local.TIPOS_TURNO_POR_DEFECTO
 import com.valanon.calendar.data.local.entity.Lista
 import com.valanon.calendar.data.local.entity.ListaConProgreso
 import com.valanon.calendar.data.local.entity.Plantilla
@@ -8,7 +9,7 @@ import com.valanon.calendar.data.local.entity.Tarea
 import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.turnos.TurnosUiState
 import java.time.LocalDate
 import java.time.YearMonth
@@ -22,16 +23,24 @@ internal object DatosMuestra {
     val MES: YearMonth = YearMonth.of(2026, 10)
     val HOY: LocalDate = LocalDate.of(2026, 10, 17)
 
+    private val LIBRE = TIPOS_TURNO_POR_DEFECTO[0]
+    private val MANANA = TIPOS_TURNO_POR_DEFECTO[1]
+    private val TARDE = TIPOS_TURNO_POR_DEFECTO[2]
+    private val NOCHE = TIPOS_TURNO_POR_DEFECTO[3]
+    private val VACACIONES = TIPOS_TURNO_POR_DEFECTO[4]
+
+    /** The 8-day pattern of the mockups: M M T T N N L L. */
+    private val PATRON = listOf(MANANA, MANANA, TARDE, TARDE, NOCHE, NOCHE, LIBRE, LIBRE)
+
+    /** Shift types of AjustesTipos.dc.html: the five defaults plus a custom "Guardia" in orange. */
+    fun tipos(): List<TipoTurno> =
+        TIPOS_TURNO_POR_DEFECTO + TipoTurno(id = 6, nombre = "Guardia", abreviatura = "GUA", color = "naranja", orden = 6)
+
     /** Same pattern as Main.dc.html: M M T T N N L L…, vacation from the 26th. */
-    fun turnosOctubre(): Map<LocalDate, TipoTurno> {
-        val patron = listOf(
-            TipoTurno.MANANA, TipoTurno.MANANA, TipoTurno.TARDE, TipoTurno.TARDE,
-            TipoTurno.NOCHE, TipoTurno.NOCHE, TipoTurno.LIBRE, TipoTurno.LIBRE,
-        )
-        return (1..MES.lengthOfMonth()).associate { dia ->
-            MES.atDay(dia) to if (dia >= 26) TipoTurno.VACACIONES else patron[(dia - 1) % patron.size]
+    fun turnosOctubre(): Map<LocalDate, TipoTurno> =
+        (1..MES.lengthOfMonth()).associate { dia ->
+            MES.atDay(dia) to if (dia >= 26) VACACIONES else PATRON[(dia - 1) % PATRON.size]
         }
-    }
 
     /** The templates of Plantillas.dc.html: two of workers and two task presets. */
     fun plantillas(): List<PlantillaConRecuento> = listOf(
@@ -49,24 +58,19 @@ internal object DatosMuestra {
      * October assignments of Turnos.dc.html: worker i follows the 8-day pattern shifted by
      * 2·i, Ana is on vacation from the 26th and Marcos has nothing after the 20th.
      */
-    fun asignacionesEquipo(): Map<LocalDate, Map<Long, TipoTurno>> {
-        val patron = listOf(
-            TipoTurno.MANANA, TipoTurno.MANANA, TipoTurno.TARDE, TipoTurno.TARDE,
-            TipoTurno.NOCHE, TipoTurno.NOCHE, TipoTurno.LIBRE, TipoTurno.LIBRE,
-        )
-        return (1..MES.lengthOfMonth()).associate { dia ->
+    fun asignacionesEquipo(): Map<LocalDate, Map<Long, TipoTurno>> =
+        (1..MES.lengthOfMonth()).associate { dia ->
             MES.atDay(dia) to buildMap {
                 for (i in 0 until 4) {
                     val id = i + 1L
                     when {
-                        id == 3L && dia >= 26 -> put(id, TipoTurno.VACACIONES)
+                        id == 3L && dia >= 26 -> put(id, VACACIONES)
                         id == 4L && dia > 20 -> Unit
-                        else -> put(id, patron[(dia - 1 + i * 2) % patron.size])
+                        else -> put(id, PATRON[(dia - 1 + i * 2) % PATRON.size])
                     }
                 }
             }
         }
-    }
 
     /** Turnos tab state of the mockup (Equipo de planta, October 2026). */
     fun estadoTurnos() = TurnosUiState(
@@ -77,6 +81,7 @@ internal object DatosMuestra {
         plantillas = plantillas().filter { it.plantilla.tipo == TipoPlantilla.TRABAJADORES },
         trabajadores = trabajadoresEquipo(),
         asignaciones = asignacionesEquipo(),
+        tipos = tipos(),
     )
 
     /** Preset of the "Rutina de apertura" task template (Checklist.dc.html). */

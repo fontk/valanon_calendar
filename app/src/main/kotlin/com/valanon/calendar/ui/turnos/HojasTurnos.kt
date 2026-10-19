@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.dp
 import com.valanon.calendar.R
 import com.valanon.calendar.data.local.entity.PlantillaConRecuento
 import com.valanon.calendar.data.local.entity.Trabajador
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.componentes.AccionSecundaria
 import com.valanon.calendar.ui.componentes.AsaHoja
 import com.valanon.calendar.ui.componentes.Avatar
@@ -75,7 +75,6 @@ import com.valanon.calendar.ui.preview.DatosMuestra
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
 import com.valanon.calendar.ui.theme.MisTurnosTheme
-import com.valanon.calendar.ui.theme.colorPuntoCelda
 import com.valanon.calendar.ui.theme.colores
 import com.valanon.calendar.util.FormatoFechas
 import kotlinx.coroutines.launch
@@ -139,6 +138,7 @@ fun EquipoDelDiaSheet(estado: TurnosUiState, acciones: AccionesTurnos) {
                 ContenidoSelectorTurno(
                     sobretitulo = FormatoFechas.tituloDia(dia),
                     titulo = stringResource(R.string.turno_de, trabajador.nombre),
+                    tipos = estado.tipos,
                     actual = actual,
                     onElegir = acciones.asignar,
                     onCancelar = acciones.volverAEquipo,
@@ -277,7 +277,7 @@ private fun ChipTurno(tipo: TipoTurno?) {
             .bordeDiscontinuo(borde)
     }
     Text(
-        text = tipo?.etiqueta ?: stringResource(R.string.sin_asignar),
+        text = tipo?.nombre ?: stringResource(R.string.sin_asignar),
         style = MisTurnosText.chipTurno,
         color = tipo?.colores?.texto ?: MisTurnosColors.TextFaint,
         maxLines = 1,
@@ -288,18 +288,18 @@ private fun ChipTurno(tipo: TipoTurno?) {
 /** Edit-mode chip: a 40 dp button with the shift colours and a chevron; opens the picker. */
 @Composable
 private fun BotonChipTurno(nombre: String, tipo: TipoTurno?, onClick: () -> Unit) {
-    val etiqueta = tipo?.etiqueta ?: stringResource(R.string.sin_asignar)
+    val etiqueta = tipo?.nombre ?: stringResource(R.string.sin_asignar)
     val descripcion = stringResource(
         R.string.cambiar_turno_de,
         nombre,
-        tipo?.etiqueta ?: stringResource(R.string.sin_asignar_descripcion),
+        tipo?.nombre ?: stringResource(R.string.sin_asignar_descripcion),
     )
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = tipo?.colores?.fondo ?: MisTurnosColors.Sheet,
         contentColor = tipo?.colores?.texto ?: MisTurnosColors.TextMuted,
-        border = BorderStroke(2.dp, tipo?.colorPuntoCelda ?: MisTurnosColors.Line),
+        border = BorderStroke(2.dp, tipo?.colores?.punto ?: MisTurnosColors.Line),
         modifier = Modifier
             .heightIn(min = 40.dp)
             .widthIn(min = 112.dp)

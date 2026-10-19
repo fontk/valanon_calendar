@@ -2,10 +2,12 @@ package com.valanon.calendar.ui.calendario
 
 import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.local.entity.Turno
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.repository.TurnosRepositorio
+import com.valanon.calendar.testing.FakeTiposTurnoDao
 import com.valanon.calendar.testing.FakeTurnoDao
 import com.valanon.calendar.testing.MainDispatcherRule
+import com.valanon.calendar.testing.Tipos
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,13 +28,14 @@ class CalendarioViewModelTest {
     val mainRule = MainDispatcherRule()
 
     private val dao = FakeTurnoDao()
+    private val tiposDao = FakeTiposTurnoDao(dao)
     private val hoy = LocalDate.of(2026, 10, 17)
     private val reloj = Clock.fixed(hoy.atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant(), ZoneId.of("Europe/Madrid"))
     private var exportado: Pair<YearMonth, Map<LocalDate, TipoTurno>>? = null
 
     private fun crear(handle: SavedStateHandle = SavedStateHandle()) = CalendarioViewModel(
-        repositorio = TurnosRepositorio(dao),
-        generadorPdf = { mes, turnos ->
+        repositorio = TurnosRepositorio(dao, tiposDao),
+        generadorPdf = { mes, turnos, _ ->
             exportado = mes to turnos
             File("turnos.pdf")
         },
@@ -63,15 +66,15 @@ class CalendarioViewModelTest {
 
     @Test
     fun `C2 muestra los turnos guardados del mes destino y solo esos`() = runTest(mainRule.dispatcher) {
-        dao.upsert(Turno("2026-10-31", TipoTurno.NOCHE))
-        dao.upsert(Turno("2026-11-01", TipoTurno.LIBRE))
+        dao.upsert(Turno("2026-10-31", Tipos.NOCHE.id))
+        dao.upsert(Turno("2026-11-01", Tipos.LIBRE.id))
         val vm = crear()
         vm.uiState.launchIn(backgroundScope)
 
-        assertEquals(mapOf(LocalDate.of(2026, 10, 31) to TipoTurno.NOCHE), vm.uiState.value.turnos)
+        assertEquals(mapOf(LocalDate.of(2026, 10, 31) to Tipos.NOCHE), vm.uiState.value.turnos)
 
         vm.mesSiguiente()
-        assertEquals(mapOf(LocalDate.of(2026, 11, 1) to TipoTurno.LIBRE), vm.uiState.value.turnos)
+        assertEquals(mapOf(LocalDate.of(2026, 11, 1) to Tipos.LIBRE), vm.uiState.value.turnos)
     }
 
     @Test
@@ -83,14 +86,14 @@ class CalendarioViewModelTest {
         vm.seleccionarDia(dia)
         assertEquals(dia, vm.uiState.value.diaSeleccionado)
 
-        vm.asignarTurno(dia, TipoTurno.TARDE)
+        vm.asignarTurno(dia, Tipos.TARDE)
         vm.cerrarSelector()
-        assertEquals(TipoTurno.TARDE, vm.uiState.value.turnos[dia])
+        assertEquals(Tipos.TARDE, vm.uiState.value.turnos[dia])
         assertNull(vm.uiState.value.diaSeleccionado)
 
         vm.seleccionarDia(dia)
-        vm.asignarTurno(dia, TipoTurno.VACACIONES)
-        assertEquals(TipoTurno.VACACIONES, vm.uiState.value.turnos[dia])
+        vm.asignarTurno(dia, Tipos.VACACIONES)
+        assertEquals(Tipos.VACACIONES, vm.uiState.value.turnos[dia])
     }
 
     @Test
@@ -135,7 +138,7 @@ class CalendarioViewModelTest {
 
     @Test
     fun `C2b irAMes cambia el mes visible, carga sus turnos y cierra`() = runTest(mainRule.dispatcher) {
-        dao.upsert(Turno("2028-03-10", TipoTurno.VACACIONES))
+        dao.upsert(Turno("2028-03-10", Tipos.VACACIONES.id))
         val vm = crear()
         vm.uiState.launchIn(backgroundScope)
         vm.abrirSelectorMes()
@@ -145,7 +148,7 @@ class CalendarioViewModelTest {
         vm.irAMes(2028, 3)
 
         assertEquals(YearMonth.of(2028, 3), vm.uiState.value.mes)
-        assertEquals(mapOf(LocalDate.of(2028, 3, 10) to TipoTurno.VACACIONES), vm.uiState.value.turnos)
+        assertEquals(mapOf(LocalDate.of(2028, 3, 10) to Tipos.VACACIONES), vm.uiState.value.turnos)
         assertFalse(vm.uiState.value.selectorMesAbierto)
     }
 
@@ -191,12 +194,12 @@ class CalendarioViewModelTest {
 
     @Test
     fun `C5 exporta el mes visible con sus turnos`() = runTest(mainRule.dispatcher) {
-        dao.upsert(Turno("2026-11-05", TipoTurno.MANANA))
+        dao.upsert(Turno("2026-11-05", Tipos.MANANA.id))
         val vm = crear()
         vm.mesSiguiente()
 
         vm.exportarPdf()
 
-        assertEquals(YearMonth.of(2026, 11) to mapOf(LocalDate.of(2026, 11, 5) to TipoTurno.MANANA), exportado)
+        assertEquals(YearMonth.of(2026, 11) to mapOf(LocalDate.of(2026, 11, 5) to Tipos.MANANA), exportado)
     }
 }

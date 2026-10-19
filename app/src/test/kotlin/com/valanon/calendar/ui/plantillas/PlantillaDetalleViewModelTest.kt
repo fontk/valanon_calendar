@@ -2,11 +2,12 @@ package com.valanon.calendar.ui.plantillas
 
 import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import java.time.LocalDate
 import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
+import com.valanon.calendar.testing.Tipos
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -116,9 +117,9 @@ class PlantillaDetalleViewModelTest {
     fun `T6 eliminar un trabajador con turnos y deshacer restaura tambien sus turnos`() = runTest(mainRule.dispatcher) {
         val vm = detalle("Lucía", "Javier")
         val lucia = vm.uiState.value.elementos.first()
-        val asignaciones = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
-        asignaciones.asignar(LocalDate.of(2026, 10, 17), lucia.id, TipoTurno.NOCHE)
-        asignaciones.asignar(LocalDate.of(2026, 10, 18), lucia.id, TipoTurno.LIBRE)
+        val asignaciones = fakes.repositorioAsignaciones()
+        asignaciones.asignar(LocalDate.of(2026, 10, 17), lucia.id, Tipos.NOCHE)
+        asignaciones.asignar(LocalDate.of(2026, 10, 18), lucia.id, Tipos.LIBRE)
         assertEquals(2, vm.uiState.value.numeroAsignaciones)
 
         vm.eliminar(lucia)
@@ -128,8 +129,8 @@ class PlantillaDetalleViewModelTest {
         assertEquals(listOf("Lucía", "Javier"), vm.nombres())
         assertEquals(2, vm.uiState.value.numeroAsignaciones)
         assertEquals(
-            setOf("2026-10-17" to TipoTurno.NOCHE, "2026-10-18" to TipoTurno.LIBRE),
-            fakes.asignaciones.filas.value.map { it.fecha to it.tipo }.toSet(),
+            setOf("2026-10-17" to Tipos.NOCHE.id, "2026-10-18" to Tipos.LIBRE.id),
+            fakes.asignaciones.filas.value.map { it.fecha to it.tipoId }.toSet(),
         )
     }
 

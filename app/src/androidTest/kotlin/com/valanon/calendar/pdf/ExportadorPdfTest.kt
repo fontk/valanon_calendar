@@ -8,7 +8,7 @@ import android.os.ParcelFileDescriptor
 import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.theme.coloresClaros
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

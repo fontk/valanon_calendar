@@ -68,6 +68,14 @@ object MisTurnosText {
     /** Checklist: "2/5" pill of a list chip and the "Desde la plantilla «…»" line. */
     val pill = TextStyle(fontFamily = Manrope, fontSize = 11.sp, fontWeight = FontWeight.W800)
     val chipNueva = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W800)
+
+    /** Ajustes: abbreviation inside a 44 dp type swatch, and the editor's abbreviation field. */
+    val abreviaturaMuestra = TextStyle(fontFamily = Manrope, fontSize = 11.sp, fontWeight = FontWeight.W800, letterSpacing = 0.04.em)
+    val abreviaturaCampo = TextStyle(fontFamily = Manrope, fontSize = 15.sp, fontWeight = FontWeight.W800, letterSpacing = 0.04.em)
+
+    /** Field labels of the shift-type editor ("Nombre", "Abreviatura", "Color"). */
+    val etiquetaCampo = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W700)
+    val errorCampo = TextStyle(fontFamily = Manrope, fontSize = 13.sp, fontWeight = FontWeight.W600)
     val listOrigin = TextStyle(fontFamily = Manrope, fontSize = 12.sp, fontWeight = FontWeight.W600)
 }
 

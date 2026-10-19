@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.valanon.calendar.CalendarApp
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.repository.TurnosRepositorio
 import com.valanon.calendar.pdf.GeneradorPdf
 import com.valanon.calendar.ui.componentes.NavegacionMes
@@ -30,6 +30,8 @@ data class CalendarioUiState(
     val mes: YearMonth,
     val hoy: LocalDate,
     val turnos: Map<LocalDate, TipoTurno> = emptyMap(),
+    /** Configured shift types, in order: legend and picker options (spec 3c). */
+    val tipos: List<TipoTurno> = emptyList(),
     val diaSeleccionado: LocalDate? = null,
     /** Month/year picker sheet (spec 3.1.1). */
     val selectorMesAbierto: Boolean = false,
@@ -58,14 +60,19 @@ class CalendarioViewModel(
         repositorio.observarMes(m).map { m to it }
     }
 
+    /** Shifts of the month plus the configured types, which change together when a type is edited. */
+    private val datos = combine(turnosDelMes, repositorio.tipos) { turnos, tipos -> turnos to tipos }
+
     val uiState: StateFlow<CalendarioUiState> =
-        combine(navegacion.mesTexto, diaSeleccionado, turnosDelMes, navegacion.selector, hoy) {
-                mesTexto, dia, (mesTurnos, turnos), (abierto, anio), hoyActual ->
+        combine(navegacion.mesTexto, diaSeleccionado, datos, navegacion.selector, hoy) {
+                mesTexto, dia, (delMes, tipos), (abierto, anio), hoyActual ->
             val m = YearMonth.parse(mesTexto)
+            val (mesTurnos, turnos) = delMes
             CalendarioUiState(
                 mes = m,
                 hoy = hoyActual,
                 turnos = if (mesTurnos == m) turnos else emptyMap(),
+                tipos = tipos,
                 diaSeleccionado = dia?.let(LocalDate::parse),
                 selectorMesAbierto = abierto,
                 anioSelector = anio,
@@ -121,7 +128,7 @@ class CalendarioViewModel(
     /** Generates the PDF of the visible month and returns the file. */
     suspend fun exportarPdf(): File {
         val m = navegacion.mes
-        return generadorPdf.exportar(m, repositorio.obtenerMes(m))
+        return generadorPdf.exportar(m, repositorio.obtenerMes(m), repositorio.obtenerTipos())
     }
 
     companion object {

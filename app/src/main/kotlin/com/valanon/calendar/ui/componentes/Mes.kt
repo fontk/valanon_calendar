@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.icons.MisTurnosIcons
 import com.valanon.calendar.ui.theme.MisTurnosColors
 import com.valanon.calendar.ui.theme.MisTurnosText
@@ -155,16 +155,19 @@ private fun BotonRedondo(icono: ImageVector, descripcion: String, onClick: () ->
     }
 }
 
-/** Five shift chips with their dot (spec 3.2). Turnos uses a 4 dp vertical padding (DESIGN.md). */
+/**
+ * One chip per configured shift type, in order, with its dot (spec 3.2). Turnos uses a 4 dp
+ * vertical padding (DESIGN.md).
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LeyendaTurnos(modifier: Modifier = Modifier, paddingVertical: Dp = 5.dp) {
+fun LeyendaTurnos(tipos: List<TipoTurno>, modifier: Modifier = Modifier, paddingVertical: Dp = 5.dp) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        TipoTurno.entries.forEach { tipo ->
+        tipos.forEach { tipo ->
             val c = tipo.colores
             Row(
                 modifier = Modifier
@@ -180,9 +183,9 @@ fun LeyendaTurnos(modifier: Modifier = Modifier, paddingVertical: Dp = 5.dp) {
                     Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(c.punto),
+                        .background(c.puntoChip),
                 )
-                Text(tipo.etiqueta, style = MisTurnosText.chip, color = c.texto)
+                Text(tipo.nombre, style = MisTurnosText.chip, color = c.texto)
             }
         }
     }

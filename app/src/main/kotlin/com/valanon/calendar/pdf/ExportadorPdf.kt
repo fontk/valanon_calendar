@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
 import com.valanon.calendar.R
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.ui.theme.PaletaClara
 import com.valanon.calendar.ui.theme.coloresClaros
 import com.valanon.calendar.util.CalendarioMes
@@ -37,14 +37,14 @@ class ExportadorPdf(
         runCatching { ResourcesCompat.getFont(context, R.font.manrope) }.getOrNull() ?: Typeface.SANS_SERIF
     }
 
-    override suspend fun exportar(mes: YearMonth, turnos: Map<LocalDate, TipoTurno>): File =
+    override suspend fun exportar(mes: YearMonth, turnos: Map<LocalDate, TipoTurno>, tipos: List<TipoTurno>): File =
         withContext(ioDispatcher) {
             val directorio = File(context.cacheDir, DIRECTORIO).apply { mkdirs() }
             val archivo = File(directorio, nombreArchivo(mes))
             val documento = PdfDocument()
             try {
                 val pagina = documento.startPage(PdfDocument.PageInfo.Builder(ANCHO_A4, ALTO_A4, 1).create())
-                dibujarMes(pagina.canvas, mes, turnos)
+                dibujarMes(pagina.canvas, mes, turnos, tipos)
                 documento.finishPage(pagina)
                 archivo.outputStream().use { documento.writeTo(it) }
             } finally {
@@ -53,7 +53,7 @@ class ExportadorPdf(
             archivo
         }
 
-    private fun dibujarMes(canvas: Canvas, mes: YearMonth, turnos: Map<LocalDate, TipoTurno>) {
+    private fun dibujarMes(canvas: Canvas, mes: YearMonth, turnos: Map<LocalDate, TipoTurno>, tipos: List<TipoTurno>) {
         val anchoUtil = ANCHO_A4 - 2 * MARGEN
 
         // Title
@@ -103,24 +103,31 @@ class ExportadorPdf(
 
         // Legend under the grid
         val finRejilla = inicioRejilla + semanas.size * ALTO_CELDA + (semanas.size - 1) * HUECO
-        dibujarLeyenda(canvas, finRejilla + 28f)
+        dibujarLeyenda(canvas, finRejilla + 28f, tipos)
     }
 
-    private fun dibujarLeyenda(canvas: Canvas, top: Float) {
+    /** One chip per configured type, in order, wrapping to a new row like the app's legend. */
+    private fun dibujarLeyenda(canvas: Canvas, top: Float, tipos: List<TipoTurno>) {
         val textoChip = texto(10f, 700, PaletaClara.text)
         val fondo = Paint(Paint.ANTI_ALIAS_FLAG)
         val punto = Paint(Paint.ANTI_ALIAS_FLAG)
         val alto = 22f
+        val limite = ANCHO_A4 - MARGEN
         var x = MARGEN
-        TipoTurno.entries.forEach { tipo ->
+        var y = top
+        tipos.forEach { tipo ->
             val c = tipo.coloresClaros()
-            val ancho = 10f + 7f + 6f + textoChip.measureText(tipo.etiqueta) + 10f
+            val ancho = 10f + 7f + 6f + textoChip.measureText(tipo.nombre) + 10f
+            if (x > MARGEN && x + ancho > limite) {
+                x = MARGEN
+                y += alto + 6f
+            }
             fondo.color = c.fondo.toArgb()
-            canvas.drawRoundRect(RectF(x, top, x + ancho, top + alto), alto / 2, alto / 2, fondo)
-            punto.color = c.punto.toArgb()
-            canvas.drawCircle(x + 10f + 3.5f, top + alto / 2, 3.5f, punto)
+            canvas.drawRoundRect(RectF(x, y, x + ancho, y + alto), alto / 2, alto / 2, fondo)
+            punto.color = c.puntoChip.toArgb()
+            canvas.drawCircle(x + 10f + 3.5f, y + alto / 2, 3.5f, punto)
             textoChip.color = c.texto.toArgb()
-            canvas.drawText(tipo.etiqueta, x + 10f + 7f + 6f, top + alto / 2 + 3.5f, textoChip)
+            canvas.drawText(tipo.nombre, x + 10f + 7f + 6f, y + alto / 2 + 3.5f, textoChip)
             x += ancho + 6f
         }
     }

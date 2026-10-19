@@ -68,6 +68,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Ajustes shows BuildConfig.VERSION_NAME in its footer (spec 3c).
+        buildConfig = true
     }
 }
 

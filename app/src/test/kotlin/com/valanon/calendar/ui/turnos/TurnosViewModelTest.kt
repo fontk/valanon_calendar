@@ -2,10 +2,11 @@ package com.valanon.calendar.ui.turnos
 
 import androidx.lifecycle.SavedStateHandle
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.repository.AsignacionesRepositorio
 import com.valanon.calendar.testing.FakesPlantillas
 import com.valanon.calendar.testing.MainDispatcherRule
+import com.valanon.calendar.testing.Tipos
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.test.TestScope
@@ -28,7 +29,7 @@ class TurnosViewModelTest {
 
     private val fakes = FakesPlantillas()
     private val plantillas = fakes.repositorioPlantillas()
-    private val repo = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
+    private val repo = fakes.repositorioAsignaciones()
     private val zona = ZoneId.of("Europe/Madrid")
     private val hoy = LocalDate.of(2026, 10, 17)
     private val reloj = Clock.fixed(hoy.atStartOfDay(zona).toInstant(), zona)
@@ -53,17 +54,17 @@ class TurnosViewModelTest {
     @Test
     fun `T1 usa la primera plantilla, el mes actual y cuenta los dias con turnos`() = runTest(mainRule.dispatcher) {
         val (p, lucia, javier) = equipo()
-        repo.asignar(hoy, lucia, TipoTurno.NOCHE)
-        repo.asignar(hoy, javier, TipoTurno.MANANA)
-        repo.asignar(hoy.plusDays(1), lucia, TipoTurno.LIBRE)
-        repo.asignar(LocalDate.of(2026, 11, 3), lucia, TipoTurno.TARDE) // other month
+        repo.asignar(hoy, lucia, Tipos.NOCHE)
+        repo.asignar(hoy, javier, Tipos.MANANA)
+        repo.asignar(hoy.plusDays(1), lucia, Tipos.LIBRE)
+        repo.asignar(LocalDate.of(2026, 11, 3), lucia, Tipos.TARDE) // other month
 
         val vm = crear()
         val estado = vm.uiState.value
         assertEquals(YearMonth.of(2026, 10), estado.mes)
         assertEquals(p, estado.plantilla?.plantilla?.id)
         assertEquals(2, estado.diasConTurnos)
-        assertEquals(listOf(TipoTurno.NOCHE, TipoTurno.MANANA), estado.puntosDe(hoy)) // template order
+        assertEquals(listOf(Tipos.NOCHE, Tipos.MANANA), estado.puntosDe(hoy)) // template order
     }
 
     @Test
@@ -97,26 +98,26 @@ class TurnosViewModelTest {
         vm.abrirSelectorTrabajador(javier)
         assertEquals(javier, vm.uiState.value.trabajadorSeleccionado?.id)
 
-        vm.asignar(TipoTurno.NOCHE)
+        vm.asignar(Tipos.NOCHE)
 
         assertNull(vm.uiState.value.trabajadorSeleccionadoId)
         assertTrue(vm.uiState.value.editando)
-        assertEquals(mapOf(javier to TipoTurno.NOCHE), vm.uiState.value.turnosDe(hoy))
+        assertEquals(mapOf(javier to Tipos.NOCHE), vm.uiState.value.turnosDe(hoy))
         // Persisted, not just in memory:
-        assertEquals(mapOf(hoy to mapOf(javier to TipoTurno.NOCHE)), repo.asignacionesMes(p, YearMonth.of(2026, 10)).first())
+        assertEquals(mapOf(hoy to mapOf(javier to Tipos.NOCHE)), repo.asignacionesMes(p, YearMonth.of(2026, 10)).first())
     }
 
     @Test
     fun `T4 quitar turno borra la asignacion y cancelar no cambia nada`() = runTest(mainRule.dispatcher) {
         val (_, lucia) = equipo()
-        repo.asignar(hoy, lucia, TipoTurno.TARDE)
+        repo.asignar(hoy, lucia, Tipos.TARDE)
         val vm = crear()
         vm.abrirDia(hoy)
         vm.empezarEdicion()
 
         vm.abrirSelectorTrabajador(lucia)
         vm.volverAEquipo() // Cancelar / back arrow
-        assertEquals(mapOf(lucia to TipoTurno.TARDE), vm.uiState.value.turnosDe(hoy))
+        assertEquals(mapOf(lucia to Tipos.TARDE), vm.uiState.value.turnosDe(hoy))
 
         vm.abrirSelectorTrabajador(lucia)
         vm.quitarTurno()
@@ -145,8 +146,8 @@ class TurnosViewModelTest {
     fun `T5 cambiar de plantilla recarga y se recuerda`() = runTest(mainRule.dispatcher) {
         val (a, lucia) = equipo("Equipo de planta", "Lucía")
         val (b, sara) = equipo("Refuerzos fin de semana", "Sara")
-        repo.asignar(hoy, lucia, TipoTurno.MANANA)
-        repo.asignar(hoy, sara, TipoTurno.NOCHE)
+        repo.asignar(hoy, lucia, Tipos.MANANA)
+        repo.asignar(hoy, sara, Tipos.NOCHE)
         val vm = crear()
         assertEquals(a, vm.uiState.value.plantilla?.plantilla?.id)
 
@@ -156,7 +157,7 @@ class TurnosViewModelTest {
         assertFalse(vm.uiState.value.hojaPlantillasAbierta)
         assertEquals(b, vm.uiState.value.plantilla?.plantilla?.id)
         assertEquals(listOf("Sara"), vm.uiState.value.trabajadores.map { it.nombre })
-        assertEquals(mapOf(sara to TipoTurno.NOCHE), vm.uiState.value.turnosDe(hoy))
+        assertEquals(mapOf(sara to Tipos.NOCHE), vm.uiState.value.turnosDe(hoy))
         assertEquals("$b", fakes.ajustes.filas.value[AsignacionesRepositorio.CLAVE_PLANTILLA_TURNOS])
     }
 

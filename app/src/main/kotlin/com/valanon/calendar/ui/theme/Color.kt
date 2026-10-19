@@ -50,6 +50,8 @@ data class PaletaMisTurnos(
     val templateTasksFg: Color,
     /** Icon of the 64 dp empty-state badge (Checklist without lists, Turnos without templates). */
     val emptyBadgeIcon: Color,
+    /** Border of a text field with a validation error (shift-type editor, DESIGN.md → #D63A4F). */
+    val errorBorder: Color,
 )
 
 val PaletaClara = PaletaMisTurnos(
@@ -81,6 +83,7 @@ val PaletaClara = PaletaMisTurnos(
     templateTasksBg = Color(0xFFEDE9FF),
     templateTasksFg = Color(0xFF4B43B8),
     emptyBadgeIcon = Color(0xFF9A9A95),
+    errorBorder = Color(0xFFD63A4F),
 )
 
 val PaletaOscura = PaletaMisTurnos(
@@ -112,6 +115,7 @@ val PaletaOscura = PaletaMisTurnos(
     templateTasksBg = Color(0xFF2A2650), // same violet, dark like surfaceAccent
     templateTasksFg = Color(0xFFB9B2FF),
     emptyBadgeIcon = Color(0xFF8F8F89),
+    errorBorder = Color(0xFFE8907E), // dark `danger`, visible on the dark field
 )
 
 val LocalPaleta = staticCompositionLocalOf { PaletaClara }
@@ -149,4 +153,5 @@ object MisTurnosColors {
     val TemplateTasksBg: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.templateTasksBg
     val TemplateTasksFg: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.templateTasksFg
     val EmptyBadgeIcon: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.emptyBadgeIcon
+    val ErrorBorder: Color @Composable @ReadOnlyComposable get() = LocalPaleta.current.errorBorder
 }

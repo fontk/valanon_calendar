@@ -12,6 +12,7 @@ import com.valanon.calendar.data.local.dao.ListaDao
 import com.valanon.calendar.data.local.dao.PlantillaDao
 import com.valanon.calendar.data.local.dao.TareaDao
 import com.valanon.calendar.data.local.dao.TareaPlantillaDao
+import com.valanon.calendar.data.local.dao.TiposTurnoDao
 import com.valanon.calendar.data.local.dao.TrabajadorDao
 import com.valanon.calendar.data.local.dao.TurnoDao
 import com.valanon.calendar.data.local.entity.Ajuste
@@ -19,6 +20,7 @@ import com.valanon.calendar.data.local.entity.Asignacion
 import com.valanon.calendar.data.local.entity.Lista
 import com.valanon.calendar.data.local.entity.Plantilla
 import com.valanon.calendar.data.local.entity.Tarea
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.data.local.entity.TareaPlantilla
 import com.valanon.calendar.data.local.entity.Trabajador
 import com.valanon.calendar.data.local.entity.Turno
@@ -30,6 +32,7 @@ import com.valanon.calendar.data.local.entity.Turno
  * - v2: + `plantillas`, `trabajadores` ([MIGRATION_1_2]).
  * - v3: + `asignaciones`, `ajustes` ([MIGRATION_2_3]).
  * - v4: + `listas`, `tareas_plantilla`; `tareas` gains `lista_id` ([MIGRATION_3_4]).
+ * - v5: + `tipos_turno`; `turnos.tipo` / `asignaciones.tipo` become `tipo_id` ([MIGRATION_4_5]).
  *
  * When you change an entity:
  *  1. bump [VERSION],
@@ -39,7 +42,7 @@ import com.valanon.calendar.data.local.entity.Turno
  */
 @Database(
     entities = [
-        Turno::class, Lista::class, Tarea::class, Plantilla::class, Trabajador::class, TareaPlantilla::class,
+        TipoTurno::class, Turno::class, Lista::class, Tarea::class, Plantilla::class, Trabajador::class, TareaPlantilla::class,
         Asignacion::class, Ajuste::class,
     ],
     version = AppDatabase.VERSION,
@@ -47,6 +50,8 @@ import com.valanon.calendar.data.local.entity.Turno
 )
 @TypeConverters(Conversores::class)
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun tiposTurnoDao(): TiposTurnoDao
 
     abstract fun turnoDao(): TurnoDao
 
@@ -67,12 +72,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun copiaSeguridadDao(): CopiaSeguridadDao
 
     companion object {
-        const val VERSION = 4
+        const val VERSION = 5
         const val NAME = "mis_turnos.db"
 
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, NAME)
                 .addMigrations(*TODAS_LAS_MIGRACIONES)
+                .addCallback(SEMBRAR_TIPOS_TURNO)
                 .build()
     }
 }

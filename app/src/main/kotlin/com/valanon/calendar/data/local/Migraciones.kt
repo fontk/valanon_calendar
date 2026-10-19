@@ -1,5 +1,6 @@
 package com.valanon.calendar.data.local
 
+import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
@@ -103,5 +104,74 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
     }
 }
 
+/**
+ * Schema v4 → v5: shift types become data (spec 3c). Creates `tipos_turno` with the five
+ * defaults ([TIPOS_TURNO_POR_DEFECTO], ids 1–5) and rebuilds `turnos` and `asignaciones` with a
+ * `tipo_id` foreign key, mapping each old text value (`'noche'`, …) to its id through `clave`.
+ * Every day and team shift keeps its row (and assignments their id). The SQL matches
+ * app/schemas/.../5.json.
+ */
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `tipos_turno` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`clave` TEXT, `nombre` TEXT NOT NULL, `abreviatura` TEXT NOT NULL, `color` TEXT NOT NULL, " +
+                "`orden` INTEGER NOT NULL)",
+        )
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `idx_tipos_turno_clave` ON `tipos_turno` (`clave`)")
+        insertarTiposTurnoPorDefecto(db)
+
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `turnos_nueva` (`fecha` TEXT NOT NULL, `tipo_id` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`fecha`), " +
+                "FOREIGN KEY(`tipo_id`) REFERENCES `tipos_turno`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL(
+            "INSERT INTO `turnos_nueva` (`fecha`, `tipo_id`) " +
+                "SELECT t.`fecha`, tt.`id` FROM `turnos` t JOIN `tipos_turno` tt ON tt.`clave` = t.`tipo`",
+        )
+        db.execSQL("DROP TABLE `turnos`")
+        db.execSQL("ALTER TABLE `turnos_nueva` RENAME TO `turnos`")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `idx_turnos_tipo` ON `turnos` (`tipo_id`)")
+
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `asignaciones_nueva` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`fecha` TEXT NOT NULL, `trabajador_id` INTEGER NOT NULL, `tipo_id` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`trabajador_id`) REFERENCES `trabajadores`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                "FOREIGN KEY(`tipo_id`) REFERENCES `tipos_turno`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL(
+            "INSERT INTO `asignaciones_nueva` (`id`, `fecha`, `trabajador_id`, `tipo_id`) " +
+                "SELECT a.`id`, a.`fecha`, a.`trabajador_id`, tt.`id` FROM `asignaciones` a " +
+                "JOIN `tipos_turno` tt ON tt.`clave` = a.`tipo`",
+        )
+        db.execSQL("DROP TABLE `asignaciones`")
+        db.execSQL("ALTER TABLE `asignaciones_nueva` RENAME TO `asignaciones`")
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `idx_asignaciones_fecha_trabajador` ON `asignaciones` (`fecha`, `trabajador_id`)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `idx_asignaciones_trabajador` ON `asignaciones` (`trabajador_id`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `idx_asignaciones_tipo` ON `asignaciones` (`tipo_id`)")
+    }
+}
+
+/** Inserts [TIPOS_TURNO_POR_DEFECTO] with their fixed ids (v4 → v5 migration and fresh installs). */
+fun insertarTiposTurnoPorDefecto(db: SupportSQLiteDatabase) {
+    TIPOS_TURNO_POR_DEFECTO.forEach { t ->
+        db.execSQL(
+            "INSERT INTO `tipos_turno` (`id`, `clave`, `nombre`, `abreviatura`, `color`, `orden`) VALUES (?, ?, ?, ?, ?, ?)",
+            arrayOf<Any?>(t.id, t.clave, t.nombre, t.abreviatura, t.color, t.orden),
+        )
+    }
+}
+
+/**
+ * A fresh install gets the schema straight from the entities (no migration runs), so this
+ * callback seeds the five default shift types. Also used by tests that build a database.
+ */
+val SEMBRAR_TIPOS_TURNO: RoomDatabase.Callback = object : RoomDatabase.Callback() {
+    override fun onCreate(db: SupportSQLiteDatabase) = insertarTiposTurnoPorDefecto(db)
+}
+
 /** Every migration, in order. Registered in [AppDatabase.build] and used by MigrationTest. */
-val TODAS_LAS_MIGRACIONES: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+val TODAS_LAS_MIGRACIONES: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)

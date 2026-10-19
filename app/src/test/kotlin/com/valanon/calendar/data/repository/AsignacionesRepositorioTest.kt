@@ -1,8 +1,9 @@
 package com.valanon.calendar.data.repository
 
 import com.valanon.calendar.data.model.TipoPlantilla
-import com.valanon.calendar.data.model.TipoTurno
+import com.valanon.calendar.data.local.entity.TipoTurno
 import com.valanon.calendar.testing.FakesPlantillas
+import com.valanon.calendar.testing.Tipos
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -15,7 +16,7 @@ class AsignacionesRepositorioTest {
 
     private val fakes = FakesPlantillas()
     private val plantillas = fakes.repositorioPlantillas()
-    private val repo = AsignacionesRepositorio(fakes.asignaciones, fakes.ajustes, fakes.plantillas, fakes.trabajadores)
+    private val repo = fakes.repositorioAsignaciones()
 
     @Test
     fun `sin plantillas no hay plantilla activa`() = runTest {
@@ -44,18 +45,18 @@ class AsignacionesRepositorioTest {
         val (lucia, javier) = repo.trabajadores(p).first().map { it.id }
         val dia = LocalDate.of(2026, 10, 17)
 
-        repo.asignar(dia, lucia, TipoTurno.MANANA)
-        repo.asignar(dia, lucia, TipoTurno.NOCHE) // same day and worker → replaced
-        repo.asignar(dia, javier, TipoTurno.TARDE)
-        repo.asignar(LocalDate.of(2026, 11, 1), javier, TipoTurno.LIBRE) // other month
+        repo.asignar(dia, lucia, Tipos.MANANA)
+        repo.asignar(dia, lucia, Tipos.NOCHE) // same day and worker → replaced
+        repo.asignar(dia, javier, Tipos.TARDE)
+        repo.asignar(LocalDate.of(2026, 11, 1), javier, Tipos.LIBRE) // other month
 
         assertEquals(
-            mapOf(dia to mapOf(lucia to TipoTurno.NOCHE, javier to TipoTurno.TARDE)),
+            mapOf(dia to mapOf(lucia to Tipos.NOCHE, javier to Tipos.TARDE)),
             repo.asignacionesMes(p, YearMonth.of(2026, 10)).first(),
         )
 
         repo.quitar(dia, lucia)
-        assertEquals(mapOf(dia to mapOf(javier to TipoTurno.TARDE)), repo.asignacionesMes(p, YearMonth.of(2026, 10)).first())
+        assertEquals(mapOf(dia to mapOf(javier to Tipos.TARDE)), repo.asignacionesMes(p, YearMonth.of(2026, 10)).first())
     }
 
     @Test
@@ -67,9 +68,9 @@ class AsignacionesRepositorioTest {
         val deA = repo.trabajadores(a).first().single().id
         val deB = repo.trabajadores(b).first().single().id
         val dia = LocalDate.of(2026, 10, 5)
-        repo.asignar(dia, deA, TipoTurno.MANANA)
-        repo.asignar(dia, deB, TipoTurno.NOCHE)
+        repo.asignar(dia, deA, Tipos.MANANA)
+        repo.asignar(dia, deB, Tipos.NOCHE)
 
-        assertEquals(mapOf(dia to mapOf(deA to TipoTurno.MANANA)), repo.asignacionesMes(a, YearMonth.of(2026, 10)).first())
+        assertEquals(mapOf(dia to mapOf(deA to Tipos.MANANA)), repo.asignacionesMes(a, YearMonth.of(2026, 10)).first())
     }
 }
